@@ -1,0 +1,416 @@
+fileFormatVersion: 2
+guid: 309036905a3124549b4227a582c9e0de
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 6266545530850379354
+    second: 2.3_sazhenec_yabloni_0
+  - first:
+      213: 1919052266370678749
+    second: 2.3_sazhenec_yabloni_1
+  - first:
+      213: 5679619523099367146
+    second: 2.3_sazhenec_yabloni_2
+  - first:
+      213: -899425364205416548
+    second: 2.3_sazhenec_yabloni_3
+  - first:
+      213: 5834777823042364517
+    second: 2.3_sazhenec_yabloni_4
+  - first:
+      213: -5403482281272633202
+    second: 2.3_sazhenec_yabloni_5
+  - first:
+      213: 2328985325526671127
+    second: 2.3_sazhenec_yabloni_6
+  - first:
+      213: 2028197973350112688
+    second: 2.3_sazhenec_yabloni_7
+  - first:
+      213: -1050871134151019379
+    second: 2.3_sazhenec_yabloni_8
+  - first:
+      213: -5603843694738667874
+    second: 2.3_sazhenec_yabloni_9
+  - first:
+      213: 1528762561022116682
+    second: 2.3_sazhenec_yabloni_10
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_0
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 254
+        width: 1230
+        height: 1476
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a56062f65fd37f650800000000000000
+      internalID: 6266545530850379354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_1
+      rect:
+        serializedVersion: 2
+        x: 1198
+        y: 1730
+        width: 74
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ddfbe626ed7d1aa10800000000000000
+      internalID: 1919052266370678749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_2
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 1292
+        width: 7
+        height: 245
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae616b54ddf02de40800000000000000
+      internalID: 5679619523099367146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_3
+      rect:
+        serializedVersion: 2
+        x: 1647
+        y: 1293
+        width: 12
+        height: 246
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9f4f8885699483f0800000000000000
+      internalID: -899425364205416548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_4
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 1497
+        width: 6
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 56464cd148b49f050800000000000000
+      internalID: 5834777823042364517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_5
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 940
+        width: 7
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e8890aa7e79f205b0800000000000000
+      internalID: -5403482281272633202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_6
+      rect:
+        serializedVersion: 2
+        x: 1647
+        y: 985
+        width: 6
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71f5d1760d7325020800000000000000
+      internalID: 2328985325526671127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_7
+      rect:
+        serializedVersion: 2
+        x: 1654
+        y: 946
+        width: 6
+        height: 53
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0bd53b79f4b952c10800000000000000
+      internalID: 2028197973350112688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_8
+      rect:
+        serializedVersion: 2
+        x: 1647
+        y: 934
+        width: 6
+        height: 46
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d847730754e8a61f0800000000000000
+      internalID: -1050871134151019379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_9
+      rect:
+        serializedVersion: 2
+        x: 936
+        y: 242
+        width: 78
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e960a4e99d52b32b0800000000000000
+      internalID: -5603843694738667874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 2.3_sazhenec_yabloni_10
+      rect:
+        serializedVersion: 2
+        x: 1058
+        y: 242
+        width: 83
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a43c3a31371473510800000000000000
+      internalID: 1528762561022116682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      2.3_sazhenec_yabloni_0: 6266545530850379354
+      2.3_sazhenec_yabloni_1: 1919052266370678749
+      2.3_sazhenec_yabloni_10: 1528762561022116682
+      2.3_sazhenec_yabloni_2: 5679619523099367146
+      2.3_sazhenec_yabloni_3: -899425364205416548
+      2.3_sazhenec_yabloni_4: 5834777823042364517
+      2.3_sazhenec_yabloni_5: -5403482281272633202
+      2.3_sazhenec_yabloni_6: 2328985325526671127
+      2.3_sazhenec_yabloni_7: 2028197973350112688
+      2.3_sazhenec_yabloni_8: -1050871134151019379
+      2.3_sazhenec_yabloni_9: -5603843694738667874
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

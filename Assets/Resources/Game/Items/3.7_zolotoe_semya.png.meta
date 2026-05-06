@@ -1,0 +1,390 @@
+fileFormatVersion: 2
+guid: 8a62b1f5dd2e025488c4f5d37a108fe5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2022598942597503241
+    second: 3.7_zolotoe_semya_0
+  - first:
+      213: -2371235069018969621
+    second: 3.7_zolotoe_semya_1
+  - first:
+      213: -2436835669763563874
+    second: 3.7_zolotoe_semya_2
+  - first:
+      213: -6341386597709907920
+    second: 3.7_zolotoe_semya_3
+  - first:
+      213: -7850644672086221675
+    second: 3.7_zolotoe_semya_4
+  - first:
+      213: 3408355576349270508
+    second: 3.7_zolotoe_semya_5
+  - first:
+      213: 581856459560198025
+    second: 3.7_zolotoe_semya_6
+  - first:
+      213: -5391123224041016431
+    second: 3.7_zolotoe_semya_7
+  - first:
+      213: -6475318030042385531
+    second: 3.7_zolotoe_semya_8
+  - first:
+      213: 6001434073907067596
+    second: 3.7_zolotoe_semya_9
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_0
+      rect:
+        serializedVersion: 2
+        x: 1090
+        y: 1686
+        width: 182
+        height: 12
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 909da98a507b11c10800000000000000
+      internalID: 2022598942597503241
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_1
+      rect:
+        serializedVersion: 2
+        x: 1350
+        y: 1686
+        width: 36
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be9ec20a44ea71fd0800000000000000
+      internalID: -2371235069018969621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_2
+      rect:
+        serializedVersion: 2
+        x: 343
+        y: 850
+        width: 7
+        height: 233
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9eddb78ede9e2ed0800000000000000
+      internalID: -2436835669763563874
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_3
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 1073
+        width: 6
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 038f31ccc7edef7a0800000000000000
+      internalID: -6341386597709907920
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_4
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 299
+        width: 1408
+        height: 1386
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 59cdc76e348ec0390800000000000000
+      internalID: -7850644672086221675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_5
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 843
+        width: 6
+        height: 144
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce12584a659ec4f20800000000000000
+      internalID: 3408355576349270508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_6
+      rect:
+        serializedVersion: 2
+        x: 1763
+        y: 645
+        width: 6
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98f1a5efd5b231800800000000000000
+      internalID: 581856459560198025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_7
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 294
+        width: 146
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1933daabdf1ee25b0800000000000000
+      internalID: -5391123224041016431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_8
+      rect:
+        serializedVersion: 2
+        x: 1081
+        y: 298
+        width: 33
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58334a33f8c0326a0800000000000000
+      internalID: -6475318030042385531
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 3.7_zolotoe_semya_9
+      rect:
+        serializedVersion: 2
+        x: 1116
+        y: 299
+        width: 53
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ccaf7264e70694350800000000000000
+      internalID: 6001434073907067596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      3.7_zolotoe_semya_0: 2022598942597503241
+      3.7_zolotoe_semya_1: -2371235069018969621
+      3.7_zolotoe_semya_2: -2436835669763563874
+      3.7_zolotoe_semya_3: -6341386597709907920
+      3.7_zolotoe_semya_4: -7850644672086221675
+      3.7_zolotoe_semya_5: 3408355576349270508
+      3.7_zolotoe_semya_6: 581856459560198025
+      3.7_zolotoe_semya_7: -5391123224041016431
+      3.7_zolotoe_semya_8: -6475318030042385531
+      3.7_zolotoe_semya_9: 6001434073907067596
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

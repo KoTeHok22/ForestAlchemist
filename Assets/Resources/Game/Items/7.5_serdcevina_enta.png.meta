@@ -1,0 +1,494 @@
+fileFormatVersion: 2
+guid: b0116c91a3371424a943b3cbf46bef47
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -716429512055587475
+    second: 7.5_serdcevina_enta_0
+  - first:
+      213: 5567214509420204120
+    second: 7.5_serdcevina_enta_1
+  - first:
+      213: -3363246803950057767
+    second: 7.5_serdcevina_enta_2
+  - first:
+      213: -7444836245457383746
+    second: 7.5_serdcevina_enta_3
+  - first:
+      213: 4875889665404746772
+    second: 7.5_serdcevina_enta_4
+  - first:
+      213: -3562853454872881834
+    second: 7.5_serdcevina_enta_5
+  - first:
+      213: 2168115705147764999
+    second: 7.5_serdcevina_enta_6
+  - first:
+      213: 8509006020007667960
+    second: 7.5_serdcevina_enta_7
+  - first:
+      213: -6129569074922950898
+    second: 7.5_serdcevina_enta_8
+  - first:
+      213: -6851205137710107202
+    second: 7.5_serdcevina_enta_9
+  - first:
+      213: 8528929425770274459
+    second: 7.5_serdcevina_enta_10
+  - first:
+      213: 967753684576822540
+    second: 7.5_serdcevina_enta_11
+  - first:
+      213: -7877911453541386837
+    second: 7.5_serdcevina_enta_12
+  - first:
+      213: 8188407598011399154
+    second: 7.5_serdcevina_enta_13
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_0
+      rect:
+        serializedVersion: 2
+        x: 1043
+        y: 1782
+        width: 105
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6df153972bbe06f0800000000000000
+      internalID: -716429512055587475
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_1
+      rect:
+        serializedVersion: 2
+        x: 331
+        y: 260
+        width: 1368
+        height: 1521
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 85054669918b24d40800000000000000
+      internalID: 5567214509420204120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_2
+      rect:
+        serializedVersion: 2
+        x: 1698
+        y: 1221
+        width: 7
+        height: 73
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9d6c69ed9d85351d0800000000000000
+      internalID: -3363246803950057767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_3
+      rect:
+        serializedVersion: 2
+        x: 1705
+        y: 1189
+        width: 6
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ebe4f8211e0aea890800000000000000
+      internalID: -7444836245457383746
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_4
+      rect:
+        serializedVersion: 2
+        x: 1698
+        y: 1157
+        width: 6
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41cb27e21d3aaa340800000000000000
+      internalID: 4875889665404746772
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_5
+      rect:
+        serializedVersion: 2
+        x: 324
+        y: 1068
+        width: 6
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 655578bd8a33e8ec0800000000000000
+      internalID: -3562853454872881834
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_6
+      rect:
+        serializedVersion: 2
+        x: 330
+        y: 972
+        width: 7
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70137452fb1b61e10800000000000000
+      internalID: 2168115705147764999
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_7
+      rect:
+        serializedVersion: 2
+        x: 1698
+        y: 1016
+        width: 7
+        height: 111
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f8a73e74ef061670800000000000000
+      internalID: 8509006020007667960
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_8
+      rect:
+        serializedVersion: 2
+        x: 1705
+        y: 1036
+        width: 6
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0f6ff6f6656feaa0800000000000000
+      internalID: -6129569074922950898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_9
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 773
+        width: 12
+        height: 162
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb5357bf931abe0a0800000000000000
+      internalID: -6851205137710107202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_10
+      rect:
+        serializedVersion: 2
+        x: 1698
+        y: 825
+        width: 7
+        height: 85
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b9ed961ef18dc5670800000000000000
+      internalID: 8528929425770274459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_11
+      rect:
+        serializedVersion: 2
+        x: 1705
+        y: 837
+        width: 6
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c05e64749d62e6d00800000000000000
+      internalID: 967753684576822540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_12
+      rect:
+        serializedVersion: 2
+        x: 838
+        y: 254
+        width: 35
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba53faf95490ca290800000000000000
+      internalID: -7877911453541386837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 7.5_serdcevina_enta_13
+      rect:
+        serializedVersion: 2
+        x: 891
+        y: 254
+        width: 76
+        height: 6
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fb349b835113a170800000000000000
+      internalID: 8188407598011399154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      7.5_serdcevina_enta_0: -716429512055587475
+      7.5_serdcevina_enta_1: 5567214509420204120
+      7.5_serdcevina_enta_10: 8528929425770274459
+      7.5_serdcevina_enta_11: 967753684576822540
+      7.5_serdcevina_enta_12: -7877911453541386837
+      7.5_serdcevina_enta_13: 8188407598011399154
+      7.5_serdcevina_enta_2: -3363246803950057767
+      7.5_serdcevina_enta_3: -7444836245457383746
+      7.5_serdcevina_enta_4: 4875889665404746772
+      7.5_serdcevina_enta_5: -3562853454872881834
+      7.5_serdcevina_enta_6: 2168115705147764999
+      7.5_serdcevina_enta_7: 8509006020007667960
+      7.5_serdcevina_enta_8: -6129569074922950898
+      7.5_serdcevina_enta_9: -6851205137710107202
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

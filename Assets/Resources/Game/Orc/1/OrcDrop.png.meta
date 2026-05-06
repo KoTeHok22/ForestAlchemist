@@ -1,0 +1,621 @@
+fileFormatVersion: 2
+guid: 040f4931f4d7f9a45baa56988e597345
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2073518726541670837
+    second: OrcDrop_0
+  - first:
+      213: 4427345859165680456
+    second: OrcDrop_1
+  - first:
+      213: 4974207529359441956
+    second: OrcDrop_2
+  - first:
+      213: -8005820150672537596
+    second: OrcDrop_3
+  - first:
+      213: -8840935804531728133
+    second: OrcDrop_4
+  - first:
+      213: -640408996051767684
+    second: OrcDrop_5
+  - first:
+      213: -259569339196059479
+    second: OrcDrop_6
+  - first:
+      213: 1078574595423916034
+    second: OrcDrop_7
+  - first:
+      213: 3568273940926066688
+    second: OrcDrop_8
+  - first:
+      213: -8380699618689593162
+    second: OrcDrop_9
+  - first:
+      213: 9156199665667830063
+    second: OrcDrop_10
+  - first:
+      213: 2888254742023616678
+    second: OrcDrop_11
+  - first:
+      213: -7443862429355965
+    second: OrcDrop_12
+  - first:
+      213: -605765301922778767
+    second: OrcDrop_13
+  - first:
+      213: 3949918011992248060
+    second: OrcDrop_14
+  - first:
+      213: -2267274570160655421
+    second: OrcDrop_15
+  - first:
+      213: 8028073867589968099
+    second: OrcDrop_16
+  - first:
+      213: 5100477091665453951
+    second: OrcDrop_17
+  - first:
+      213: -6829070640923911230
+    second: OrcDrop_18
+  - first:
+      213: 3063233878722304815
+    second: OrcDrop_19
+  - first:
+      213: 8418199579636094551
+    second: OrcDrop_20
+  - first:
+      213: -5746928702582649996
+    second: OrcDrop_21
+  - first:
+      213: 8249287836355315915
+    second: OrcDrop_22
+  - first:
+      213: -3474047650320015702
+    second: OrcDrop_23
+  - first:
+      213: -5736772492549302600
+    second: OrcDrop_24
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: OrcDrop_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 427
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5b9f2aabb4e96cc10800000000000000
+      internalID: 2073518726541670837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_1
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 427
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 843fd511a97117d30800000000000000
+      internalID: 4427345859165680456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_2
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 427
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4200b8ab46fe70540800000000000000
+      internalID: 4974207529359441956
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_3
+      rect:
+        serializedVersion: 2
+        x: 639
+        y: 427
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 408cf775dfc95e090800000000000000
+      internalID: -8005820150672537596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_4
+      rect:
+        serializedVersion: 2
+        x: 852
+        y: 427
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bf0aad02abfae4580800000000000000
+      internalID: -8840935804531728133
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_5
+      rect:
+        serializedVersion: 2
+        x: 1065
+        y: 427
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7eae5f396fcc17f0800000000000000
+      internalID: -640408996051767684
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 214
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9a0d2aeaf03d56cf0800000000000000
+      internalID: -259569339196059479
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_7
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 214
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 200d00841edd7fe00800000000000000
+      internalID: 1078574595423916034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_8
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 214
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0007e266e3e058130800000000000000
+      internalID: 3568273940926066688
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_9
+      rect:
+        serializedVersion: 2
+        x: 639
+        y: 214
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b051c28916c1bb80800000000000000
+      internalID: -8380699618689593162
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_10
+      rect:
+        serializedVersion: 2
+        x: 852
+        y: 214
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f217ea4951b511f70800000000000000
+      internalID: 9156199665667830063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_11
+      rect:
+        serializedVersion: 2
+        x: 1065
+        y: 214
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6a8b72f9264251820800000000000000
+      internalID: 2888254742023616678
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3403428b8dd85eff0800000000000000
+      internalID: -7443862429355965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_13
+      rect:
+        serializedVersion: 2
+        x: 213
+        y: 1
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 171b2a9daa3e797f0800000000000000
+      internalID: -605765301922778767
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_14
+      rect:
+        serializedVersion: 2
+        x: 426
+        y: 1
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfe07bc118de0d630800000000000000
+      internalID: 3949918011992248060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_15
+      rect:
+        serializedVersion: 2
+        x: 639
+        y: 1
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8eea5913aa6cc7c4aa4e6e331571a042
+      internalID: -2267274570160655421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_16
+      rect:
+        serializedVersion: 2
+        x: 852
+        y: 1
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c2f66abc5451db4296e74b628e9971b
+      internalID: 8028073867589968099
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: OrcDrop_17
+      rect:
+        serializedVersion: 2
+        x: 1065
+        y: 1
+        width: 213
+        height: 213
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a87ef10b5c83f9c4193aaa9e0fddac89
+      internalID: 5100477091665453951
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 77204170827d7de46aec8901bb2ea793
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":6.0,"y":3.0},"gridSpriteSize":{"x":213.0,"y":213.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      OrcDrop_0: 2073518726541670837
+      OrcDrop_1: 4427345859165680456
+      OrcDrop_10: 9156199665667830063
+      OrcDrop_11: 2888254742023616678
+      OrcDrop_12: -7443862429355965
+      OrcDrop_13: -605765301922778767
+      OrcDrop_14: 3949918011992248060
+      OrcDrop_15: -2267274570160655421
+      OrcDrop_16: 8028073867589968099
+      OrcDrop_17: 5100477091665453951
+      OrcDrop_2: 4974207529359441956
+      OrcDrop_3: -8005820150672537596
+      OrcDrop_4: -8840935804531728133
+      OrcDrop_5: -640408996051767684
+      OrcDrop_6: -259569339196059479
+      OrcDrop_7: 1078574595423916034
+      OrcDrop_8: 3568273940926066688
+      OrcDrop_9: -8380699618689593162
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
