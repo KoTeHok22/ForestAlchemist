@@ -28,6 +28,7 @@ public sealed class GameProgressData
     public CraftingProgressData crafting = new CraftingProgressData();
     public HotbarData hotbar = new HotbarData();
     public ExpeditionStats stats = new ExpeditionStats();
+    public ExpeditionLoadoutData loadout = new ExpeditionLoadoutData();
 }
 
 [Serializable]
@@ -57,6 +58,7 @@ public sealed class CraftingProgressData
     public int level = 1;
     public int craftingXp;
     public List<string> unlockedRecipes = new List<string>();
+    public List<string> craftedSpells = new List<string>();
 }
 
 [Serializable]
@@ -70,6 +72,13 @@ public sealed class ExpeditionStats
 {
     public int successfulExpeditions;
     public int totalDeaths;
+    public int deepestThreatReached;
+}
+
+[Serializable]
+public sealed class ExpeditionLoadoutData
+{
+    public List<InventorySlot> consumables = new List<InventorySlot>();
 }
 
 [Serializable]

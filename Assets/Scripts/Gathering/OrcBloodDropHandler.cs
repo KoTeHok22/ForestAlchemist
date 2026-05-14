@@ -3,7 +3,7 @@ using UnityEngine;
 public sealed class OrcBloodDropHandler : MonoBehaviour
 {
     private PlayerInventory inventory;
-    private const string BloodItemName = "КровьОрка";
+    private const string BloodItemName = ItemCatalog.OrcBlood;
 
     public void Initialize(PlayerInventory inventory)
     {

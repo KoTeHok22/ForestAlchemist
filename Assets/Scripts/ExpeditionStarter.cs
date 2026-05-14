@@ -6,6 +6,7 @@ public sealed class ExpeditionStarter : MonoBehaviour
 {
     [SerializeField] private float interactionDistance = 2f;
     [SerializeField] private Color highlightColor = new Color(1f, 0.95f, 0.45f, 1f);
+    [SerializeField] private ExpeditionPreparationUI preparationUI;
 
     private SpriteRenderer sr;
     private Collider2D col;
@@ -18,6 +19,11 @@ public sealed class ExpeditionStarter : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         if (sr != null) defaultColor = sr.color;
+
+        if (preparationUI == null)
+        {
+            preparationUI = FindFirstObjectByType<ExpeditionPreparationUI>();
+        }
         
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) player = playerObj.transform;
@@ -46,7 +52,19 @@ public sealed class ExpeditionStarter : MonoBehaviour
     {
         if (isHovered && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            ExpeditionManager.Instance.StartExpedition();
+            if (preparationUI == null)
+            {
+                preparationUI = FindFirstObjectByType<ExpeditionPreparationUI>();
+            }
+
+            if (preparationUI != null)
+            {
+                preparationUI.Open();
+            }
+            else
+            {
+                ExpeditionManager.Instance.StartExpedition();
+            }
         }
     }
 

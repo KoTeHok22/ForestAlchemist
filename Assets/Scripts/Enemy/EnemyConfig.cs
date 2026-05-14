@@ -37,6 +37,7 @@ public string animationResourcePath = "Game/Orc/1";
 
     [Header("Visuals")]
     public Vector3 spriteScale = Vector3.one;
+    public Color tintColor = Color.white;
 
     [Header("Shaman (ranged)")]
     public bool isShaman;
@@ -48,6 +49,7 @@ public string animationResourcePath = "Game/Orc/1";
     [Header("Boss")]
     public bool isBoss;
     public string bossTrophyItemId;
+    public string titleOverride;
 }
 
     [System.Serializable]

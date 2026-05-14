@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections.Generic;
 
 public sealed class HotbarDisplay : MonoBehaviour
 {
@@ -69,7 +68,19 @@ public sealed class HotbarDisplay : MonoBehaviour
         if (string.IsNullOrEmpty(itemId)) return null;
 
         Sprite icon = Resources.Load<Sprite>($"Game/Icons/{itemId}");
-        return icon;
+        if (icon != null)
+        {
+            return icon;
+        }
+
+        PlayerSpellCaster spellCaster = FindFirstObjectByType<PlayerSpellCaster>();
+        SpellDefinition spell = spellCaster != null ? spellCaster.ResolveSpell(itemId) : null;
+        if (spell != null && spell.icon != null)
+        {
+            return spell.icon;
+        }
+
+        return emptySlotSprite;
     }
 
     private void UpdateCooldowns()

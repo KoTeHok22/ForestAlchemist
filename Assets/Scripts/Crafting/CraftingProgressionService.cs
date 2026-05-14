@@ -20,7 +20,7 @@ public sealed class CraftingProgressionService : MonoBehaviour
 
     [Header("Progression")]
     [SerializeField] private int baseXpPerCraft = 10;
-    [SerializeField] private int[] xpThresholds = { 0, 100, 300, 600, 1000, 1500, 2200, 3000, 4000, 5500 };
+    [SerializeField] private int[] xpThresholds = { 0, 60, 160, 320, 540, 820, 1160, 1560, 2020, 2540 };
 
     public event System.Action<int, int> OnLevelChanged;
     public event System.Action<int, int> OnXpChanged;

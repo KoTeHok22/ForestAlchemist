@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Collider2D))]
 public sealed class EvacuationPoint : MonoBehaviour
 {
     [SerializeField] private float interactionDistance = 2f;
@@ -17,6 +16,11 @@ public sealed class EvacuationPoint : MonoBehaviour
     {
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
+        if (col == null)
+        {
+            col = gameObject.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+        }
         if (sr != null) defaultColor = sr.color;
         
         var playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -46,7 +50,8 @@ public sealed class EvacuationPoint : MonoBehaviour
     {
         if (isHovered && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            // Check if in combat? For now just evacuate.
+            ExpeditionManager.Instance.TryUnlockReturn("evacuation_point");
+            QuestManager.Instance.ReportReturnPointReached("evacuation_point");
             ExpeditionManager.Instance.EndExpedition(ExpeditionResult.Success);
         }
     }

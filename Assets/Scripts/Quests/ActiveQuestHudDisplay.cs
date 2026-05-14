@@ -16,7 +16,16 @@ public sealed class ActiveQuestHudDisplay : MonoBehaviour
     {
         questService = service;
         iconProvider = provider;
+        questService.OnQuestsChanged += Refresh;
         Refresh();
+    }
+
+    private void OnDestroy()
+    {
+        if (questService != null)
+        {
+            questService.OnQuestsChanged -= Refresh;
+        }
     }
 
     public void Refresh()
@@ -46,7 +55,8 @@ public sealed class ActiveQuestHudDisplay : MonoBehaviour
             Image logoImage = itemLogo.GetComponent<Image>();
             if (logoImage != null && iconProvider != null)
             {
-                Sprite icon = quest.type == QuestType.CollectItem ? iconProvider.GetIcon(quest.itemName) : null;
+                string targetId = quest.GetResolvedTargetId();
+                Sprite icon = quest.type == QuestType.CollectItem && !string.IsNullOrEmpty(targetId) ? iconProvider.GetIcon(targetId) : null;
                 if (icon != null)
                 {
                     logoImage.sprite = icon;
@@ -63,7 +73,9 @@ public sealed class ActiveQuestHudDisplay : MonoBehaviour
         {
             TextMeshProUGUI countText = itemCount.GetComponent<TextMeshProUGUI>();
             if (countText != null)
-                countText.text = $"x{quest.requiredCount}";
+                countText.text = quest.type == QuestType.CollectItem
+                    ? $"x{quest.requiredCount} {ItemCatalog.GetDisplayName(quest.GetResolvedTargetId())}"
+                    : $"x{quest.requiredCount}";
         }
 
         Transform cost = entry.transform.Find("Cost");

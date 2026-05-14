@@ -20,15 +20,24 @@ public sealed class ActiveQuestPanel : MonoBehaviour
     private void OnEnable()
     {
         QuestManager.Instance.OnQuestProgressUpdated += OnQuestProgress;
+        QuestManager.Instance.OnQuestCompleted += OnQuestCompleted;
     }
 
     private void OnDisable()
     {
         if (QuestManager.Instance != null)
+        {
             QuestManager.Instance.OnQuestProgressUpdated -= OnQuestProgress;
+            QuestManager.Instance.OnQuestCompleted -= OnQuestCompleted;
+        }
     }
 
     private void OnQuestProgress(string questId, int count)
+    {
+        Refresh();
+    }
+
+    private void OnQuestCompleted(string questId)
     {
         Refresh();
     }

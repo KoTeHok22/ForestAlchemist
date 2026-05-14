@@ -7,6 +7,7 @@ public sealed class HomeManager : MonoBehaviour
     [SerializeField] private GardenVisuals gardenVisuals;
     [SerializeField] private GardenHarvestInteraction gardenHarvest;
     [SerializeField] private CraftingUI craftingUI;
+    [SerializeField] private ExpeditionPreparationUI expeditionPreparationUI;
 
     private void Awake()
     {
@@ -15,6 +16,7 @@ public sealed class HomeManager : MonoBehaviour
         if (gardenVisuals == null) gardenVisuals = Object.FindAnyObjectByType<GardenVisuals>();
         if (gardenHarvest == null) gardenHarvest = Object.FindAnyObjectByType<GardenHarvestInteraction>();
         if (craftingUI == null) craftingUI = Object.FindAnyObjectByType<CraftingUI>();
+        if (expeditionPreparationUI == null) expeditionPreparationUI = Object.FindAnyObjectByType<ExpeditionPreparationUI>();
 
         if (homeInventoryDisplay != null)
         {
@@ -45,5 +47,13 @@ public sealed class HomeManager : MonoBehaviour
     public void CloseCrafting()
     {
         if (craftingUI != null) craftingUI.Close();
+    }
+
+    public void OpenExpeditionPreparation()
+    {
+        if (expeditionPreparationUI != null)
+        {
+            expeditionPreparationUI.Open();
+        }
     }
 }

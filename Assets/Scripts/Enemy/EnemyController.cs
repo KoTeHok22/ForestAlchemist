@@ -21,7 +21,7 @@ private EnemyAnimationController animationController;
         this.config = config;
         this.scoreService = scoreService;
 
-        gameObject.name = config.enemyName;
+        gameObject.name = !string.IsNullOrEmpty(config.titleOverride) ? config.titleOverride : config.enemyName;
         transform.localScale = config.spriteScale;
 
         int scaledHealth = Mathf.RoundToInt(config.maxHealth * statMultiplier);
@@ -33,6 +33,7 @@ private EnemyAnimationController animationController;
             spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         }
         spriteRenderer.sortingOrder = 1;
+        spriteRenderer.color = ResolveTint(config);
 
         DepthSortingConfigurator.ConfigureSingle(gameObject);
 
@@ -64,6 +65,8 @@ private EnemyAnimationController animationController;
             hpBar = gameObject.AddComponent<EnemyHPBar>();
         }
         hpBar.Initialize(0.35f);
+
+        EnsureSpecialLoot(config);
 
         Rigidbody2D body = GetComponent<Rigidbody2D>();
         if (body == null)
@@ -133,5 +136,95 @@ private EnemyAnimationController animationController;
             health.OnDamaged -= HandleDamaged;
             health.OnDeath -= HandleDeath;
         }
+    }
+
+    private static Color ResolveTint(EnemyConfig config)
+    {
+        if (config == null)
+        {
+            return Color.white;
+        }
+
+        if (config.tintColor != default)
+        {
+            return config.tintColor;
+        }
+
+        if (config.isBoss)
+        {
+            return new Color(1f, 0.72f, 0.3f, 1f);
+        }
+
+        if (config.isShaman)
+        {
+            return new Color(0.7f, 0.45f, 1f, 1f);
+        }
+
+        return config.element switch
+        {
+            ElementType.Fire => new Color(1f, 0.5f, 0.35f, 1f),
+            ElementType.Water => new Color(0.45f, 0.7f, 1f, 1f),
+            ElementType.Earth => new Color(0.58f, 0.42f, 0.22f, 1f),
+            ElementType.Air => new Color(0.82f, 0.9f, 1f, 1f),
+            _ => Color.white
+        };
+    }
+
+    private static void EnsureSpecialLoot(EnemyConfig config)
+    {
+        if (config == null)
+        {
+            return;
+        }
+
+        if (config.lootTable == null)
+        {
+            config.lootTable = new System.Collections.Generic.List<LootEntry>();
+        }
+
+        if (config.isShaman && !HasLoot(config, ItemCatalog.ShamanTalisman))
+        {
+            config.lootTable.Add(new LootEntry { itemName = ItemCatalog.ShamanTalisman, chance = 0.75f, minAmount = 1, maxAmount = 1 });
+        }
+
+        if (!config.isBoss && !config.isShaman && !HasLoot(config, ItemCatalog.GreenOrcDrop))
+        {
+            config.lootTable.Add(new LootEntry { itemName = ItemCatalog.GreenOrcDrop, chance = 0.45f, minAmount = 1, maxAmount = 1 });
+        }
+
+        if (config.isBoss)
+        {
+            if (string.IsNullOrEmpty(config.bossTrophyItemId))
+            {
+                config.bossTrophyItemId = ItemCatalog.WarchiefTrophy;
+            }
+
+            if (!HasLoot(config, ItemCatalog.OrcBlood))
+            {
+                config.lootTable.Add(new LootEntry { itemName = ItemCatalog.OrcBlood, chance = 1f, minAmount = 4, maxAmount = 6 });
+            }
+
+            if (!HasLoot(config, ItemCatalog.WarchiefTrophy))
+            {
+                config.lootTable.Add(new LootEntry { itemName = ItemCatalog.WarchiefTrophy, chance = 1f, minAmount = 1, maxAmount = 1 });
+            }
+        }
+        else if (config.isShaman && !HasLoot(config, ItemCatalog.OrcBlood))
+        {
+            config.lootTable.Add(new LootEntry { itemName = ItemCatalog.OrcBlood, chance = 1f, minAmount = 2, maxAmount = 3 });
+        }
+    }
+
+    private static bool HasLoot(EnemyConfig config, string itemName)
+    {
+        for (int i = 0; i < config.lootTable.Count; i++)
+        {
+            if (config.lootTable[i].itemName == itemName)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

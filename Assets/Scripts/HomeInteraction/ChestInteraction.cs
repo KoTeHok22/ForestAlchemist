@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 public sealed class ChestInteraction : MonoBehaviour
 {
     [SerializeField] private GameObject chestPanel;
+    [SerializeField] private HomeStorageUI homeStorageUI;
     [SerializeField] private float interactionDistance = 2f;
     [SerializeField] private Color highlightColor = Color.cyan;
 
@@ -19,6 +20,11 @@ public sealed class ChestInteraction : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         col = GetComponent<Collider2D>();
         if (sr != null) defaultColor = sr.color;
+
+        if (homeStorageUI == null)
+        {
+            homeStorageUI = FindFirstObjectByType<HomeStorageUI>();
+        }
         
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) player = playerObj.transform;
@@ -53,6 +59,17 @@ public sealed class ChestInteraction : MonoBehaviour
 
     private void OpenChest()
     {
+        if (homeStorageUI == null)
+        {
+            homeStorageUI = FindFirstObjectByType<HomeStorageUI>();
+        }
+
+        if (homeStorageUI != null)
+        {
+            homeStorageUI.Open();
+            return;
+        }
+
         if (chestPanel != null) chestPanel.SetActive(true);
     }
 

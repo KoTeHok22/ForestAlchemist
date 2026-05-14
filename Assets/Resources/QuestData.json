@@ -1,354 +1,116 @@
 {
   "quests": [
     {
-      "id": "sakura_01",
-      "description": "Собери саженцы сакуры в лесу",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 3,
-      "rewardPoints": 150
-    },
-    {
-      "id": "sakura_02",
-      "description": "Сакура нужна для сада алхимика",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 5,
-      "rewardPoints": 250
-    },
-    {
-      "id": "sakura_03",
-      "description": "Принеси цветущие саженцы сакуры",
-      "itemName": "СаженецСакуры",
+      "id": "collect_sakura_small",
+      "description": "Собери редкие саженцы сакуры для домашнего сада",
+      "type": 0,
+      "targetId": "sakura_sapling",
       "requiredCount": 2,
-      "rewardPoints": 100
+      "rewardPoints": 110
     },
     {
-      "id": "sakura_04",
-      "description": "Восстанови сакуровую рощу",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 7,
-      "rewardPoints": 400
-    },
-    {
-      "id": "sakura_05",
-      "description": "Лепестки сакуры нужны для ритуала",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 4,
-      "rewardPoints": 200
-    },
-    {
-      "id": "sakura_06",
-      "description": "Путник просит украсить дорогу сакурой",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 6,
-      "rewardPoints": 320
-    },
-    {
-      "id": "sakura_07",
-      "description": "Саженцы сакуры для зелья исцеления",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 1,
-      "rewardPoints": 60
-    },
-    {
-      "id": "sakura_08",
-      "description": "Сакура расцветает — собери побольше",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 8,
-      "rewardPoints": 450
-    },
-    {
-      "id": "sakura_09",
-      "description": "Помоги друиду высадить сакуру",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 3,
-      "rewardPoints": 160
-    },
-    {
-      "id": "sakura_10",
-      "description": "Торговец скупает саженцы сакуры",
-      "itemName": "СаженецСакуры",
-      "requiredCount": 10,
-      "rewardPoints": 550
-    },
-    {
-      "id": "oak_01",
-      "description": "Найди саженцы дуба среди деревьев",
-      "itemName": "СаженецДуба",
-      "requiredCount": 5,
-      "rewardPoints": 200
-    },
-    {
-      "id": "oak_02",
-      "description": "Дубы укрепят стены крепости",
-      "itemName": "СаженецДуба",
-      "requiredCount": 3,
-      "rewardPoints": 130
-    },
-    {
-      "id": "oak_03",
-      "description": "Лесник просит восстановить дубраву",
-      "itemName": "СаженецДуба",
-      "requiredCount": 8,
-      "rewardPoints": 420
-    },
-    {
-      "id": "oak_04",
-      "description": "Кора дуба нужна целителю",
-      "itemName": "СаженецДуба",
-      "requiredCount": 2,
-      "rewardPoints": 90
-    },
-    {
-      "id": "oak_05",
-      "description": "Собери дубовые саженцы для плотника",
-      "itemName": "СаженецДуба",
-      "requiredCount": 6,
-      "rewardPoints": 300
-    },
-    {
-      "id": "oak_06",
-      "description": "Могучие дубы защитят деревню",
-      "itemName": "СаженецДуба",
-      "requiredCount": 4,
-      "rewardPoints": 180
-    },
-    {
-      "id": "oak_07",
-      "description": "Принеси жёлуди древнего дуба",
-      "itemName": "СаженецДуба",
-      "requiredCount": 7,
-      "rewardPoints": 380
-    },
-    {
-      "id": "oak_08",
-      "description": "Создай дубовый амулет из саженцев",
-      "itemName": "СаженецДуба",
-      "requiredCount": 1,
-      "rewardPoints": 50
-    },
-    {
-      "id": "oak_09",
-      "description": "Посади дубы вдоль тропы",
-      "itemName": "СаженецДуба",
-      "requiredCount": 9,
-      "rewardPoints": 480
-    },
-    {
-      "id": "oak_10",
-      "description": "Заготовь дубовую древесину впрок",
-      "itemName": "СаженецДуба",
+      "id": "collect_sakura_large",
+      "description": "Восстанови сакуровую рощу у друидов",
+      "type": 0,
+      "targetId": "sakura_sapling",
       "requiredCount": 5,
       "rewardPoints": 220
     },
     {
-      "id": "apple_01",
-      "description": "Собери саженцы яблони на поляне",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 4,
-      "rewardPoints": 180
+      "id": "collect_oak_small",
+      "description": "Найди молодые дубы для защитных амулетов",
+      "type": 0,
+      "targetId": "oak_sapling",
+      "requiredCount": 2,
+      "rewardPoints": 120
     },
     {
-      "id": "apple_02",
-      "description": "Яблони нужны для фруктового сада",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 6,
-      "rewardPoints": 290
+      "id": "collect_oak_large",
+      "description": "Заготовь достаточно дубовых саженцев для укрепления деревни",
+      "type": 0,
+      "targetId": "oak_sapling",
+      "requiredCount": 5,
+      "rewardPoints": 230
     },
     {
-      "id": "apple_03",
-      "description": "Повар просит яблони для пирогов",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 3,
+      "id": "collect_apple_small",
+      "description": "Собери яблоневые саженцы для домашней алхимии",
+      "type": 0,
+      "targetId": "apple_sapling",
+      "requiredCount": 2,
+      "rewardPoints": 105
+    },
+    {
+      "id": "collect_apple_large",
+      "description": "Обнови фруктовый питомник перед зимой",
+      "type": 0,
+      "targetId": "apple_sapling",
+      "requiredCount": 5,
+      "rewardPoints": 215
+    },
+    {
+      "id": "collect_orc_drop_small",
+      "description": "Добудь трофеи с зелёных орков для оружейника",
+      "type": 0,
+      "targetId": "green_orc_drop",
+      "requiredCount": 2,
       "rewardPoints": 140
     },
     {
-      "id": "apple_04",
-      "description": "Засади яблонями заброшенный сад",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 8,
-      "rewardPoints": 430
-    },
-    {
-      "id": "apple_05",
-      "description": "Яблочный сидр требует свежих яблонь",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 2,
-      "rewardPoints": 100
-    },
-    {
-      "id": "apple_06",
-      "description": "Обнови яблоневый питомник",
-      "itemName": "СаженецЯблони",
+      "id": "collect_orc_drop_large",
+      "description": "Собери большую связку орочьих трофеев для музея",
+      "type": 0,
+      "targetId": "green_orc_drop",
       "requiredCount": 5,
-      "rewardPoints": 240
-    },
-    {
-      "id": "apple_07",
-      "description": "Ведьма варит зелье из яблонь",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 1,
-      "rewardPoints": 55
-    },
-    {
-      "id": "apple_08",
-      "description": "Яблоневый мёд — редкий ингредиент",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 7,
-      "rewardPoints": 370
-    },
-    {
-      "id": "apple_09",
-      "description": "Дети просят посадить яблони у школы",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 4,
-      "rewardPoints": 190
-    },
-    {
-      "id": "apple_10",
-      "description": "Заготовь яблоневые саженцы на зиму",
-      "itemName": "СаженецЯблони",
-      "requiredCount": 10,
-      "rewardPoints": 520
-    },
-    {
-      "id": "orc_drop_01",
-      "description": "Добудь трофеи с зелёных орков",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 2,
-      "rewardPoints": 300
-    },
-    {
-      "id": "orc_drop_02",
-      "description": "Орочьи клыки пригодятся кузнецу",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 4,
-      "rewardPoints": 500
-    },
-    {
-      "id": "orc_drop_03",
-      "description": "Собери трофеи для коллекции охотника",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 1,
-      "rewardPoints": 170
-    },
-    {
-      "id": "orc_drop_04",
-      "description": "Добудь орочьи амулеты для изучения",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 3,
-      "rewardPoints": 400
-    },
-    {
-      "id": "orc_drop_05",
-      "description": "Оружейник скупает орочьи трофеи",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 6,
-      "rewardPoints": 700
-    },
-    {
-      "id": "orc_drop_06",
-      "description": "Докажи доблесть — принеси трофеи",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 5,
-      "rewardPoints": 620
-    },
-    {
-      "id": "orc_drop_07",
-      "description": "Стражник хочет образцы орочьей брони",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 2,
       "rewardPoints": 280
     },
     {
-      "id": "orc_drop_08",
-      "description": "Торговец редкостями ищет орочьи вещи",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 7,
-      "rewardPoints": 800
-    },
-    {
-      "id": "orc_drop_09",
-      "description": "Маг изучает орочью магию по трофеям",
-      "itemName": "ДропСЗеленогоОрка",
+      "id": "collect_orc_blood_small",
+      "description": "Добудь кровь орка для зелий и мазей",
+      "type": 0,
+      "targetId": "orc_blood",
       "requiredCount": 3,
-      "rewardPoints": 380
-    },
-    {
-      "id": "orc_drop_10",
-      "description": "Набери орочьих трофеев для музея",
-      "itemName": "ДропСЗеленогоОрка",
-      "requiredCount": 8,
-      "rewardPoints": 900
-    },
-    {
-      "id": "orc_blood_01",
-      "description": "Добудь кровь орка для зелий",
-      "itemName": "КровьОрка",
-      "requiredCount": 3,
-      "rewardPoints": 350
-    },
-    {
-      "id": "orc_blood_02",
-      "description": "Алхимику нужна свежая кровь орка",
-      "itemName": "КровьОрка",
-      "requiredCount": 5,
-      "rewardPoints": 550
-    },
-    {
-      "id": "orc_blood_03",
-      "description": "Кровь орка — основа противоядия",
-      "itemName": "КровьОрка",
-      "requiredCount": 2,
-      "rewardPoints": 260
-    },
-    {
-      "id": "orc_blood_04",
-      "description": "Зельевар готовит эликсир силы",
-      "itemName": "КровьОрка",
-      "requiredCount": 4,
-      "rewardPoints": 460
-    },
-    {
-      "id": "orc_blood_05",
-      "description": "Учёный исследует свойства крови орка",
-      "itemName": "КровьОрка",
-      "requiredCount": 1,
       "rewardPoints": 150
     },
     {
-      "id": "orc_blood_06",
-      "description": "Набери кровь для ритуала защиты",
-      "itemName": "КровьОрка",
+      "id": "collect_orc_blood_large",
+      "description": "Заготовь кровь орка для гильдии алхимиков",
+      "type": 0,
+      "targetId": "orc_blood",
       "requiredCount": 6,
-      "rewardPoints": 650
+      "rewardPoints": 300
     },
     {
-      "id": "orc_blood_07",
-      "description": "Целитель варит мазь из крови орка",
-      "itemName": "КровьОрка",
-      "requiredCount": 3,
-      "rewardPoints": 330
+      "id": "reach_evacuation_point",
+      "description": "Доберись до точки эвакуации глубоко в лесу",
+      "type": 2,
+      "targetId": "evacuation_point",
+      "requiredCount": 1,
+      "rewardPoints": 210
     },
     {
-      "id": "orc_blood_08",
-      "description": "Кровь орка нужна для чернил мага",
-      "itemName": "КровьОрка",
-      "requiredCount": 2,
+      "id": "activate_fire_altar",
+      "description": "Активируй огненный алтарь до возвращения домой",
+      "type": 3,
+      "targetId": "altar_Fire",
+      "requiredCount": 1,
       "rewardPoints": 240
     },
     {
-      "id": "orc_blood_09",
-      "description": "Заготовь кровь для гильдии алхимиков",
-      "itemName": "КровьОрка",
-      "requiredCount": 8,
-      "rewardPoints": 850
+      "id": "activate_water_altar",
+      "description": "Активируй водный алтарь в сырой чаще",
+      "type": 3,
+      "targetId": "altar_Water",
+      "requiredCount": 1,
+      "rewardPoints": 240
     },
     {
-      "id": "orc_blood_10",
-      "description": "Кровь орка укрепит зачарованный клинок",
-      "itemName": "КровьОрка",
-      "requiredCount": 4,
-      "rewardPoints": 480
+      "id": "defeat_boss_orc",
+      "description": "Победи вождя орков и принеси доказательство победы",
+      "type": 4,
+      "targetId": "BossOrc",
+      "requiredCount": 1,
+      "rewardPoints": 420
     }
   ]
 }

@@ -34,6 +34,7 @@ public sealed class QuestBoardGenerator : MonoBehaviour
 
     public void GenerateBoard()
     {
+        questService.EnsureBoardRefreshed();
         ClearExistingTasks();
 
         List<QuestData> boardQuests = questService.GetBoardQuests();
@@ -63,7 +64,8 @@ public sealed class QuestBoardGenerator : MonoBehaviour
             Image logoImage = itemLogo.GetComponent<Image>();
             if (logoImage != null && iconProvider != null)
             {
-                Sprite icon = quest.type == QuestType.CollectItem ? iconProvider.GetIcon(quest.itemName) : null;
+                string targetId = quest.GetResolvedTargetId();
+                Sprite icon = quest.type == QuestType.CollectItem && !string.IsNullOrEmpty(targetId) ? iconProvider.GetIcon(targetId) : null;
                 if (icon != null)
                 {
                     logoImage.sprite = icon;
@@ -80,7 +82,9 @@ public sealed class QuestBoardGenerator : MonoBehaviour
         {
             TextMeshProUGUI countText = itemCount.GetComponent<TextMeshProUGUI>();
             if (countText != null)
-                countText.text = quest.type == QuestType.CollectItem ? $"x{quest.requiredCount}" : $"Цель: {quest.requiredCount}";
+                countText.text = quest.type == QuestType.CollectItem
+                    ? $"x{quest.requiredCount} {ItemCatalog.GetDisplayName(quest.GetResolvedTargetId())}"
+                    : $"Цель: {quest.requiredCount}";
         }
 
         Transform cost = entry.transform.Find("Cost");
@@ -88,7 +92,7 @@ public sealed class QuestBoardGenerator : MonoBehaviour
         {
             TextMeshProUGUI costText = cost.GetComponent<TextMeshProUGUI>();
             if (costText != null)
-                costText.text = $"{quest.rewardPoints} очков";
+                costText.text = $"{quest.rewardPoints} награды";
         }
 
         Transform description = entry.transform.Find("TaskDescription");

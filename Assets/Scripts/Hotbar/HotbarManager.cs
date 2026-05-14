@@ -36,6 +36,8 @@ public sealed class HotbarManager : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
+
+        EnsureDefaultHotbar();
     }
 
     private void Update()
@@ -94,7 +96,7 @@ public sealed class HotbarManager : MonoBehaviour
                     if (ExpeditionManager.Instance.ExpeditionInventory.RemoveItem(itemId, 1))
                     {
                         action.Execute();
-                        StartCooldown(index, itemId == "return_scroll" ? 5f : 2f);
+                        StartCooldown(index, itemId == ItemCatalog.ReturnScroll ? 5f : 2f);
                         OnSlotUsed?.Invoke(index);
                     }
                 }
@@ -109,6 +111,11 @@ public sealed class HotbarManager : MonoBehaviour
 
     public void SetSlotItem(int index, string itemId)
     {
+        if (index < 0 || index >= SlotCount)
+        {
+            return;
+        }
+
         var progress = GameCore.Instance.CurrentProgress;
         if (progress == null) return;
 
@@ -124,6 +131,22 @@ public sealed class HotbarManager : MonoBehaviour
         var progress = GameCore.Instance.CurrentProgress;
         if (progress == null || index < 0 || index >= progress.hotbar.slotItemIds.Count) return string.Empty;
         return progress.hotbar.slotItemIds[index];
+    }
+
+    public IReadOnlyList<string> GetAllSlotItems()
+    {
+        var progress = GameCore.Instance.CurrentProgress;
+        if (progress == null)
+        {
+            return System.Array.Empty<string>();
+        }
+
+        while (progress.hotbar.slotItemIds.Count < SlotCount)
+        {
+            progress.hotbar.slotItemIds.Add(string.Empty);
+        }
+
+        return progress.hotbar.slotItemIds;
     }
 
     public bool IsOnCooldown(int index)
@@ -186,5 +209,25 @@ public sealed class HotbarManager : MonoBehaviour
     private Key GetDigitKey(int index)
     {
         return (Key)((int)Key.Digit1 + index);
+    }
+
+    private void EnsureDefaultHotbar()
+    {
+        var progress = GameCore.Instance.CurrentProgress;
+        if (progress == null)
+        {
+            return;
+        }
+
+        while (progress.hotbar.slotItemIds.Count < SlotCount)
+        {
+            progress.hotbar.slotItemIds.Add(string.Empty);
+        }
+
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[0])) progress.hotbar.slotItemIds[0] = "spell_firebolt";
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[1])) progress.hotbar.slotItemIds[1] = "spell_waterspring";
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[2])) progress.hotbar.slotItemIds[2] = ItemCatalog.HealthPotion;
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[3])) progress.hotbar.slotItemIds[3] = ItemCatalog.ManaPotion;
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[4])) progress.hotbar.slotItemIds[4] = ItemCatalog.ReturnScroll;
     }
 }

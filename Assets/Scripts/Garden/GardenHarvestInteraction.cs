@@ -69,9 +69,9 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
 
         int stage = progress.garden.currentStage;
         var homeStorage = InventoryService.Instance.HomeStorage;
-        if (homeStorage == null || harvestTable == null) return;
+        if (homeStorage == null) return;
 
-        GardenHarvestEntry[] drops = harvestTable.GetDropsForStage(stage);
+        GardenHarvestEntry[] drops = harvestTable != null ? harvestTable.GetDropsForStage(stage) : GetFallbackDrops(stage);
         for (int i = 0; i < drops.Length; i++)
         {
             if (Random.value <= drops[i].chance)
@@ -86,6 +86,8 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
         }
 
         if (sr != null) sr.color = defaultColor;
+
+        GardenService.Instance.ResetGarden();
     }
 
     public void ResetHarvestState()
@@ -105,5 +107,32 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
         Vector2 mousePos = Mouse.current.position.ReadValue();
         Vector2 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
         return col.OverlapPoint(worldPos);
+    }
+
+    private GardenHarvestEntry[] GetFallbackDrops(int stage)
+    {
+        if (stage <= 1)
+        {
+            return new[]
+            {
+                new GardenHarvestEntry { itemName = ItemCatalog.SakuraSapling, chance = 1f, minAmount = 1, maxAmount = 2 },
+                new GardenHarvestEntry { itemName = ItemCatalog.AppleSapling, chance = 0.6f, minAmount = 1, maxAmount = 1 }
+            };
+        }
+
+        if (stage == 2)
+        {
+            return new[]
+            {
+                new GardenHarvestEntry { itemName = ItemCatalog.RareFlower, chance = 1f, minAmount = 1, maxAmount = 2 },
+                new GardenHarvestEntry { itemName = ItemCatalog.OakSapling, chance = 0.8f, minAmount = 1, maxAmount = 2 }
+            };
+        }
+
+        return new[]
+        {
+            new GardenHarvestEntry { itemName = ItemCatalog.RareFlower, chance = 1f, minAmount = 2, maxAmount = 3 },
+            new GardenHarvestEntry { itemName = ItemCatalog.OrcBlood, chance = 0.75f, minAmount = 2, maxAmount = 4 }
+        };
     }
 }

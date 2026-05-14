@@ -6,6 +6,8 @@ public sealed class HomeSceneBootstrap : MonoBehaviour
     [SerializeField] private CraftingUI craftingUI;
     [SerializeField] private ShopUI shopUI;
     [SerializeField] private GardenHarvestInteraction gardenHarvest;
+    [SerializeField] private ExpeditionPreparationUI expeditionPreparationUI;
+    [SerializeField] private HomeStorageUI homeStorageUI;
 
     private void Awake()
     {
@@ -35,6 +37,28 @@ public sealed class HomeSceneBootstrap : MonoBehaviour
         if (gardenHarvest == null)
         {
             gardenHarvest = FindFirstObjectByType<GardenHarvestInteraction>();
+        }
+
+        if (expeditionPreparationUI == null)
+        {
+            expeditionPreparationUI = FindFirstObjectByType<ExpeditionPreparationUI>();
+        }
+
+        if (expeditionPreparationUI == null)
+        {
+            GameObject go = new GameObject("ExpeditionPreparationUI");
+            expeditionPreparationUI = go.AddComponent<ExpeditionPreparationUI>();
+        }
+
+        if (homeStorageUI == null)
+        {
+            homeStorageUI = FindFirstObjectByType<HomeStorageUI>();
+        }
+
+        if (homeStorageUI == null)
+        {
+            GameObject go = new GameObject("HomeStorageUI");
+            homeStorageUI = go.AddComponent<HomeStorageUI>();
         }
     }
 

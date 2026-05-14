@@ -120,20 +120,26 @@ public sealed class EnemyBaseController : MonoBehaviour
 
         float statMult = GetEvolutionMultiplier();
 
+        int threatLevel = GameCore.Instance.CurrentProgress != null ? GameCore.Instance.CurrentProgress.orcs.threatLevel : 1;
+        int greenCount = greenOrcCount + Mathf.Max(0, threatLevel / 3);
+        int blueCount = blueOrcCount + Mathf.Max(0, threatLevel / 4);
+        int shamanWaveCount = shamanCount + Mathf.Max(0, threatLevel / 5);
+        int bossWaveCount = bossCount + Mathf.Max(0, threatLevel / 7);
+
         switch (wave)
         {
             case 0:
-                SpawnEnemiesWithMultiplier(greenOrcConfig, greenOrcCount, statMult);
+                SpawnEnemiesWithMultiplier(greenOrcConfig, greenCount, statMult);
                 break;
             case 1:
-                SpawnEnemiesWithMultiplier(blueOrcConfig, blueOrcCount, statMult);
+                SpawnEnemiesWithMultiplier(blueOrcConfig, blueCount, statMult);
                 break;
             case 2:
-                if (shamanConfig != null) SpawnEnemiesWithMultiplier(shamanConfig, shamanCount, statMult);
+                if (shamanConfig != null || threatLevel >= 3) SpawnEnemiesWithMultiplier(shamanConfig ?? blueOrcConfig, shamanWaveCount, statMult);
                 else AdvanceWave();
                 break;
             case 3:
-                SpawnEnemiesWithMultiplier(bossOrcConfig, bossCount, statMult);
+                SpawnEnemiesWithMultiplier(bossOrcConfig ?? blueOrcConfig, bossWaveCount, statMult * 1.1f);
                 break;
             default:
                 baseDefeated = true;
@@ -179,6 +185,15 @@ public sealed class EnemyBaseController : MonoBehaviour
             {
                 ShamanController shaman = enemyGo.AddComponent<ShamanController>();
                 shaman.Initialize(config, transform, playerTarget, scoreService);
+            }
+
+            if (config.isBoss)
+            {
+                enemyGo.transform.localScale *= 1.35f;
+            }
+            else if (config.isShaman)
+            {
+                enemyGo.transform.localScale *= 1.1f;
             }
         }
     }

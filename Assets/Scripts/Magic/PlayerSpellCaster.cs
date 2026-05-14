@@ -41,6 +41,8 @@ public sealed class PlayerSpellCaster : MonoBehaviour
                 unlockedSpells.Add(startingSpells[i]);
             }
         }
+
+        OnManaChanged?.Invoke(currentMana, maxMana);
     }
 
     private void Update()
@@ -270,16 +272,35 @@ public sealed class PlayerSpellCaster : MonoBehaviour
     {
         unlockedSpells.Clear();
         var progress = GameCore.Instance.CurrentProgress;
-        if (progress == null || progress.crafting.unlockedRecipes == null) return;
+        if (progress == null) return;
+
+        if (progress.crafting.craftedSpells == null)
+        {
+            progress.crafting.craftedSpells = new List<string>();
+        }
+
+        if (progress.crafting.craftedSpells.Count == 0 && progress.crafting.unlockedRecipes != null && progress.crafting.unlockedRecipes.Count > 0)
+        {
+            for (int i = 0; i < progress.crafting.unlockedRecipes.Count; i++)
+            {
+                string id = progress.crafting.unlockedRecipes[i];
+                if (!string.IsNullOrEmpty(id) && id.StartsWith("spell_") && !progress.crafting.craftedSpells.Contains(id))
+                {
+                    progress.crafting.craftedSpells.Add(id);
+                }
+            }
+        }
 
         SpellDefinition[] allSpells = Resources.LoadAll<SpellDefinition>("Game/Spells");
         for (int i = 0; i < allSpells.Length; i++)
         {
-            if (progress.crafting.unlockedRecipes.Contains(allSpells[i].spellId))
+            if (progress.crafting.craftedSpells.Contains(allSpells[i].spellId))
             {
                 unlockedSpells.Add(allSpells[i]);
             }
         }
+
+        AddFallbackSpells(progress);
     }
 
     private void SaveUnlockedSpells()
@@ -287,12 +308,34 @@ public sealed class PlayerSpellCaster : MonoBehaviour
         var progress = GameCore.Instance.CurrentProgress;
         if (progress == null) return;
 
-        progress.crafting.unlockedRecipes.Clear();
+        if (progress.crafting.craftedSpells == null)
+        {
+            progress.crafting.craftedSpells = new List<string>();
+        }
+
+        progress.crafting.craftedSpells.Clear();
         for (int i = 0; i < unlockedSpells.Count; i++)
         {
-            progress.crafting.unlockedRecipes.Add(unlockedSpells[i].spellId);
+            progress.crafting.craftedSpells.Add(unlockedSpells[i].spellId);
         }
         GameCore.Instance.SaveProgress();
+    }
+
+    private void AddFallbackSpells(GameProgressData progress)
+    {
+        if (progress.crafting.craftedSpells == null || progress.crafting.craftedSpells.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < progress.crafting.craftedSpells.Count; i++)
+        {
+            SpellDefinition spell = ResolveSpell(progress.crafting.craftedSpells[i]);
+            if (spell != null && !unlockedSpells.Contains(spell))
+            {
+                unlockedSpells.Add(spell);
+            }
+        }
     }
 
     private struct SpellCooldown

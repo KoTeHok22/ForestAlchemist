@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Collider2D))]
-[RequireComponent(typeof(SpriteRenderer))]
 public sealed class AltarInteraction : MonoBehaviour
 {
     [SerializeField] private float interactionDistance = 2f;
@@ -15,8 +13,9 @@ public sealed class AltarInteraction : MonoBehaviour
     private bool isHovered;
     private bool isActivated;
     private Transform player;
+    private string altarId;
 
-    public string AltarId => $"altar_{altarElement}_{GetHashCode()}";
+    public string AltarId => altarId;
     public ElementType AltarElement => altarElement;
     public bool IsActivated => isActivated;
 
@@ -25,7 +24,18 @@ public sealed class AltarInteraction : MonoBehaviour
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
+        if (sr == null)
+        {
+            sr = gameObject.AddComponent<SpriteRenderer>();
+        }
+
         col = GetComponent<Collider2D>();
+        if (col == null)
+        {
+            col = gameObject.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+        }
+        RebuildIdentity();
         if (sr != null) defaultColor = sr.color;
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -67,6 +77,12 @@ public sealed class AltarInteraction : MonoBehaviour
         QuestManager.Instance.ReportAltarActivated(AltarId, altarElement);
     }
 
+    public void ConfigureRuntimeElement(ElementType element)
+    {
+        altarElement = element;
+        RebuildIdentity();
+    }
+
     private bool IsPlayerInRange()
     {
         if (player == null) return false;
@@ -79,5 +95,10 @@ public sealed class AltarInteraction : MonoBehaviour
         Vector2 mousePos = Mouse.current.position.ReadValue();
         Vector2 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
         return col.OverlapPoint(worldPos);
+    }
+
+    private void RebuildIdentity()
+    {
+        altarId = $"altar_{altarElement}";
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 [DisallowMultipleComponent]
 public sealed class InfiniteWorldStreamer : MonoBehaviour
@@ -44,6 +45,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
     private readonly List<PlacedObjectInfo> placedObjects = new List<PlacedObjectInfo>();
     private readonly Dictionary<Vector2Int, GameObject> spawnedBases = new Dictionary<Vector2Int, GameObject>();
     private readonly List<Vector3> allBasePositions = new List<Vector3>();
+    private readonly List<GameObject> runtimeObjectives = new List<GameObject>();
     private Transform enemyBaseTemplateRoot;
 
     private static readonly List<BaseExclusionZone> baseExclusionZones = new List<BaseExclusionZone>();
@@ -151,6 +153,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
 
         QueueRequiredChunks(forceRefresh: true);
         ProcessSpawnQueue();
+        SpawnGuaranteedObjectives();
     }
 
     private void Update()
@@ -709,6 +712,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
 
     private void RegenerateChunks()
     {
+        ClearRuntimeObjectives();
         removalBuffer.Clear();
 
         foreach (KeyValuePair<Vector2Int, GameObject> pair in activeChunks)
@@ -742,6 +746,112 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
 
         QueueRequiredChunks(forceRefresh: true);
         ProcessSpawnQueue();
+        SpawnGuaranteedObjectives();
+    }
+
+    private void SpawnGuaranteedObjectives()
+    {
+        if (trackedTarget == null)
+        {
+            return;
+        }
+
+        ClearRuntimeObjectives();
+
+        Vector3 origin = trackedTarget.position;
+        SpawnEvacuationObjective(origin + new Vector3(chunkSize.x * 1.2f, chunkSize.y * 0.5f, 0f));
+        SpawnPortalObjective(origin + new Vector3(-chunkSize.x * 1.1f, chunkSize.y * 1.1f, 0f));
+        SpawnAltarObjective(origin + new Vector3(chunkSize.x * 0.3f, chunkSize.y * 1.35f, 0f), ElementType.Fire);
+        SpawnAltarObjective(origin + new Vector3(-chunkSize.x * 0.4f, -chunkSize.y * 1.25f, 0f), ElementType.Water);
+    }
+
+    private void SpawnEvacuationObjective(Vector3 position)
+    {
+        GameObject root = CreateObjectiveRoot("GuaranteedEvacuation", position, new Color(0.35f, 1f, 0.45f, 1f), "Точка эвакуации");
+        EnsureObjectiveCollider(root, true, new Vector2(1.2f, 1.2f));
+        EvacuationPoint evac = root.AddComponent<EvacuationPoint>();
+        runtimeObjectives.Add(root);
+    }
+
+    private void SpawnPortalObjective(Vector3 position)
+    {
+        GameObject root = CreateObjectiveRoot("GuaranteedPortal", position, new Color(0.45f, 0.75f, 1f, 1f), "Портал возврата");
+        EnsureObjectiveCollider(root, true, new Vector2(1.3f, 1.3f));
+        PortalObject portal = root.AddComponent<PortalObject>();
+        runtimeObjectives.Add(root);
+    }
+
+    private void SpawnAltarObjective(Vector3 position, ElementType element)
+    {
+        Color tint = element switch
+        {
+            ElementType.Fire => new Color(1f, 0.52f, 0.3f, 1f),
+            ElementType.Water => new Color(0.4f, 0.8f, 1f, 1f),
+            ElementType.Earth => new Color(0.62f, 0.46f, 0.24f, 1f),
+            ElementType.Air => new Color(0.85f, 0.92f, 1f, 1f),
+            _ => Color.white
+        };
+
+        GameObject root = CreateObjectiveRoot($"GuaranteedAltar_{element}", position, tint, $"Алтарь: {element.ToRussianName()}");
+        EnsureObjectiveCollider(root, true, new Vector2(1.1f, 1.1f));
+        AltarInteraction altar = root.AddComponent<AltarInteraction>();
+        altar.ConfigureRuntimeElement(element);
+        runtimeObjectives.Add(root);
+    }
+
+    private GameObject CreateObjectiveRoot(string name, Vector3 position, Color tint, string label)
+    {
+        GameObject root = new GameObject(name);
+        root.transform.position = position;
+
+        SpriteRenderer sr = root.AddComponent<SpriteRenderer>();
+        sr.color = tint;
+        sr.sortingOrder = 3;
+        sr.sprite = CreateObjectiveSprite();
+
+        GameObject labelObject = new GameObject("Label", typeof(RectTransform));
+        labelObject.transform.SetParent(root.transform, false);
+        labelObject.transform.localPosition = new Vector3(0f, 1.2f, 0f);
+        TextMeshPro labelText = labelObject.AddComponent<TextMeshPro>();
+        labelText.text = label;
+        labelText.fontSize = 4f;
+        labelText.alignment = TextAlignmentOptions.Center;
+        labelText.color = Color.white;
+
+        return root;
+    }
+
+    private static void EnsureObjectiveCollider(GameObject root, bool isTrigger, Vector2 size)
+    {
+        BoxCollider2D collider = root.GetComponent<BoxCollider2D>();
+        if (collider == null)
+        {
+            collider = root.AddComponent<BoxCollider2D>();
+        }
+
+        collider.isTrigger = isTrigger;
+        collider.size = size;
+    }
+
+    private void ClearRuntimeObjectives()
+    {
+        for (int i = runtimeObjectives.Count - 1; i >= 0; i--)
+        {
+            if (runtimeObjectives[i] != null)
+            {
+                Destroy(runtimeObjectives[i]);
+            }
+        }
+
+        runtimeObjectives.Clear();
+    }
+
+    private static Sprite CreateObjectiveSprite()
+    {
+        Texture2D texture = new Texture2D(1, 1);
+        texture.SetPixel(0, 0, Color.white);
+        texture.Apply();
+        return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
     }
 
     private int GetVisibleChunkCapacity()

@@ -26,13 +26,20 @@ public sealed class PlayerInventory
 
     public PlayerInventory(string fileName = "player_inventory.json")
     {
-        filePath = Path.Combine(Application.persistentDataPath, fileName);
+        filePath = string.IsNullOrWhiteSpace(fileName)
+            ? string.Empty
+            : Path.Combine(Application.persistentDataPath, fileName);
         Load();
     }
 
     public PlayerInventory(PlayerInventorySave existingData)
     {
-        saveData = existingData;
+        filePath = string.Empty;
+        saveData = existingData ?? new PlayerInventorySave();
+        if (saveData.slots == null)
+        {
+            saveData.slots = new List<InventorySlot>();
+        }
     }
 
     public void Clear()
@@ -44,12 +51,14 @@ public sealed class PlayerInventory
 
     public int GetItemCount(string itemName)
     {
+        itemName = ItemCatalog.Normalize(itemName);
         InventorySlot slot = FindSlot(itemName);
         return slot?.count ?? 0;
     }
 
     public void AddItem(string itemName, int amount = 1)
     {
+        itemName = ItemCatalog.Normalize(itemName);
         InventorySlot slot = FindSlot(itemName);
         if (slot == null)
         {
@@ -64,6 +73,7 @@ public sealed class PlayerInventory
 
     public bool RemoveItem(string itemName, int amount = 1)
     {
+        itemName = ItemCatalog.Normalize(itemName);
         InventorySlot slot = FindSlot(itemName);
         if (slot == null || slot.count < amount)
             return false;
@@ -86,8 +96,10 @@ public sealed class PlayerInventory
 
     private InventorySlot FindSlot(string itemName)
     {
+        itemName = ItemCatalog.Normalize(itemName);
         for (int i = 0; i < saveData.slots.Count; i++)
         {
+            saveData.slots[i].itemName = ItemCatalog.Normalize(saveData.slots[i].itemName);
             if (saveData.slots[i].itemName == itemName)
                 return saveData.slots[i];
         }
@@ -108,6 +120,16 @@ public sealed class PlayerInventory
 
     private void Save()
     {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return;
+        }
+
+        if (saveData == null)
+        {
+            saveData = new PlayerInventorySave();
+        }
+
         string directory = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             Directory.CreateDirectory(directory);

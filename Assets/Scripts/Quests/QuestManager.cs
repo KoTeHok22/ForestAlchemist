@@ -21,9 +21,11 @@ public sealed class QuestManager : MonoBehaviour
 
     public event Action<string, int> OnQuestProgressUpdated;
     public event Action<WeatherSystem.WeatherType> OnWeatherQuestTriggered;
+    public event Action<string> OnQuestCompleted;
 
     private Dictionary<string, int> questProgress = new Dictionary<string, int>();
     private HashSet<string> activatedAltars = new HashSet<string>();
+    private HashSet<string> completedQuests = new HashSet<string>();
     private WeatherSystem.WeatherType currentWeather = WeatherSystem.WeatherType.Clear;
 
     private void Awake()
@@ -74,21 +76,30 @@ public sealed class QuestManager : MonoBehaviour
 
     private void UpdateProgress(QuestType type, string targetId, int amount)
     {
-        var progress = GameCore.Instance.AccountService;
-        if (progress == null) return;
+        if (GameCore.Instance.AccountService == null) return;
 
         var activeQuests = UnityEngine.Object.FindAnyObjectByType<LevelManager>()?.GetQuestService()?.GetActiveQuests();
         if (activeQuests == null) return;
 
         foreach (var quest in activeQuests)
         {
-            if (quest.type == type && quest.targetId == targetId)
+            if (quest.type == type && IsMatchingTarget(quest, targetId))
             {
                 if (!questProgress.ContainsKey(quest.id)) questProgress[quest.id] = 0;
-                questProgress[quest.id] += amount;
+                questProgress[quest.id] = Mathf.Min(quest.requiredCount, questProgress[quest.id] + amount);
                 OnQuestProgressUpdated?.Invoke(quest.id, questProgress[quest.id]);
+
+                if (questProgress[quest.id] >= quest.requiredCount)
+                {
+                    CompleteQuest(quest.id);
+                }
             }
         }
+    }
+
+    public void ReportReturnPointReached(string locationId)
+    {
+        UpdateProgress(QuestType.ReachLocation, locationId, 1);
     }
 
     public int GetProgress(string questId)
@@ -101,5 +112,73 @@ public sealed class QuestManager : MonoBehaviour
     {
         questProgress.Clear();
         activatedAltars.Clear();
+        completedQuests.Clear();
+    }
+
+    private bool IsMatchingTarget(QuestData quest, string targetId)
+    {
+        if (quest == null)
+        {
+            return false;
+        }
+
+        string questTarget = quest.GetResolvedTargetId();
+        if (string.Equals(questTarget, targetId, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (quest.type == QuestType.ActivateAltar && !string.IsNullOrEmpty(questTarget) && targetId.StartsWith("altar_", StringComparison.OrdinalIgnoreCase))
+        {
+            return string.Equals(questTarget, targetId, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
+    }
+
+    private void CompleteQuest(string questId)
+    {
+        if (string.IsNullOrEmpty(questId) || !completedQuests.Add(questId))
+        {
+            return;
+        }
+
+        LevelManager levelManager = UnityEngine.Object.FindAnyObjectByType<LevelManager>();
+        PlayerQuestService service = levelManager?.GetQuestService();
+        QuestData quest = service?.GetActiveQuests()?.Find(activeQuest => activeQuest.id == questId);
+        service?.CompleteQuest(questId);
+
+        if (quest != null)
+        {
+            InventoryService.Instance.HomeStorage?.AddItem(ItemCatalog.OrcBlood, GetBloodReward(quest));
+        }
+
+        OnQuestCompleted?.Invoke(questId);
+        GameCore.Instance.SaveProgress();
+    }
+
+    private static int GetBloodReward(QuestData quest)
+    {
+        if (quest == null)
+        {
+            return 0;
+        }
+
+        if (quest.type == QuestType.DefeatBoss)
+        {
+            return 6;
+        }
+
+        if (quest.type == QuestType.ActivateAltar || quest.type == QuestType.ReachLocation)
+        {
+            return 3;
+        }
+
+        if (quest.requiredCount >= 5)
+        {
+            return 3;
+        }
+
+        return 2;
     }
 }

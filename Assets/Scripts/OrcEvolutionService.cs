@@ -36,6 +36,7 @@ public sealed class OrcEvolutionService : MonoBehaviour
         var orcs = progress.orcs;
         orcs.threatLevel++;
         orcs.statMultiplier = Mathf.Clamp(orcs.statMultiplier + (playerDied ? 0.1f : 0.05f), 1f, 4f);
+        progress.stats.deepestThreatReached = Mathf.Max(progress.stats.deepestThreatReached, orcs.threatLevel);
         GameCore.Instance.SaveProgress();
     }
 }

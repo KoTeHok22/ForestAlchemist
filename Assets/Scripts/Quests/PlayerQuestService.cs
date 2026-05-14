@@ -83,6 +83,35 @@ public sealed class PlayerQuestService
         return true;
     }
 
+    public void CompleteQuest(string questId)
+    {
+        if (string.IsNullOrEmpty(questId))
+        {
+            return;
+        }
+
+        if (!saveData.activeQuestIds.Remove(questId))
+        {
+            return;
+        }
+
+        saveData.boardQuestIds.Remove(questId);
+        questRepository.Save(saveData);
+        OnQuestsChanged?.Invoke();
+    }
+
+    public void EnsureBoardRefreshed()
+    {
+        List<QuestData> allQuests = dataRepository.LoadQuests();
+        List<string> activeIds = saveData.activeQuestIds ?? new List<string>();
+        saveData.boardQuestIds.RemoveAll(id => activeIds.Contains(id));
+
+        if (saveData.boardQuestIds.Count < BoardSize)
+        {
+            GenerateNewBoard(allQuests);
+        }
+    }
+
     private void GenerateNewBoard(List<QuestData> allQuests)
     {
         List<QuestData> available = allQuests

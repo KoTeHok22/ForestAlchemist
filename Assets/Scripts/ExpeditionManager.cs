@@ -29,11 +29,14 @@ public sealed class ExpeditionManager : MonoBehaviour
     }
 
     public event Action<ExpeditionResult> OnExpeditionEnded;
+    public event Action OnExpeditionStarted;
 
     public int CurrentSeed { get; private set; }
     public bool IsInExpedition { get; private set; }
     public PlayerInventory ExpeditionInventory { get; private set; }
     public float CurrentVisibility { get; private set; }
+    public bool ReturnUnlocked { get; private set; }
+    public string ActiveReturnMethod { get; private set; }
 
     private void Awake()
     {
@@ -61,15 +64,26 @@ public sealed class ExpeditionManager : MonoBehaviour
 
     public void StartExpedition()
     {
+        PrepareForExpedition();
         CurrentSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         IsInExpedition = true;
-        ExpeditionInventory.Clear();
+        ReturnUnlocked = false;
+        ActiveReturnMethod = string.Empty;
+        CurrentVisibility = 0f;
         SceneManager.LoadScene("Level");
+        OnExpeditionStarted?.Invoke();
     }
 
     public void EndExpedition(ExpeditionResult result)
     {
         if (!IsInExpedition) return;
+
+        if (result == ExpeditionResult.Success && !ReturnUnlocked)
+        {
+            Debug.Log("[Expedition] Return is locked. Use a portal, a return scroll, or an evacuation point.");
+            return;
+        }
+
         IsInExpedition = false;
 
         if (result == ExpeditionResult.Success)
@@ -86,10 +100,27 @@ public sealed class ExpeditionManager : MonoBehaviour
             OrcEvolutionService.Instance.Evolve(true);
         }
 
+        ReturnUnlocked = false;
+        ActiveReturnMethod = string.Empty;
+
         GameCore.Instance.SaveProgress();
         OnExpeditionEnded?.Invoke(result);
         SceneManager.LoadScene("Home");
     }
+
+    public bool TryUnlockReturn(string methodId)
+    {
+        if (!IsInExpedition)
+        {
+            return false;
+        }
+
+        ReturnUnlocked = true;
+        ActiveReturnMethod = methodId ?? string.Empty;
+        return true;
+    }
+
+    public bool CanReturn() => IsInExpedition && ReturnUnlocked;
 
     private void TransferLootToHome()
     {
@@ -101,5 +132,36 @@ public sealed class ExpeditionManager : MonoBehaviour
             homeStorage.AddItem(expeditionSlot.itemName, expeditionSlot.count);
         }
         ExpeditionInventory.Clear();
+    }
+
+    private void PrepareForExpedition()
+    {
+        ExpeditionInventory.Clear();
+
+        var progress = GameCore.Instance.CurrentProgress;
+        var homeStorage = InventoryService.Instance.HomeStorage;
+        if (progress?.loadout?.consumables == null || homeStorage == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < progress.loadout.consumables.Count; i++)
+        {
+            InventorySlot slot = progress.loadout.consumables[i];
+            if (slot == null || string.IsNullOrEmpty(slot.itemName) || slot.count <= 0)
+            {
+                continue;
+            }
+
+            int available = homeStorage.GetItemCount(slot.itemName);
+            int amountToTake = Mathf.Min(available, slot.count);
+            if (amountToTake <= 0)
+            {
+                continue;
+            }
+
+            homeStorage.RemoveItem(slot.itemName, amountToTake);
+            ExpeditionInventory.AddItem(slot.itemName, amountToTake);
+        }
     }
 }

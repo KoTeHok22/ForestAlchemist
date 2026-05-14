@@ -9,6 +9,7 @@ public sealed class ReturnScrollAction : IItemAction
 {
     public void Execute()
     {
+        ExpeditionManager.Instance.TryUnlockReturn(ItemCatalog.ReturnScroll);
         ExpeditionManager.Instance.EndExpedition(ExpeditionResult.Success);
     }
 }
@@ -49,21 +50,23 @@ public static class ItemActionRegistry
 {
     public static IItemAction GetAction(string itemId)
     {
+        itemId = ItemCatalog.Normalize(itemId);
         if (string.IsNullOrEmpty(itemId)) return null;
 
         switch (itemId)
         {
-            case "return_scroll": return new ReturnScrollAction();
-            case "health_potion": return new HealthPotionAction();
-            case "mana_potion": return new ManaPotionAction();
-            case "shield_scroll": return new ShieldScrollAction();
+            case ItemCatalog.ReturnScroll: return new ReturnScrollAction();
+            case ItemCatalog.HealthPotion: return new HealthPotionAction();
+            case ItemCatalog.ManaPotion: return new ManaPotionAction();
+            case ItemCatalog.ShieldScroll: return new ShieldScrollAction();
             default: return null;
         }
     }
 
     public static bool IsConsumable(string itemId)
     {
-        return itemId == "return_scroll" || itemId == "health_potion" || itemId == "mana_potion" || itemId == "shield_scroll";
+        itemId = ItemCatalog.Normalize(itemId);
+        return itemId == ItemCatalog.ReturnScroll || itemId == ItemCatalog.HealthPotion || itemId == ItemCatalog.ManaPotion || itemId == ItemCatalog.ShieldScroll;
     }
 
     public static bool IsSpell(string itemId)

@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Collider2D))]
-[RequireComponent(typeof(SpriteRenderer))]
 public sealed class PortalObject : MonoBehaviour
 {
     [SerializeField] private float interactionDistance = 2f;
@@ -18,13 +16,23 @@ public sealed class PortalObject : MonoBehaviour
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
+        if (sr == null)
+        {
+            sr = gameObject.AddComponent<SpriteRenderer>();
+        }
+
         col = GetComponent<Collider2D>();
+        if (col == null)
+        {
+            col = gameObject.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+        }
         if (sr != null) defaultColor = sr.color;
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) player = playerObj.transform;
 
-        if (Random.value > portalChance)
+        if (!gameObject.name.Contains("GuaranteedPortal") && Random.value > portalChance)
         {
             gameObject.SetActive(false);
         }
@@ -50,6 +58,7 @@ public sealed class PortalObject : MonoBehaviour
     {
         if (isHovered && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
+            ExpeditionManager.Instance.TryUnlockReturn("portal");
             ExpeditionManager.Instance.EndExpedition(ExpeditionResult.Success);
         }
     }

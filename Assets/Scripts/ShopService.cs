@@ -29,10 +29,10 @@ public sealed class ShopService : MonoBehaviour
 
     [SerializeField] private List<ShopItem> shopItems = new List<ShopItem>
     {
-        new ShopItem { itemId = "return_scroll", displayName = "Свиток Возврата", priceInBlood = 5, isConsumable = true },
-        new ShopItem { itemId = "health_potion", displayName = "Зелье Здоровья", priceInBlood = 3, isConsumable = true },
-        new ShopItem { itemId = "mana_potion", displayName = "Зелье Маны", priceInBlood = 3, isConsumable = true },
-        new ShopItem { itemId = "shield_scroll", displayName = "Свиток Щита", priceInBlood = 8, isConsumable = true }
+        new ShopItem { itemId = ItemCatalog.HealthPotion, displayName = "Зелье здоровья", priceInBlood = 2, isConsumable = true },
+        new ShopItem { itemId = ItemCatalog.ManaPotion, displayName = "Зелье маны", priceInBlood = 2, isConsumable = true },
+        new ShopItem { itemId = ItemCatalog.ShieldScroll, displayName = "Свиток щита", priceInBlood = 4, isConsumable = true },
+        new ShopItem { itemId = ItemCatalog.ReturnScroll, displayName = "Свиток возврата", priceInBlood = 6, isConsumable = true }
     };
 
     public event System.Action<string> OnItemPurchased;
@@ -56,7 +56,7 @@ public sealed class ShopService : MonoBehaviour
         if (item == null) return false;
 
         var homeStorage = InventoryService.Instance.HomeStorage;
-        return homeStorage != null && homeStorage.GetItemCount("КровьОрка") >= item.priceInBlood;
+        return homeStorage != null && homeStorage.GetItemCount(ItemCatalog.OrcBlood) >= item.priceInBlood;
     }
 
     public bool TryPurchase(string itemId)
@@ -65,7 +65,7 @@ public sealed class ShopService : MonoBehaviour
 
         ShopItem item = FindItem(itemId);
         var homeStorage = InventoryService.Instance.HomeStorage;
-        homeStorage.RemoveItem("КровьОрка", item.priceInBlood);
+        homeStorage.RemoveItem(ItemCatalog.OrcBlood, item.priceInBlood);
         homeStorage.AddItem(item.itemId, 1);
 
         OnItemPurchased?.Invoke(itemId);
