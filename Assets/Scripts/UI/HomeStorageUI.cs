@@ -8,13 +8,21 @@ public sealed class HomeStorageUI : MonoBehaviour
     private const string PanelName = "HomeStoragePanel";
     private static readonly string[] ConsumableIds = { ItemCatalog.HealthPotion, ItemCatalog.ManaPotion, ItemCatalog.ShieldScroll, ItemCatalog.ReturnScroll };
 
-    private GameObject panelRoot;
-    private Transform storageListRoot;
-    private Transform loadoutListRoot;
-    private Transform hotbarListRoot;
-    private Transform actionListRoot;
-    private TMP_Text summaryText;
+    [Header("Scene UI")]
+    [SerializeField] private GameObject panelRoot;
+    [SerializeField] private Transform storageListRoot;
+    [SerializeField] private Transform loadoutListRoot;
+    [SerializeField] private Transform hotbarListRoot;
+    [SerializeField] private Transform actionListRoot;
+    [SerializeField] private TMP_Text summaryText;
+    [SerializeField] private Button closeButton;
+
     private bool built;
+
+    private void Awake()
+    {
+        EnsureCloseButton();
+    }
 
     public void Open()
     {
@@ -43,6 +51,14 @@ public sealed class HomeStorageUI : MonoBehaviour
     {
         if (built)
         {
+            return;
+        }
+
+        if (HasSceneUi())
+        {
+            EnsureCloseButton();
+            panelRoot.SetActive(false);
+            built = true;
             return;
         }
 
@@ -78,9 +94,31 @@ public sealed class HomeStorageUI : MonoBehaviour
         CreateSummary();
         CreateBody();
         CreateFooter();
+        EnsureCloseButton();
 
         panelRoot.SetActive(false);
         built = true;
+    }
+
+    private bool HasSceneUi()
+    {
+        return panelRoot != null
+            && storageListRoot != null
+            && loadoutListRoot != null
+            && hotbarListRoot != null
+            && actionListRoot != null
+            && summaryText != null;
+    }
+
+    private void EnsureCloseButton()
+    {
+        if (closeButton == null)
+        {
+            return;
+        }
+
+        closeButton.onClick.RemoveListener(Close);
+        closeButton.onClick.AddListener(Close);
     }
 
     private void CreateHeader()
@@ -137,7 +175,7 @@ public sealed class HomeStorageUI : MonoBehaviour
         LayoutElement footerSize = footer.AddComponent<LayoutElement>();
         footerSize.preferredHeight = 52f;
 
-        Button closeButton = CreateButton(footer.transform, "Закрыть", Close);
+        closeButton = CreateButton(footer.transform, "Закрыть", Close);
         SetPreferredWidth(closeButton.gameObject, 180f);
     }
 
@@ -189,6 +227,8 @@ public sealed class HomeStorageUI : MonoBehaviour
         {
             return;
         }
+
+        EnsureProgressCollections(progress);
 
         ClearChildren(storageListRoot);
         ClearChildren(loadoutListRoot);
@@ -381,6 +421,8 @@ public sealed class HomeStorageUI : MonoBehaviour
 
     private static InventorySlot GetOrCreateLoadoutSlot(GameProgressData progress, string itemId)
     {
+        EnsureProgressCollections(progress);
+
         if (progress.loadout == null)
         {
             progress.loadout = new ExpeditionLoadoutData();
@@ -442,6 +484,34 @@ public sealed class HomeStorageUI : MonoBehaviour
         }
 
         return options;
+    }
+
+    private static void EnsureProgressCollections(GameProgressData progress)
+    {
+        if (progress == null)
+        {
+            return;
+        }
+
+        if (progress.loadout == null)
+        {
+            progress.loadout = new ExpeditionLoadoutData();
+        }
+
+        if (progress.loadout.consumables == null)
+        {
+            progress.loadout.consumables = new List<InventorySlot>();
+        }
+
+        if (progress.crafting == null)
+        {
+            progress.crafting = new CraftingProgressData();
+        }
+
+        if (progress.crafting.craftedSpells == null)
+        {
+            progress.crafting.craftedSpells = new List<string>();
+        }
     }
 
     private static GameObject CreateRow(Transform parent)

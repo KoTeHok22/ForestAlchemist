@@ -35,8 +35,7 @@ public sealed class CraftingUI : MonoBehaviour
     {
         BuildRuntimeUiIfNeeded();
         if (craftingPanel != null) craftingPanel.SetActive(false);
-        if (closeButton != null) closeButton.onClick.AddListener(Close);
-        if (craftButton != null) craftButton.onClick.AddListener(OnCraftClicked);
+        BindButtons();
         if (recipeButtonTemplate != null) recipeButtonTemplate.SetActive(false);
         if (spellButtonTemplate != null) spellButtonTemplate.SetActive(false);
     }
@@ -229,6 +228,7 @@ public sealed class CraftingUI : MonoBehaviour
     {
         if (runtimeUiBuilt || craftingPanel != null)
         {
+            BindButtons();
             runtimeUiBuilt = true;
             return;
         }
@@ -297,9 +297,25 @@ public sealed class CraftingUI : MonoBehaviour
 
         closeButton = CreateButton(craftingPanel.transform, "Закрыть", Close);
         closeButton.GetComponent<LayoutElement>().preferredWidth = 180f;
+        BindButtons();
 
         craftingPanel.SetActive(false);
         runtimeUiBuilt = true;
+    }
+
+    private void BindButtons()
+    {
+        if (closeButton != null)
+        {
+            closeButton.onClick.RemoveListener(Close);
+            closeButton.onClick.AddListener(Close);
+        }
+
+        if (craftButton != null)
+        {
+            craftButton.onClick.RemoveListener(OnCraftClicked);
+            craftButton.onClick.AddListener(OnCraftClicked);
+        }
     }
 
     private static GameObject CreateListSection(Transform parent, string title, float width)

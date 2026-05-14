@@ -37,6 +37,7 @@ public sealed class ExpeditionManager : MonoBehaviour
     public float CurrentVisibility { get; private set; }
     public bool ReturnUnlocked { get; private set; }
     public string ActiveReturnMethod { get; private set; }
+    public ExpeditionResult PendingResult { get; private set; }
 
     private void Awake()
     {
@@ -67,6 +68,7 @@ public sealed class ExpeditionManager : MonoBehaviour
         PrepareForExpedition();
         CurrentSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
         IsInExpedition = true;
+        PendingResult = ExpeditionResult.None;
         ReturnUnlocked = false;
         ActiveReturnMethod = string.Empty;
         CurrentVisibility = 0f;
@@ -102,10 +104,23 @@ public sealed class ExpeditionManager : MonoBehaviour
 
         ReturnUnlocked = false;
         ActiveReturnMethod = string.Empty;
+        PendingResult = result;
 
         GameCore.Instance.SaveProgress();
         OnExpeditionEnded?.Invoke(result);
         SceneManager.LoadScene("Home");
+    }
+
+    public bool TryConsumePendingResult(out ExpeditionResult result)
+    {
+        result = PendingResult;
+        if (result == ExpeditionResult.None)
+        {
+            return false;
+        }
+
+        PendingResult = ExpeditionResult.None;
+        return true;
     }
 
     public bool TryUnlockReturn(string methodId)

@@ -14,11 +14,23 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         ItemCatalog.ReturnScroll
     };
 
-    private GameObject panelRoot;
-    private TMP_Text summaryText;
+    [Header("Scene UI")]
+    [SerializeField] private GameObject panelRoot;
+    [SerializeField] private TMP_Text summaryText;
+    [SerializeField] private Button closeButton;
+    [SerializeField] private Button clearButton;
+    [SerializeField] private Button quickFillButton;
+    [SerializeField] private Button startButton;
+
     private readonly Dictionary<string, TMP_Text> countTexts = new Dictionary<string, TMP_Text>();
     private readonly Dictionary<string, TMP_Text> stockTexts = new Dictionary<string, TMP_Text>();
     private bool uiBuilt;
+
+    private void Awake()
+    {
+        BindButtons();
+        CacheSceneRows();
+    }
 
     public void Open()
     {
@@ -56,6 +68,15 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
             return;
         }
 
+        if (HasSceneUi())
+        {
+            CacheSceneRows();
+            BindButtons();
+            panelRoot.SetActive(false);
+            uiBuilt = true;
+            return;
+        }
+
         Canvas canvas = FindFirstObjectByType<Canvas>();
         if (canvas == null)
         {
@@ -89,9 +110,81 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         CreateSummary(panelRoot.transform);
         CreateItemRows(panelRoot.transform);
         CreateFooter(panelRoot.transform);
+        BindButtons();
 
         panelRoot.SetActive(false);
         uiBuilt = true;
+    }
+
+    private bool HasSceneUi()
+    {
+        return panelRoot != null && summaryText != null;
+    }
+
+    private void CacheSceneRows()
+    {
+        countTexts.Clear();
+        stockTexts.Clear();
+
+        if (panelRoot == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < SupportedItems.Length; i++)
+        {
+            string itemId = SupportedItems[i];
+            Transform row = panelRoot.transform.Find($"Body/Row_{itemId}");
+            if (row == null)
+            {
+                continue;
+            }
+
+            TMP_Text stockText = row.Find("Stock")?.GetComponent<TMP_Text>();
+            TMP_Text countText = row.Find("Count")?.GetComponent<TMP_Text>();
+            if (stockText != null)
+            {
+                stockTexts[itemId] = stockText;
+            }
+
+            if (countText != null)
+            {
+                countTexts[itemId] = countText;
+            }
+
+            Button minusButton = row.Find("Minus")?.GetComponent<Button>();
+            Button plusButton = row.Find("Plus")?.GetComponent<Button>();
+            if (minusButton != null)
+            {
+                minusButton.onClick.RemoveAllListeners();
+                minusButton.onClick.AddListener(() => ChangeCount(itemId, -1));
+            }
+
+            if (plusButton != null)
+            {
+                plusButton.onClick.RemoveAllListeners();
+                plusButton.onClick.AddListener(() => ChangeCount(itemId, 1));
+            }
+        }
+    }
+
+    private void BindButtons()
+    {
+        BindButton(closeButton, Close);
+        BindButton(clearButton, ClearLoadout);
+        BindButton(quickFillButton, ApplyRecommendedLoadout);
+        BindButton(startButton, StartPreparedExpedition);
+    }
+
+    private static void BindButton(Button button, UnityEngine.Events.UnityAction action)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        button.onClick.RemoveListener(action);
+        button.onClick.AddListener(action);
     }
 
     private void CreateHeader(Transform parent)
@@ -168,16 +261,16 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         LayoutElement rowSize = row.AddComponent<LayoutElement>();
         rowSize.preferredHeight = 56f;
 
-        Button quickFillButton = CreateButton(row.transform, "Авто", ApplyRecommendedLoadout);
+        quickFillButton = CreateButton(row.transform, "Авто", ApplyRecommendedLoadout);
         SetPreferredWidth(quickFillButton.gameObject, 120f);
 
-        Button clearButton = CreateButton(row.transform, "Очистить", ClearLoadout);
+        clearButton = CreateButton(row.transform, "Очистить", ClearLoadout);
         SetPreferredWidth(clearButton.gameObject, 140f);
 
-        Button closeButton = CreateButton(row.transform, "Отмена", Close);
+        closeButton = CreateButton(row.transform, "Отмена", Close);
         SetPreferredWidth(closeButton.gameObject, 160f);
 
-        Button startButton = CreateButton(row.transform, "В лес", StartPreparedExpedition);
+        startButton = CreateButton(row.transform, "В лес", StartPreparedExpedition);
         SetPreferredWidth(startButton.gameObject, 200f);
     }
 
@@ -201,6 +294,7 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
     {
         GameProgressData progress = GameCore.Instance.CurrentProgress;
         PlayerInventory homeStorage = InventoryService.Instance.HomeStorage;
+        EnsureLoadout(progress);
         if (progress?.loadout?.consumables == null || homeStorage == null)
         {
             return;
@@ -243,6 +337,7 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
     {
         GameProgressData progress = GameCore.Instance.CurrentProgress;
         PlayerInventory homeStorage = InventoryService.Instance.HomeStorage;
+        EnsureLoadout(progress);
         if (progress?.loadout?.consumables == null || homeStorage == null)
         {
             return;
@@ -287,6 +382,24 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         InventorySlot slot = new InventorySlot { itemName = itemId, count = 0 };
         slots.Add(slot);
         return slot;
+    }
+
+    private static void EnsureLoadout(GameProgressData progress)
+    {
+        if (progress == null)
+        {
+            return;
+        }
+
+        if (progress.loadout == null)
+        {
+            progress.loadout = new ExpeditionLoadoutData();
+        }
+
+        if (progress.loadout.consumables == null)
+        {
+            progress.loadout.consumables = new List<InventorySlot>();
+        }
     }
 
     private static void SetCount(List<InventorySlot> slots, PlayerInventory homeStorage, string itemId, int requestedCount)

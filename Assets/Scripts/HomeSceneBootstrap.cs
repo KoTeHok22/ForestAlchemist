@@ -44,21 +44,9 @@ public sealed class HomeSceneBootstrap : MonoBehaviour
             expeditionPreparationUI = FindFirstObjectByType<ExpeditionPreparationUI>();
         }
 
-        if (expeditionPreparationUI == null)
-        {
-            GameObject go = new GameObject("ExpeditionPreparationUI");
-            expeditionPreparationUI = go.AddComponent<ExpeditionPreparationUI>();
-        }
-
         if (homeStorageUI == null)
         {
             homeStorageUI = FindFirstObjectByType<HomeStorageUI>();
-        }
-
-        if (homeStorageUI == null)
-        {
-            GameObject go = new GameObject("HomeStorageUI");
-            homeStorageUI = go.AddComponent<HomeStorageUI>();
         }
     }
 

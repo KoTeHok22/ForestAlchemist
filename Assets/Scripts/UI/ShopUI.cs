@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 public sealed class ShopUI : MonoBehaviour
 {
+    [Header("Scene UI")]
     [SerializeField] private GameObject shopPanel;
     [SerializeField] private Transform itemsContainer;
     [SerializeField] private GameObject itemButtonTemplate;
@@ -17,7 +18,7 @@ public sealed class ShopUI : MonoBehaviour
     {
         BuildRuntimeUiIfNeeded();
         if (shopPanel != null) shopPanel.SetActive(false);
-        if (closeButton != null) closeButton.onClick.AddListener(Close);
+        BindCloseButton();
         if (itemButtonTemplate != null) itemButtonTemplate.SetActive(false);
 
         ShopService.Instance.OnItemPurchased += Refresh;
@@ -104,6 +105,7 @@ public sealed class ShopUI : MonoBehaviour
     {
         if (runtimeUiBuilt || shopPanel != null)
         {
+            BindCloseButton();
             runtimeUiBuilt = true;
             return;
         }
@@ -162,9 +164,21 @@ public sealed class ShopUI : MonoBehaviour
 
         closeButton = CreateButton(shopPanel.transform, "Закрыть", Close);
         SetPreferredWidth(closeButton.gameObject, 180f);
+        BindCloseButton();
 
         shopPanel.SetActive(false);
         runtimeUiBuilt = true;
+    }
+
+    private void BindCloseButton()
+    {
+        if (closeButton == null)
+        {
+            return;
+        }
+
+        closeButton.onClick.RemoveListener(Close);
+        closeButton.onClick.AddListener(Close);
     }
 
     private static TMP_Text CreateText(Transform parent, string content, float fontSize, FontStyles style)

@@ -58,6 +58,11 @@ public sealed class PlayerInventory
 
     public void AddItem(string itemName, int amount = 1)
     {
+        if (amount <= 0)
+        {
+            return;
+        }
+
         itemName = ItemCatalog.Normalize(itemName);
         InventorySlot slot = FindSlot(itemName);
         if (slot == null)
@@ -73,6 +78,11 @@ public sealed class PlayerInventory
 
     public bool RemoveItem(string itemName, int amount = 1)
     {
+        if (amount <= 0)
+        {
+            return false;
+        }
+
         itemName = ItemCatalog.Normalize(itemName);
         InventorySlot slot = FindSlot(itemName);
         if (slot == null || slot.count < amount)

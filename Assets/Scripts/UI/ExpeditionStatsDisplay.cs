@@ -54,15 +54,26 @@ public sealed class ExpeditionStatsDisplay : MonoBehaviour
     {
         if (ExpeditionManager.Instance != null)
             ExpeditionManager.Instance.OnExpeditionEnded += OnExpeditionEnded;
+
+        if (QuestManager.Instance != null)
+            QuestManager.Instance.OnQuestRewardGranted += OnQuestRewardGranted;
     }
 
     private void OnDisable()
     {
         if (ExpeditionManager.Instance != null)
             ExpeditionManager.Instance.OnExpeditionEnded -= OnExpeditionEnded;
+
+        if (QuestManager.Instance != null)
+            QuestManager.Instance.OnQuestRewardGranted -= OnQuestRewardGranted;
     }
 
     private void OnExpeditionEnded(ExpeditionResult result)
+    {
+        RefreshStats();
+    }
+
+    private void OnQuestRewardGranted(int reward)
     {
         RefreshStats();
     }

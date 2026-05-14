@@ -30,6 +30,8 @@ public sealed class LevelManager : MonoBehaviour
 
     private void Awake()
     {
+        EnsureRuntimeComponents();
+
         inventory = ExpeditionManager.Instance.ExpeditionInventory;
         questService = new PlayerQuestService(
             new JsonPlayerQuestRepository(),
@@ -64,6 +66,71 @@ public sealed class LevelManager : MonoBehaviour
         }
 
         QuestManager.Instance.ResetExpeditionProgress();
+    }
+
+    private void EnsureRuntimeComponents()
+    {
+        if (resourceGatherer == null)
+        {
+            resourceGatherer = FindFirstObjectByType<ResourceGatherer>();
+        }
+
+        if (resourceGatherer == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                resourceGatherer = player.GetComponent<ResourceGatherer>();
+                if (resourceGatherer == null)
+                {
+                    resourceGatherer = player.AddComponent<ResourceGatherer>();
+                }
+
+                if (player.GetComponent<GatherProgressDisplay>() == null)
+                {
+                    player.AddComponent<GatherProgressDisplay>();
+                }
+            }
+        }
+
+        if (bloodDropHandler == null)
+        {
+            bloodDropHandler = FindFirstObjectByType<OrcBloodDropHandler>();
+        }
+
+        if (bloodDropHandler == null)
+        {
+            GameObject levelManagerObject = gameObject;
+            bloodDropHandler = levelManagerObject.GetComponent<OrcBloodDropHandler>();
+            if (bloodDropHandler == null)
+            {
+                bloodDropHandler = levelManagerObject.AddComponent<OrcBloodDropHandler>();
+            }
+        }
+
+        if (inventoryDisplay == null)
+        {
+            inventoryDisplay = FindFirstObjectByType<InventoryDisplay>();
+        }
+
+        if (iconProvider == null)
+        {
+            iconProvider = FindFirstObjectByType<LevelQuestIconProvider>();
+        }
+
+        if (iconProvider == null)
+        {
+            iconProvider = gameObject.GetComponent<LevelQuestIconProvider>();
+            if (iconProvider == null)
+            {
+                iconProvider = gameObject.AddComponent<LevelQuestIconProvider>();
+            }
+        }
+
+        if (questHud == null)
+        {
+            questHud = FindFirstObjectByType<LevelQuestHudDisplay>();
+        }
     }
 
     private void Start()
@@ -118,6 +185,7 @@ public sealed class LevelManager : MonoBehaviour
             {
                 Debug.Log("[LevelManager] Loot table empty, adding default Orc Blood.");
                 inventory.AddItem(ItemCatalog.OrcBlood, 1);
+                QuestManager.Instance.ReportItemCollected(ItemCatalog.OrcBlood, 1);
             }
             else
             {
@@ -130,6 +198,7 @@ public sealed class LevelManager : MonoBehaviour
                         {
                             Debug.Log($"[LevelManager] Dropped {amount}x {loot.itemName}");
                             inventory.AddItem(loot.itemName, amount);
+                            QuestManager.Instance.ReportItemCollected(loot.itemName, amount);
                         }
                     }
                 }
@@ -138,6 +207,7 @@ public sealed class LevelManager : MonoBehaviour
             if (enemy.Config.isBoss && !string.IsNullOrEmpty(enemy.Config.bossTrophyItemId))
             {
                 inventory.AddItem(enemy.Config.bossTrophyItemId, 1);
+                QuestManager.Instance.ReportItemCollected(enemy.Config.bossTrophyItemId, 1);
                 Debug.Log($"[LevelManager] Boss trophy dropped: {enemy.Config.bossTrophyItemId}");
                 QuestManager.Instance.ReportBossDefeated(enemy.Config.enemyName);
                 ShowCombatFeed($"Босс повержен. Получен трофей: {enemy.Config.bossTrophyItemId}");

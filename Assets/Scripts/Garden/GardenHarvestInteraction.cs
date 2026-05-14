@@ -15,6 +15,7 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
     private bool isHovered;
     private bool hasHarvestedThisVisit;
     private Transform player;
+    private GardenVisuals gardenVisuals;
 
     private void Awake()
     {
@@ -24,6 +25,8 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) player = playerObj.transform;
+
+        gardenVisuals = FindFirstObjectByType<GardenVisuals>();
     }
 
     private void Update()
@@ -88,6 +91,7 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
         if (sr != null) sr.color = defaultColor;
 
         GardenService.Instance.ResetGarden();
+        gardenVisuals?.UpdateVisuals();
     }
 
     public void ResetHarvestState()

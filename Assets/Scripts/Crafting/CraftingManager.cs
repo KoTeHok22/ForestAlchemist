@@ -82,6 +82,7 @@ public sealed class CraftingManager : MonoBehaviour
         if (storage == null) return false;
 
         var progress = GameCore.Instance.CurrentProgress;
+        EnsureCraftingCollections(progress);
         if (progress != null && progress.crafting.craftedSpells.Contains(spell.spellId)) return false;
 
         foreach (var ingredient in spell.recipeIngredients)
@@ -103,6 +104,7 @@ public sealed class CraftingManager : MonoBehaviour
         }
 
         var progress = GameCore.Instance.CurrentProgress;
+        EnsureCraftingCollections(progress);
         if (progress != null && !progress.crafting.craftedSpells.Contains(spell.spellId))
         {
             progress.crafting.craftedSpells.Add(spell.spellId);
@@ -189,6 +191,24 @@ public sealed class CraftingManager : MonoBehaviour
                 CreateSpell("spell_airdash", "Порыв Ветра", "Короткий рывок для спасения.", ElementType.Air, SpellType.Dash, 0, 3f, 14f, 3f, 0f, 0f, 0f, 2,
                     (ItemCatalog.OrcBlood, 3), (ItemCatalog.SakuraSapling, 1), (ItemCatalog.AppleSapling, 1))
             };
+        }
+    }
+
+    private static void EnsureCraftingCollections(GameProgressData progress)
+    {
+        if (progress == null)
+        {
+            return;
+        }
+
+        if (progress.crafting == null)
+        {
+            progress.crafting = new CraftingProgressData();
+        }
+
+        if (progress.crafting.craftedSpells == null)
+        {
+            progress.crafting.craftedSpells = new List<string>();
         }
     }
 

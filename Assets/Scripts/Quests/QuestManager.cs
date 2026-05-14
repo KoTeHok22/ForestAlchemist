@@ -22,6 +22,7 @@ public sealed class QuestManager : MonoBehaviour
     public event Action<string, int> OnQuestProgressUpdated;
     public event Action<WeatherSystem.WeatherType> OnWeatherQuestTriggered;
     public event Action<string> OnQuestCompleted;
+    public event Action<int> OnQuestRewardGranted;
 
     private Dictionary<string, int> questProgress = new Dictionary<string, int>();
     private HashSet<string> activatedAltars = new HashSet<string>();
@@ -46,6 +47,7 @@ public sealed class QuestManager : MonoBehaviour
 
     public void ReportItemCollected(string itemName, int amount)
     {
+        itemName = ItemCatalog.Normalize(itemName);
         UpdateProgress(QuestType.CollectItem, itemName, amount);
     }
 
@@ -150,7 +152,9 @@ public sealed class QuestManager : MonoBehaviour
 
         if (quest != null)
         {
-            InventoryService.Instance.HomeStorage?.AddItem(ItemCatalog.OrcBlood, GetBloodReward(quest));
+            int reward = GetBloodReward(quest);
+            ExpeditionManager.Instance.ExpeditionInventory?.AddItem(ItemCatalog.OrcBlood, reward);
+            OnQuestRewardGranted?.Invoke(reward);
         }
 
         OnQuestCompleted?.Invoke(questId);

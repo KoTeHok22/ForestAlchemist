@@ -10,6 +10,7 @@ public sealed class PlayerSpellCaster : MonoBehaviour
 
     private Dictionary<string, SpellCooldown> cooldowns = new Dictionary<string, SpellCooldown>();
     private List<SpellDefinition> unlockedSpells = new List<SpellDefinition>();
+    private readonly Dictionary<string, SpellDefinition> fallbackSpells = new Dictionary<string, SpellDefinition>();
     private float currentMana;
     private PlayerTopDownController movement;
     private Camera cachedCamera;
@@ -31,6 +32,7 @@ public sealed class PlayerSpellCaster : MonoBehaviour
     {
         if (startingSpells == null)
         {
+            OnManaChanged?.Invoke(currentMana, maxMana);
             return;
         }
 
@@ -54,7 +56,7 @@ public sealed class PlayerSpellCaster : MonoBehaviour
     public bool TryCast(SpellDefinition spell)
     {
         if (spell == null) return false;
-        if (!unlockedSpells.Contains(spell)) return false;
+        if (!IsSpellUnlocked(spell)) return false;
         if (IsOnCooldown(spell.spellId)) return false;
         if (currentMana < spell.manaCost) return false;
 
@@ -89,7 +91,7 @@ public sealed class PlayerSpellCaster : MonoBehaviour
 
     public bool IsUnlocked(SpellDefinition spell)
     {
-        return spell != null && unlockedSpells.Contains(spell);
+        return spell != null && IsSpellUnlocked(spell);
     }
 
     public bool IsOnCooldown(string spellId)
@@ -128,7 +130,8 @@ public sealed class PlayerSpellCaster : MonoBehaviour
         {
             if (allSpells[i].spellId == itemId) return allSpells[i];
         }
-        return null;
+
+        return GetFallbackSpell(itemId);
     }
 
     public List<SpellDefinition> GetUnlockedSpells() => new List<SpellDefinition>(unlockedSpells);
@@ -274,6 +277,11 @@ public sealed class PlayerSpellCaster : MonoBehaviour
         var progress = GameCore.Instance.CurrentProgress;
         if (progress == null) return;
 
+        if (progress.crafting == null)
+        {
+            progress.crafting = new CraftingProgressData();
+        }
+
         if (progress.crafting.craftedSpells == null)
         {
             progress.crafting.craftedSpells = new List<string>();
@@ -336,6 +344,106 @@ public sealed class PlayerSpellCaster : MonoBehaviour
                 unlockedSpells.Add(spell);
             }
         }
+    }
+
+    private SpellDefinition GetFallbackSpell(string spellId)
+    {
+        if (string.IsNullOrEmpty(spellId))
+        {
+            return null;
+        }
+
+        if (fallbackSpells.TryGetValue(spellId, out SpellDefinition existing))
+        {
+            return existing;
+        }
+
+        SpellDefinition created = CreateFallbackSpell(spellId);
+        if (created != null)
+        {
+            fallbackSpells[spellId] = created;
+        }
+
+        return created;
+    }
+
+    private static SpellDefinition CreateFallbackSpell(string spellId)
+    {
+        switch (spellId)
+        {
+            case "spell_firebolt":
+                return CreateFallbackSpellDefinition(spellId, "Огненный Болт", "Базовый огненный снаряд.", ElementType.Fire, SpellType.Projectile, 20, 2f, 15f, 8f, 0f, 0f, 10f);
+            case "spell_waterspring":
+                return CreateFallbackSpellDefinition(spellId, "Источник Воды", "Лечит алхимика во время похода.", ElementType.Water, SpellType.SelfBuff, 30, 4f, 18f, 0f, 0f, 4f, 0f);
+            case "spell_stoneskin":
+                return CreateFallbackSpellDefinition(spellId, "Каменная Кожа", "Даёт временный щит.", ElementType.Earth, SpellType.SelfBuff, 35, 6f, 22f, 0f, 0f, 6f, 0f);
+            case "spell_airdash":
+                return CreateFallbackSpellDefinition(spellId, "Порыв Ветра", "Короткий рывок для спасения.", ElementType.Air, SpellType.Dash, 0, 3f, 14f, 3f, 0f, 0f, 0f);
+            default:
+                return null;
+        }
+    }
+
+    private static SpellDefinition CreateFallbackSpellDefinition(
+        string spellId,
+        string displayName,
+        string description,
+        ElementType element,
+        SpellType spellType,
+        int damage,
+        float cooldown,
+        float manaCost,
+        float range,
+        float radius,
+        float duration,
+        float speed)
+    {
+        SpellDefinition spell = ScriptableObject.CreateInstance<SpellDefinition>();
+        spell.spellId = spellId;
+        spell.displayName = displayName;
+        spell.description = description;
+        spell.element = element;
+        spell.spellType = spellType;
+        spell.damage = damage;
+        spell.cooldown = cooldown;
+        spell.manaCost = manaCost;
+        spell.range = range;
+        spell.radius = radius;
+        spell.duration = duration;
+        spell.speed = speed;
+        spell.elementColor = element switch
+        {
+            ElementType.Fire => new Color(1f, 0.4f, 0.2f),
+            ElementType.Water => new Color(0.3f, 0.7f, 1f),
+            ElementType.Earth => new Color(0.55f, 0.4f, 0.2f),
+            ElementType.Air => new Color(0.85f, 0.95f, 1f),
+            _ => Color.white
+        };
+        return spell;
+    }
+
+    private bool IsSpellUnlocked(SpellDefinition spell)
+    {
+        if (spell == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < unlockedSpells.Count; i++)
+        {
+            SpellDefinition unlocked = unlockedSpells[i];
+            if (unlocked == spell)
+            {
+                return true;
+            }
+
+            if (unlocked != null && unlocked.spellId == spell.spellId)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private struct SpellCooldown

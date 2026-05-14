@@ -88,7 +88,10 @@ public sealed class ResourceGatherer : MonoBehaviour
         progressDisplay.Hide();
 
         if (inventory != null && !string.IsNullOrEmpty(gatherItemName))
+        {
             inventory.AddItem(gatherItemName);
+            QuestManager.Instance.ReportItemCollected(gatherItemName, 1);
+        }
 
         currentTarget = null;
         gatherItemName = null;
@@ -102,6 +105,7 @@ public sealed class ResourceGatherer : MonoBehaviour
         if (config != null)
         {
             inventory.AddItem(config.itemName);
+            QuestManager.Instance.ReportItemCollected(config.itemName, 1);
             Debug.Log($"[ResourceGatherer] Gathered {config.itemName} by hitting {resource.name}");
         }
         else if (resource.name.ToLower().Contains("tree") || resource.name.ToLower().Contains("wood"))

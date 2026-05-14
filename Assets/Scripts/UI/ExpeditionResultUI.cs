@@ -15,7 +15,7 @@ public sealed class ExpeditionResultUI : MonoBehaviour
     {
         BuildRuntimeUiIfNeeded();
         if (panel != null) panel.SetActive(false);
-        if (closeButton != null) closeButton.onClick.AddListener(() => panel.SetActive(false));
+        BindCloseButton();
     }
 
     private void Start()
@@ -23,6 +23,11 @@ public sealed class ExpeditionResultUI : MonoBehaviour
         if (ExpeditionManager.Instance != null)
         {
             ExpeditionManager.Instance.OnExpeditionEnded += ShowResult;
+        }
+
+        if (ExpeditionManager.Instance.TryConsumePendingResult(out ExpeditionResult pendingResult))
+        {
+            ShowResult(pendingResult);
         }
     }
 
@@ -51,6 +56,11 @@ public sealed class ExpeditionResultUI : MonoBehaviour
 
         var stats = GameCore.Instance.CurrentProgress.stats;
         statsText.text = $"Успешных походов: {stats.successfulExpeditions}\nСмертей: {stats.totalDeaths}\nМаксимальная угроза: {stats.deepestThreatReached}\n{BuildMilestoneText(result, stats)}";
+
+        if (closeButton != null)
+        {
+            closeButton.transform.SetAsLastSibling();
+        }
     }
 
     private static string BuildMilestoneText(ExpeditionResult result, ExpeditionStats stats)
@@ -82,6 +92,7 @@ public sealed class ExpeditionResultUI : MonoBehaviour
     {
         if (runtimeUiBuilt || panel != null)
         {
+            BindCloseButton();
             runtimeUiBuilt = true;
             return;
         }
@@ -117,9 +128,29 @@ public sealed class ExpeditionResultUI : MonoBehaviour
         statsText.enableWordWrapping = true;
 
         closeButton = CreateButton(panel.transform, "Продолжить", () => panel.SetActive(false));
+        BindCloseButton();
 
         panel.SetActive(false);
         runtimeUiBuilt = true;
+    }
+
+    private void BindCloseButton()
+    {
+        if (closeButton == null)
+        {
+            return;
+        }
+
+        closeButton.onClick.RemoveAllListeners();
+        closeButton.onClick.AddListener(ClosePanel);
+    }
+
+    private void ClosePanel()
+    {
+        if (panel != null)
+        {
+            panel.SetActive(false);
+        }
     }
 
     private static TMP_Text CreateText(Transform parent, string content, float fontSize, FontStyles style)
