@@ -7,12 +7,25 @@ public sealed class QuestDataCollection
     public List<QuestData> quests;
 }
 
+public enum QuestType
+{
+    CollectItem,
+    KillEnemy,
+    ReachLocation,
+    ActivateAltar,
+    DefeatBoss
+}
+
 [Serializable]
 public sealed class QuestData
 {
     public string id;
     public string description;
-    public string itemName;
+    public QuestType type = QuestType.CollectItem;
+    public string targetId; // ItemName, EnemyType, or LocationId
     public int requiredCount;
     public int rewardPoints;
+    
+    // Legacy support for itemName
+    public string itemName => targetId;
 }

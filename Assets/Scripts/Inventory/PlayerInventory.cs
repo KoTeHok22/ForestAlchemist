@@ -24,10 +24,22 @@ public sealed class PlayerInventory
 
     public event Action OnInventoryChanged;
 
-    public PlayerInventory()
+    public PlayerInventory(string fileName = "player_inventory.json")
     {
-        filePath = Path.Combine(Application.persistentDataPath, "player_inventory.json");
+        filePath = Path.Combine(Application.persistentDataPath, fileName);
         Load();
+    }
+
+    public PlayerInventory(PlayerInventorySave existingData)
+    {
+        saveData = existingData;
+    }
+
+    public void Clear()
+    {
+        saveData.slots.Clear();
+        Save();
+        OnInventoryChanged?.Invoke();
     }
 
     public int GetItemCount(string itemName)
@@ -48,6 +60,23 @@ public sealed class PlayerInventory
         slot.count += amount;
         Save();
         OnInventoryChanged?.Invoke();
+    }
+
+    public bool RemoveItem(string itemName, int amount = 1)
+    {
+        InventorySlot slot = FindSlot(itemName);
+        if (slot == null || slot.count < amount)
+            return false;
+
+        slot.count -= amount;
+        if (slot.count <= 0)
+        {
+            saveData.slots.Remove(slot);
+        }
+
+        Save();
+        OnInventoryChanged?.Invoke();
+        return true;
     }
 
     public List<InventorySlot> GetAllSlots()

@@ -46,9 +46,15 @@ public sealed class ActiveQuestHudDisplay : MonoBehaviour
             Image logoImage = itemLogo.GetComponent<Image>();
             if (logoImage != null && iconProvider != null)
             {
-                Sprite icon = iconProvider.GetIcon(quest.itemName);
+                Sprite icon = quest.type == QuestType.CollectItem ? iconProvider.GetIcon(quest.itemName) : null;
                 if (icon != null)
+                {
                     logoImage.sprite = icon;
+                }
+                else
+                {
+                    logoImage.enabled = false;
+                }
             }
         }
 

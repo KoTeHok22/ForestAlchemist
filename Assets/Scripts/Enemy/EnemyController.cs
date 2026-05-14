@@ -5,23 +5,27 @@ using UnityEngine;
 public sealed class EnemyController : MonoBehaviour
 {
     private EnemyConfig config;
+    public EnemyConfig Config => config;
     private EnemyHealth health;
-    private EnemyAnimationController animationController;
+private EnemyAnimationController animationController;
     private EnemyHPBar hpBar;
     private EnemyStateMachine stateMachine;
     private IPlayerScoreService scoreService;
     private bool isDead;
 
     public event Action<EnemyController> OnEnemyDied;
+    public static event Action<EnemyController> OnAnyEnemyDied;
 
-    public void Initialize(EnemyConfig config, Transform baseTransform, Transform playerTarget, IPlayerScoreService scoreService)
+    public void Initialize(EnemyConfig config, Transform baseTransform, Transform playerTarget, IPlayerScoreService scoreService, float statMultiplier = 1f)
     {
         this.config = config;
         this.scoreService = scoreService;
 
         gameObject.name = config.enemyName;
         transform.localScale = config.spriteScale;
-        Debug.Log($"[EnemyController] Spawned '{config.enemyName}' at {transform.position}, layer={gameObject.layer} ({LayerMask.LayerToName(gameObject.layer)})", this);
+
+        int scaledHealth = Mathf.RoundToInt(config.maxHealth * statMultiplier);
+        Debug.Log($"[EnemyController] Spawned '{config.enemyName}' HP:{scaledHealth}(x{statMultiplier}) at {transform.position}, layer={gameObject.layer} ({LayerMask.LayerToName(gameObject.layer)})", this);
 
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer == null)
@@ -45,7 +49,7 @@ public sealed class EnemyController : MonoBehaviour
         {
             health = gameObject.AddComponent<EnemyHealth>();
         }
-        health.Initialize(config.maxHealth);
+        health.Initialize(scaledHealth);
 
         animationController = GetComponent<EnemyAnimationController>();
         if (animationController == null)
@@ -118,6 +122,7 @@ public sealed class EnemyController : MonoBehaviour
         }
 
         OnEnemyDied?.Invoke(this);
+        OnAnyEnemyDied?.Invoke(this);
         Destroy(gameObject, 0.5f);
     }
 

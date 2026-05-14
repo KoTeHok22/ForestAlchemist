@@ -61,11 +61,17 @@ public sealed class QuestBoardGenerator : MonoBehaviour
         if (itemLogo != null)
         {
             Image logoImage = itemLogo.GetComponent<Image>();
-            if (logoImage != null)
+            if (logoImage != null && iconProvider != null)
             {
-                Sprite icon = iconProvider.GetIcon(quest.itemName);
+                Sprite icon = quest.type == QuestType.CollectItem ? iconProvider.GetIcon(quest.itemName) : null;
                 if (icon != null)
+                {
                     logoImage.sprite = icon;
+                }
+                else
+                {
+                    logoImage.enabled = false;
+                }
             }
         }
 
@@ -74,7 +80,7 @@ public sealed class QuestBoardGenerator : MonoBehaviour
         {
             TextMeshProUGUI countText = itemCount.GetComponent<TextMeshProUGUI>();
             if (countText != null)
-                countText.text = $"x{quest.requiredCount}";
+                countText.text = quest.type == QuestType.CollectItem ? $"x{quest.requiredCount}" : $"Цель: {quest.requiredCount}";
         }
 
         Transform cost = entry.transform.Find("Cost");

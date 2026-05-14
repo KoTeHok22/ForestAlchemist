@@ -16,6 +16,60 @@ public sealed class MenuAccountData
     public string passwordHash = string.Empty;
     public MenuSettingsData settings = new MenuSettingsData();
     public MenuPlayerProgressData playerData = new MenuPlayerProgressData();
+    public GameProgressData gameProgress = new GameProgressData();
+}
+
+[Serializable]
+public sealed class GameProgressData
+{
+    public HomeStorageData homeStorage = new HomeStorageData();
+    public GardenData garden = new GardenData();
+    public OrcEvolutionData orcs = new OrcEvolutionData();
+    public CraftingProgressData crafting = new CraftingProgressData();
+    public HotbarData hotbar = new HotbarData();
+    public ExpeditionStats stats = new ExpeditionStats();
+}
+
+[Serializable]
+public sealed class HomeStorageData
+{
+    public List<InventorySlot> slots = new List<InventorySlot>();
+}
+
+[Serializable]
+public sealed class GardenData
+{
+    public int currentStage;
+    public int maxStage = 3;
+    public int expeditionsToNextStage = 1;
+}
+
+[Serializable]
+public sealed class OrcEvolutionData
+{
+    public int threatLevel = 1;
+    public float statMultiplier = 1.0f;
+}
+
+[Serializable]
+public sealed class CraftingProgressData
+{
+    public int level = 1;
+    public int craftingXp;
+    public List<string> unlockedRecipes = new List<string>();
+}
+
+[Serializable]
+public sealed class HotbarData
+{
+    public List<string> slotItemIds = new List<string>(new string[10]);
+}
+
+[Serializable]
+public sealed class ExpeditionStats
+{
+    public int successfulExpeditions;
+    public int totalDeaths;
 }
 
 [Serializable]

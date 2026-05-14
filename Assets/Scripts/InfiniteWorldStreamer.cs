@@ -109,6 +109,13 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
             worldTemplate = GetComponent<WorldChunkTemplate>();
         }
 
+        // Use seed from ExpeditionManager if available
+        if (ExpeditionManager.Instance != null)
+        {
+            objectSeed = ExpeditionManager.Instance.CurrentSeed;
+            baseSeed = ExpeditionManager.Instance.CurrentSeed + 100;
+        }
+
         if (trackedTarget == null)
         {
             GameObject player = GameObject.Find("Player");

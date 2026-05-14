@@ -63,11 +63,14 @@ public sealed class MainMenuController : MonoBehaviour
 
     private void Awake()
     {
-        ConstructServices();
+        var core = GameCore.Instance;
+        accountService = core.AccountService;
+        settingsApplier = new UnityMenuSettingsApplier();
+        recordsService = new MenuRecordsService();
+
         CacheReferences();
         BindButtons();
         BindSettingsControls();
-        accountService.TryAutoLogin();
         ApplySessionState();
         CloseOverlayPanels();
         SetLoadProgress(0f);
@@ -227,12 +230,6 @@ public sealed class MainMenuController : MonoBehaviour
 
     private void ConstructServices()
     {
-        IMenuAccountRepository repository = new JsonMenuAccountRepository(SaveFileName);
-        IPasswordService passwordService = new Sha256PasswordService(MinPasswordLength);
-
-        accountService = new MenuAccountService(repository, passwordService);
-        settingsApplier = new UnityMenuSettingsApplier();
-        recordsService = new MenuRecordsService();
     }
 
     private void CacheReferences()

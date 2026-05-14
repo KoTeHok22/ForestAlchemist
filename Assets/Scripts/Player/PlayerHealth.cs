@@ -48,6 +48,17 @@ public sealed class PlayerHealth : MonoBehaviour, IDamageable
         if (!IsAlive || amount <= 0)
             return;
 
+        PlayerBuffReceiver buffReceiver = GetComponent<PlayerBuffReceiver>();
+        if (buffReceiver != null && buffReceiver.HasShield)
+        {
+            amount = buffReceiver.AbsorbDamage(amount);
+            if (amount <= 0)
+            {
+                OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+                return;
+            }
+        }
+
         CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
         timeSinceLastDamage = 0f;
         regenAccumulator = 0f;
@@ -57,5 +68,12 @@ public sealed class PlayerHealth : MonoBehaviour, IDamageable
 
         if (CurrentHealth <= 0)
             OnDeath?.Invoke();
+    }
+
+    public void Heal(int amount)
+    {
+        if (!IsAlive || amount <= 0) return;
+        CurrentHealth = Mathf.Min(maxHealth, CurrentHealth + amount);
+        OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
     }
 }

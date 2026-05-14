@@ -69,7 +69,24 @@ public sealed class EnemyAttackState : IEnemyState
             IDamageable playerDamageable = context.PlayerTarget.GetComponent<IDamageable>();
             if (playerDamageable != null)
             {
-                playerDamageable.TakeDamage(context.Config.attackDamage);
+                int baseDamage = context.Config.attackDamage;
+                float evolutionMult = 1f;
+                var progress = GameCore.Instance.CurrentProgress;
+                if (progress != null) evolutionMult = progress.orcs.statMultiplier;
+
+                int finalDamage = Mathf.RoundToInt(baseDamage * evolutionMult);
+
+                ElementType attackElement = context.Config.element;
+                if (attackElement != ElementType.None)
+                {
+                    PlayerBuffReceiver buffReceiver = context.PlayerTarget.GetComponent<PlayerBuffReceiver>();
+                    ElementType counterElement = attackElement.GetCounter();
+
+                    float elementalMult = 1f;
+                    if (counterElement == ElementType.Fire && attackElement == ElementType.Water) elementalMult = 1.5f;
+                }
+
+                playerDamageable.TakeDamage(finalDamage);
             }
             else
             {

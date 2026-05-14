@@ -89,10 +89,20 @@ public sealed class PlayerCombatController : MonoBehaviour
     private void ProcessAttackHit(Vector2 attackDirection)
     {
         Vector2 hitCenter = (Vector2)transform.position + attackDirection * Mathf.Max(0f, attackRange);
-        Debug.Log($"[PlayerCombat] attackDirection={attackDirection} hitCenter={hitCenter} range={attackRange:F2} radius={attackRadius:F2} layerMask={enemyLayers.value}", this);
+        
+        // Also hit resources
+        Collider2D[] resourceHits = Physics2D.OverlapCircleAll(hitCenter, Mathf.Max(0.05f, attackRadius));
+        var gatherer = GetComponent<ResourceGatherer>();
+        if (gatherer != null)
+        {
+            foreach (var hit in resourceHits)
+            {
+                gatherer.OnHitResource(hit.gameObject);
+            }
+        }
 
         Collider2D[] hits = Physics2D.OverlapCircleAll(hitCenter, Mathf.Max(0.05f, attackRadius), enemyLayers);
-        Debug.Log($"[PlayerCombat] hitsFound={hits.Length}", this);
+Debug.Log($"[PlayerCombat] hitsFound={hits.Length}", this);
 
         if (hits.Length == 0)
         {

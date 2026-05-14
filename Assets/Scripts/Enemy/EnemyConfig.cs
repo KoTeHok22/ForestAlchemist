@@ -26,11 +26,35 @@ public class EnemyConfig : ScriptableObject
 
     [Header("Reward")]
     public int scoreReward = 100;
+    public System.Collections.Generic.List<LootEntry> lootTable = new System.Collections.Generic.List<LootEntry>();
 
     [Header("Animation")]
-    public string animationResourcePath = "Game/Orc/1";
+public string animationResourcePath = "Game/Orc/1";
     public int animationFps = 10;
+
+    [Header("Element")]
+    public ElementType element = ElementType.None;
 
     [Header("Visuals")]
     public Vector3 spriteScale = Vector3.one;
+
+    [Header("Shaman (ranged)")]
+    public bool isShaman;
+    public GameObject shamanProjectilePrefab;
+    public float shamanAttackRange = 6f;
+    public float shamanAttackCooldown = 2f;
+    public float shamanProjectileSpeed = 5f;
+
+    [Header("Boss")]
+    public bool isBoss;
+    public string bossTrophyItemId;
 }
+
+    [System.Serializable]
+    public struct LootEntry
+    {
+    public string itemName;
+    public float chance; // 0 to 1
+    public int minAmount;
+    public int maxAmount;
+    }

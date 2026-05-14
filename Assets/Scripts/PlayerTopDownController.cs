@@ -62,6 +62,7 @@ public class PlayerTopDownController : MonoBehaviour
     private int frameIndex;
     private float attackTimer;
     private float currentStamina;
+    private float speedMultiplier = 1f;
 
     private bool IsAttacking => attackTimer > 0f;
 
@@ -143,7 +144,7 @@ public class PlayerTopDownController : MonoBehaviour
 
     private void ApplyMovement(float deltaTime)
     {
-        float speed = walkSpeed;
+        float speed = walkSpeed * speedMultiplier;
         bool isRunning = movementInput.sqrMagnitude > 0f && IsRunPressed() && CanRun(deltaTime);
         if (isRunning)
         {
@@ -352,6 +353,11 @@ public class PlayerTopDownController : MonoBehaviour
 
     public Vector2 LookDirection => lookDirection;
 
+    public void SetSpeedMultiplier(float multiplier)
+    {
+        speedMultiplier = Mathf.Max(0.2f, multiplier);
+    }
+
     private bool CanAttack()
     {
         return currentStamina >= attackStaminaCost;
@@ -420,7 +426,7 @@ public class PlayerTopDownController : MonoBehaviour
             return;
         }
 
-        float speed = walkSpeed;
+        float speed = walkSpeed * speedMultiplier;
         bool isRunning = movementInput.sqrMagnitude > 0f && IsRunPressed() && CanRun(Time.deltaTime);
         if (isRunning)
         {

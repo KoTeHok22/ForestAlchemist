@@ -94,6 +94,24 @@ public sealed class ResourceGatherer : MonoBehaviour
         gatherItemName = null;
     }
 
+    public void OnHitResource(GameObject resource)
+    {
+        if (inventory == null) return;
+
+        TreeGatherConfig config = FindConfigForTree(resource.name);
+        if (config != null)
+        {
+            inventory.AddItem(config.itemName);
+            Debug.Log($"[ResourceGatherer] Gathered {config.itemName} by hitting {resource.name}");
+        }
+        else if (resource.name.ToLower().Contains("tree") || resource.name.ToLower().Contains("wood"))
+        {
+            // Fallback for objects named "Tree" or similar if config is missing
+            inventory.AddItem("Wood");
+            Debug.Log($"[ResourceGatherer] Gathered Wood (fallback) by hitting {resource.name}");
+        }
+    }
+
     private void CancelGathering()
     {
         isGathering = false;

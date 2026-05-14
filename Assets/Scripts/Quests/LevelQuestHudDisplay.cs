@@ -76,9 +76,15 @@ public sealed class LevelQuestHudDisplay : MonoBehaviour
             Image logoImage = itemLogo.GetComponent<Image>();
             if (logoImage != null && iconProvider != null)
             {
-                Sprite icon = iconProvider.GetIcon(quest.itemName);
+                Sprite icon = quest.type == QuestType.CollectItem ? iconProvider.GetIcon(quest.itemName) : null;
                 if (icon != null)
+                {
                     logoImage.sprite = icon;
+                }
+                else
+                {
+                    logoImage.enabled = false;
+                }
             }
         }
 
@@ -88,7 +94,7 @@ public sealed class LevelQuestHudDisplay : MonoBehaviour
             TextMeshProUGUI countText = itemCount.GetComponent<TextMeshProUGUI>();
             if (countText != null)
             {
-                int collected = inventory != null ? inventory.GetItemCount(quest.itemName) : 0;
+                int collected = quest.type == QuestType.CollectItem && inventory != null ? inventory.GetItemCount(quest.itemName) : QuestManager.Instance.GetProgress(quest.id);
                 countText.text = $"{collected}/{quest.requiredCount}";
                 countTexts[quest.id] = countText;
             }

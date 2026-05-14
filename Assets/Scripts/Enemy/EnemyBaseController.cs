@@ -8,11 +8,13 @@ public sealed class EnemyBaseController : MonoBehaviour
     [SerializeField] private EnemyConfig greenOrcConfig;
     [SerializeField] private EnemyConfig blueOrcConfig;
     [SerializeField] private EnemyConfig bossOrcConfig;
+    [SerializeField] private EnemyConfig shamanConfig;
 
     [Header("Wave Settings")]
     [SerializeField] private int greenOrcCount = 5;
     [SerializeField] private int blueOrcCount = 3;
     [SerializeField] private int bossCount = 1;
+    [SerializeField] private int shamanCount = 2;
 
     [Header("Spawn")]
     [SerializeField] private float spawnRadius = 8f;
@@ -100,6 +102,11 @@ public sealed class EnemyBaseController : MonoBehaviour
         {
             bossOrcConfig = Resources.Load<EnemyConfig>("Game/Orc/BossOrc");
         }
+
+        if (shamanConfig == null)
+        {
+            shamanConfig = Resources.Load<EnemyConfig>("Game/Orc/ShamanOrc");
+        }
     }
 
     private void SpawnWave(int wave)
@@ -111,16 +118,22 @@ public sealed class EnemyBaseController : MonoBehaviour
 
         currentWave = wave;
 
+        float statMult = GetEvolutionMultiplier();
+
         switch (wave)
         {
             case 0:
-                SpawnEnemies(greenOrcConfig, greenOrcCount);
+                SpawnEnemiesWithMultiplier(greenOrcConfig, greenOrcCount, statMult);
                 break;
             case 1:
-                SpawnEnemies(blueOrcConfig, blueOrcCount);
+                SpawnEnemiesWithMultiplier(blueOrcConfig, blueOrcCount, statMult);
                 break;
             case 2:
-                SpawnEnemies(bossOrcConfig, bossCount);
+                if (shamanConfig != null) SpawnEnemiesWithMultiplier(shamanConfig, shamanCount, statMult);
+                else AdvanceWave();
+                break;
+            case 3:
+                SpawnEnemiesWithMultiplier(bossOrcConfig, bossCount, statMult);
                 break;
             default:
                 baseDefeated = true;
@@ -128,7 +141,14 @@ public sealed class EnemyBaseController : MonoBehaviour
         }
     }
 
-    private void SpawnEnemies(EnemyConfig config, int count)
+    private float GetEvolutionMultiplier()
+    {
+        var progress = GameCore.Instance.CurrentProgress;
+        if (progress == null) return 1f;
+        return progress.orcs.statMultiplier;
+    }
+
+    private void SpawnEnemiesWithMultiplier(EnemyConfig config, int count, float statMult)
     {
         if (config == null)
         {
@@ -149,12 +169,17 @@ public sealed class EnemyBaseController : MonoBehaviour
             enemyGo.transform.position = spawnPos;
             int enemyLayer = LayerMask.NameToLayer("Enemy");
             enemyGo.layer = enemyLayer;
-            Debug.Log($"[EnemyBase] Creating enemy '{config.enemyName}' at {spawnPos}, layer={enemyLayer}", this);
 
             EnemyController controller = enemyGo.AddComponent<EnemyController>();
-            controller.Initialize(config, transform, playerTarget, scoreService);
+            controller.Initialize(config, transform, playerTarget, scoreService, statMult);
             controller.OnEnemyDied += HandleEnemyDied;
             aliveEnemies.Add(controller);
+
+            if (config.isShaman)
+            {
+                ShamanController shaman = enemyGo.AddComponent<ShamanController>();
+                shaman.Initialize(config, transform, playerTarget, scoreService);
+            }
         }
     }
 

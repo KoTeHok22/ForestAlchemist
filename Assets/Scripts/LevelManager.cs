@@ -11,12 +11,21 @@ public sealed class LevelManager : MonoBehaviour
     [SerializeField] private ResourceGatherer resourceGatherer;
     [SerializeField] private OrcBloodDropHandler bloodDropHandler;
 
+    [Header("Visibility")]
+    [SerializeField] private VisibilitySystem visibilitySystem;
+
+    [Header("Weather")]
+    [SerializeField] private WeatherSystem weatherSystem;
+
     private PlayerInventory inventory;
     private PlayerQuestService questService;
 
+    public PlayerQuestService GetQuestService() => questService;
+    public PlayerInventory GetInventory() => inventory;
+
     private void Awake()
     {
-        inventory = new PlayerInventory();
+        inventory = ExpeditionManager.Instance.ExpeditionInventory;
         questService = new PlayerQuestService(
             new JsonPlayerQuestRepository(),
             new JsonQuestRepository()
@@ -33,52 +42,109 @@ public sealed class LevelManager : MonoBehaviour
 
         if (questHud != null)
             questHud.Initialize(questService, iconProvider, inventory);
+
+        if (visibilitySystem == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                visibilitySystem = player.GetComponent<VisibilitySystem>();
+                if (visibilitySystem == null) visibilitySystem = player.AddComponent<VisibilitySystem>();
+            }
+        }
+
+        if (weatherSystem == null)
+        {
+            weatherSystem = FindFirstObjectByType<WeatherSystem>();
+        }
+
+        QuestManager.Instance.ResetExpeditionProgress();
     }
 
     private void Start()
     {
-        SubscribeToEnemyDeaths();
+        EnemyController.OnAnyEnemyDied += HandleEnemyDied;
+        SubscribeToPlayerDeath();
+
+        if (weatherSystem != null)
+        {
+            weatherSystem.OnWeatherChanged += HandleWeatherChanged;
+        }
     }
 
-    private void SubscribeToEnemyDeaths()
+    private void OnDestroy()
     {
-        EnemyBaseController[] bases = FindObjectsByType<EnemyBaseController>(FindObjectsSortMode.None);
-        foreach (EnemyBaseController baseCtrl in bases)
-        {
-            // Listen via the existing event system - enemies are dynamically spawned so we
-            // need to hook into the death flow. We'll use a global approach.
-        }
+        EnemyController.OnAnyEnemyDied -= HandleEnemyDied;
 
-        // Subscribe to all existing and future enemy deaths via a coroutine poll
-        StartCoroutine(PollEnemyDeaths());
+        if (weatherSystem != null)
+        {
+            weatherSystem.OnWeatherChanged -= HandleWeatherChanged;
+        }
     }
 
-    private System.Collections.IEnumerator PollEnemyDeaths()
+    private void SubscribeToPlayerDeath()
     {
-        while (true)
+        PlayerHealth player = Object.FindAnyObjectByType<PlayerHealth>();
+        if (player != null)
         {
-            EnemyController[] enemies = FindObjectsByType<EnemyController>(FindObjectsSortMode.None);
-            foreach (EnemyController enemy in enemies)
-            {
-                if (!trackedEnemies.Contains(enemy.GetInstanceID()))
-                {
-                    trackedEnemies.Add(enemy.GetInstanceID());
-                    enemy.OnEnemyDied += HandleEnemyDied;
-                }
-            }
-
-            yield return new WaitForSeconds(1f);
+            player.OnDeath += HandlePlayerDeath;
         }
+    }
+
+    private void HandlePlayerDeath()
+    {
+        ExpeditionManager.Instance.EndExpedition(ExpeditionResult.Death);
     }
 
     private readonly System.Collections.Generic.HashSet<int> trackedEnemies = new System.Collections.Generic.HashSet<int>();
 
     private void HandleEnemyDied(EnemyController enemy)
     {
+        Debug.Log($"[LevelManager] Enemy Died: {enemy.name}");
         trackedEnemies.Remove(enemy.GetInstanceID());
         enemy.OnEnemyDied -= HandleEnemyDied;
 
+        if (enemy.Config != null && inventory != null)
+        {
+            Debug.Log($"[LevelManager] Dropping loot for {enemy.Config.enemyName}. Loot table count: {enemy.Config.lootTable.Count}");
+
+            if (enemy.Config.lootTable.Count == 0)
+            {
+                Debug.Log("[LevelManager] Loot table empty, adding default Orc Blood.");
+                inventory.AddItem("КровьОрка", 1);
+            }
+            else
+            {
+                foreach (var loot in enemy.Config.lootTable)
+                {
+                    if (UnityEngine.Random.value <= loot.chance)
+                    {
+                        int amount = UnityEngine.Random.Range(loot.minAmount, loot.maxAmount + 1);
+                        if (amount > 0)
+                        {
+                            Debug.Log($"[LevelManager] Dropped {amount}x {loot.itemName}");
+                            inventory.AddItem(loot.itemName, amount);
+                        }
+                    }
+                }
+            }
+
+            if (enemy.Config.isBoss && !string.IsNullOrEmpty(enemy.Config.bossTrophyItemId))
+            {
+                inventory.AddItem(enemy.Config.bossTrophyItemId, 1);
+                Debug.Log($"[LevelManager] Boss trophy dropped: {enemy.Config.bossTrophyItemId}");
+                QuestManager.Instance.ReportBossDefeated(enemy.Config.enemyName);
+            }
+
+            QuestManager.Instance.ReportEnemyKilled(enemy.Config.enemyName);
+        }
+
         if (bloodDropHandler != null)
             bloodDropHandler.HandleEnemyKilled();
+    }
+
+    private void HandleWeatherChanged(WeatherSystem.WeatherType weather)
+    {
+        QuestManager.Instance.ReportWeatherChanged(weather);
     }
 }
