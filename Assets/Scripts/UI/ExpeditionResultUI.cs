@@ -4,17 +4,20 @@ using UnityEngine.UI;
 
 public sealed class ExpeditionResultUI : MonoBehaviour
 {
+    private const string DefaultPanelPath = "Canvas/ExpeditionResultPanel";
+
     [SerializeField] private GameObject panel;
     [SerializeField] private TMP_Text resultText;
     [SerializeField] private TMP_Text statsText;
     [SerializeField] private Button closeButton;
 
-    private bool runtimeUiBuilt;
-
     private void Awake()
     {
-        BuildRuntimeUiIfNeeded();
-        if (panel != null) panel.SetActive(false);
+        ResolveReferences();
+
+        if (panel != null)
+            panel.SetActive(false);
+
         BindCloseButton();
     }
 
@@ -41,9 +44,12 @@ public sealed class ExpeditionResultUI : MonoBehaviour
 
     private void ShowResult(ExpeditionResult result)
     {
-        BuildRuntimeUiIfNeeded();
+        ResolveReferences();
         if (panel == null) return;
+
         panel.SetActive(true);
+
+        ExpeditionStats stats = ExpeditionManager.Instance.GetLastResultStatsSnapshot();
 
         resultText.text = result switch
         {
@@ -54,7 +60,6 @@ public sealed class ExpeditionResultUI : MonoBehaviour
         };
         resultText.color = result == ExpeditionResult.Success ? Color.green : new Color(1f, 0.45f, 0.45f, 1f);
 
-        var stats = GameCore.Instance.CurrentProgress.stats;
         statsText.text = $"Успешных походов: {stats.successfulExpeditions}\nСмертей: {stats.totalDeaths}\nМаксимальная угроза: {stats.deepestThreatReached}\n{BuildMilestoneText(result, stats)}";
 
         if (closeButton != null)
@@ -88,50 +93,30 @@ public sealed class ExpeditionResultUI : MonoBehaviour
         return "Каждый поход меняет лес и укрепляет базу дома.";
     }
 
-    private void BuildRuntimeUiIfNeeded()
+    private void ResolveReferences()
     {
-        if (runtimeUiBuilt || panel != null)
+        if (panel == null)
         {
-            BindCloseButton();
-            runtimeUiBuilt = true;
+            GameObject defaultPanel = GameObject.Find(DefaultPanelPath);
+            if (defaultPanel != null)
+            {
+                panel = defaultPanel;
+            }
+        }
+
+        if (panel == null)
+        {
             return;
         }
 
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            return;
-        }
+        if (resultText == null)
+            resultText = panel.transform.Find("ResultText")?.GetComponent<TMP_Text>();
 
-        panel = new GameObject("ExpeditionResultPanel", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup));
-        panel.transform.SetParent(canvas.transform, false);
-        RectTransform rect = panel.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = new Vector2(520f, 280f);
+        if (statsText == null)
+            statsText = panel.transform.Find("StatsText")?.GetComponent<TMP_Text>();
 
-        panel.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.1f, 0.96f);
-
-        VerticalLayoutGroup layout = panel.GetComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(18, 18, 18, 18);
-        layout.spacing = 10f;
-        layout.childControlHeight = false;
-        layout.childControlWidth = true;
-        layout.childForceExpandHeight = false;
-
-        resultText = CreateText(panel.transform, string.Empty, 28, FontStyles.Bold);
-        resultText.alignment = TextAlignmentOptions.Center;
-
-        statsText = CreateText(panel.transform, string.Empty, 20, FontStyles.Normal);
-        statsText.alignment = TextAlignmentOptions.Center;
-        statsText.enableWordWrapping = true;
-
-        closeButton = CreateButton(panel.transform, "Продолжить", () => panel.SetActive(false));
-        BindCloseButton();
-
-        panel.SetActive(false);
-        runtimeUiBuilt = true;
+        if (closeButton == null)
+            closeButton = panel.transform.Find("CloseButton")?.GetComponent<Button>();
     }
 
     private void BindCloseButton()
@@ -151,38 +136,5 @@ public sealed class ExpeditionResultUI : MonoBehaviour
         {
             panel.SetActive(false);
         }
-    }
-
-    private static TMP_Text CreateText(Transform parent, string content, float fontSize, FontStyles style)
-    {
-        GameObject textObject = new GameObject("Text", typeof(RectTransform));
-        textObject.transform.SetParent(parent, false);
-        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
-        text.text = content;
-        text.fontSize = fontSize;
-        text.fontStyle = style;
-        text.color = Color.white;
-        return text;
-    }
-
-    private static Button CreateButton(Transform parent, string label, UnityEngine.Events.UnityAction callback)
-    {
-        GameObject buttonObject = new GameObject($"Button_{label}", typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-        buttonObject.transform.SetParent(parent, false);
-        buttonObject.GetComponent<Image>().color = new Color(0.24f, 0.28f, 0.34f, 1f);
-        buttonObject.GetComponent<LayoutElement>().preferredHeight = 44f;
-        buttonObject.GetComponent<LayoutElement>().preferredWidth = 180f;
-
-        Button button = buttonObject.GetComponent<Button>();
-        button.onClick.AddListener(callback);
-
-        TMP_Text text = CreateText(buttonObject.transform, label, 18f, FontStyles.Bold);
-        text.alignment = TextAlignmentOptions.Center;
-        RectTransform rect = text.rectTransform;
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = Vector2.zero;
-        rect.offsetMax = Vector2.zero;
-        return button;
     }
 }

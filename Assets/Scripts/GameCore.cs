@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using UnityEngine.SceneManagement;
 
 public sealed class GameCore : MonoBehaviour
 {
@@ -42,15 +43,48 @@ public sealed class GameCore : MonoBehaviour
 
     public void SaveProgress()
     {
+        GameProgressData progress = CurrentProgress;
+        if (progress != null)
+        {
+            GameProgressUtility.Touch(progress);
+        }
+
         accountService?.Save();
     }
-private void OnApplicationQuit()
-{
-    SaveProgress();
-}
 
-private void OnDisable()
-{
-    SaveProgress();
-}
+    public void ReloadRuntimeProgress()
+    {
+        InventoryService existingInventoryService = FindFirstObjectByType<InventoryService>();
+        if (existingInventoryService != null)
+        {
+            existingInventoryService.ReloadFromCurrentAccount();
+        }
+
+        ExpeditionManager existingExpeditionManager = FindFirstObjectByType<ExpeditionManager>();
+        if (existingExpeditionManager != null)
+        {
+            existingExpeditionManager.ReloadFromCurrentAccount();
+        }
+
+        foreach (PlayerScoreProvider provider in FindObjectsByType<PlayerScoreProvider>(FindObjectsSortMode.None))
+        {
+            provider.ReloadFromCurrentAccount();
+        }
+    }
+
+    public void ReturnToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveProgress();
+    }
+
+    private void OnDisable()
+    {
+        SaveProgress();
+    }
 }

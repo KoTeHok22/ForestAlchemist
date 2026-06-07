@@ -3,146 +3,203 @@ using UnityEngine.InputSystem;
 
 public sealed class ResourceGatherer : MonoBehaviour
 {
+    private enum GatherInputMode
+    {
+        None,
+        Mouse,
+        Keyboard
+    }
+
     [SerializeField] private GatherProgressDisplay progressDisplay;
-    [SerializeField] private float maxInteractionDistance = 2f;
-    [SerializeField] private TreeGatherConfig[] treeConfigs;
 
     private PlayerInventory inventory;
     private Camera cachedCamera;
-
+    private GatherableResourceInteraction currentResource;
+    private GatherInputMode currentInputMode;
     private bool isGathering;
     private float gatherTimer;
-    private float gatherDuration;
-    private string gatherItemName;
-    private Collider2D currentTarget;
+
+    public bool IsBusy => isGathering;
+
+    private void Awake()
+    {
+        EnsureProgressDisplay();
+    }
 
     public void Initialize(PlayerInventory inventory)
     {
         this.inventory = inventory;
     }
 
-    private void Update()
+    public void ConfigureProgressDisplay(GatherProgressDisplay display)
     {
-        if (cachedCamera == null)
-            cachedCamera = Camera.main;
+        progressDisplay = display;
+    }
 
-        if (Mouse.current == null)
-            return;
+    public bool IsGathering(GatherableResourceInteraction resource)
+    {
+        return isGathering && currentResource == resource;
+    }
 
-        bool holdingLMB = Mouse.current.leftButton.isPressed;
+    public bool TryStartGathering(GatherableResourceInteraction resource, bool useMouseInput)
+    {
+        EnsureProgressDisplay();
 
-        if (isGathering)
+        if (resource == null || !resource.CanBeginGathering(requirePointer: useMouseInput))
         {
-            if (!holdingLMB || !IsTargetStillValid())
-            {
-                CancelGathering();
-                return;
-            }
+            return false;
+        }
 
-            gatherTimer += Time.deltaTime;
-            progressDisplay.SetProgress(gatherTimer / gatherDuration);
+        if (isGathering && currentResource != resource)
+        {
+            return false;
+        }
 
-            if (gatherTimer >= gatherDuration)
-            {
-                CompleteGathering();
-            }
+        currentResource = resource;
+        currentInputMode = useMouseInput ? GatherInputMode.Mouse : GatherInputMode.Keyboard;
+        gatherTimer = 0f;
+        isGathering = true;
+
+        if (progressDisplay != null)
+        {
+            progressDisplay.Show();
+            progressDisplay.SetProgress(0f);
+        }
+
+        return true;
+    }
+
+    public void CancelGathering(GatherableResourceInteraction resource = null)
+    {
+        EnsureProgressDisplay();
+
+        if (!isGathering)
+        {
             return;
         }
 
-        if (holdingLMB && Mouse.current.leftButton.wasPressedThisFrame)
+        if (resource != null && resource != currentResource)
         {
-            TryStartGathering();
+            return;
+        }
+
+        isGathering = false;
+        gatherTimer = 0f;
+        currentInputMode = GatherInputMode.None;
+        currentResource = null;
+
+        if (progressDisplay != null)
+        {
+            progressDisplay.Hide();
         }
     }
 
-    private void TryStartGathering()
+    public bool ShouldBlockPrimaryAttack()
     {
-        if (cachedCamera == null)
+        if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            return false;
+        }
+
+        if (isGathering)
+        {
+            return currentInputMode == GatherInputMode.Mouse;
+        }
+
+        GatherableResourceInteraction resource = FindGatherableUnderCursor();
+        return resource != null && resource.CanBeginGathering(requirePointer: true);
+    }
+
+    private void Update()
+    {
+        EnsureProgressDisplay();
+
+        if (!isGathering)
+        {
             return;
+        }
 
-        Vector2 mouseWorld = cachedCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-        Collider2D hit = Physics2D.OverlapPoint(mouseWorld);
-
-        if (hit == null)
+        if (currentResource == null || !currentResource.CanContinueGathering(currentInputMode == GatherInputMode.Mouse))
+        {
+            CancelGathering();
             return;
+        }
 
-        TreeGatherConfig config = FindConfigForTree(hit.gameObject.name);
-        if (config == null)
-            return;
+        float duration = Mathf.Max(0.1f, currentResource.GatherTime);
+        gatherTimer += Time.deltaTime;
 
-        float distance = Vector2.Distance(transform.position, hit.transform.position);
-        if (distance > config.interactionDistance)
-            return;
+        if (progressDisplay != null)
+        {
+            progressDisplay.SetProgress(gatherTimer / duration);
+        }
 
-        currentTarget = hit;
-        gatherItemName = config.itemName;
-        gatherDuration = config.gatherTime;
-        gatherTimer = 0f;
-        isGathering = true;
-        progressDisplay.Show();
+        if (gatherTimer >= duration)
+        {
+            CompleteGathering();
+        }
     }
 
     private void CompleteGathering()
     {
-        isGathering = false;
-        progressDisplay.Hide();
-
-        if (inventory != null && !string.IsNullOrEmpty(gatherItemName))
+        if (currentResource == null)
         {
-            inventory.AddItem(gatherItemName);
-            QuestManager.Instance.ReportItemCollected(gatherItemName, 1);
+            CancelGathering();
+            return;
         }
 
-        currentTarget = null;
-        gatherItemName = null;
-    }
+        string gatheredItem = currentResource.ItemName;
+        currentResource.NotifyGatherCompleted();
+        CancelGathering();
 
-    public void OnHitResource(GameObject resource)
-    {
-        if (inventory == null) return;
-
-        TreeGatherConfig config = FindConfigForTree(resource.name);
-        if (config != null)
+        if (inventory != null && !string.IsNullOrEmpty(gatheredItem))
         {
-            inventory.AddItem(config.itemName);
-            QuestManager.Instance.ReportItemCollected(config.itemName, 1);
-            Debug.Log($"[ResourceGatherer] Gathered {config.itemName} by hitting {resource.name}");
-        }
-        else if (resource.name.ToLower().Contains("tree") || resource.name.ToLower().Contains("wood"))
-        {
-            // Fallback for objects named "Tree" or similar if config is missing
-            inventory.AddItem("Wood");
-            Debug.Log($"[ResourceGatherer] Gathered Wood (fallback) by hitting {resource.name}");
+            inventory.AddItem(gatheredItem);
+            QuestManager.Instance.ReportItemCollected(gatheredItem, 1);
         }
     }
 
-    private void CancelGathering()
+    private GatherableResourceInteraction FindGatherableUnderCursor()
     {
-        isGathering = false;
-        progressDisplay.Hide();
-        currentTarget = null;
-        gatherItemName = null;
-    }
+        if (cachedCamera == null)
+        {
+            cachedCamera = Camera.main;
+        }
 
-    private bool IsTargetStillValid()
-    {
-        if (currentTarget == null)
-            return false;
-
-        float distance = Vector2.Distance(transform.position, currentTarget.transform.position);
-        return distance <= maxInteractionDistance + 1f;
-    }
-
-    private TreeGatherConfig FindConfigForTree(string objectName)
-    {
-        if (treeConfigs == null)
+        if (cachedCamera == null || Mouse.current == null)
+        {
             return null;
-
-        for (int i = 0; i < treeConfigs.Length; i++)
-        {
-            if (objectName.Contains(treeConfigs[i].treeName))
-                return treeConfigs[i];
         }
+
+        Vector2 worldPoint = cachedCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+        Collider2D[] hits = Physics2D.OverlapPointAll(worldPoint);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider2D hit = hits[i];
+            if (hit == null)
+            {
+                continue;
+            }
+
+            GatherableResourceInteraction resource = hit.GetComponent<GatherableResourceInteraction>();
+            if (resource == null)
+            {
+                resource = hit.GetComponentInParent<GatherableResourceInteraction>();
+            }
+
+            if (resource != null)
+            {
+                return resource;
+            }
+        }
+
         return null;
+    }
+
+    private void EnsureProgressDisplay()
+    {
+        if (progressDisplay == null)
+        {
+            progressDisplay = GetComponent<GatherProgressDisplay>();
+        }
     }
 }

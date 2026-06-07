@@ -47,6 +47,12 @@ public sealed class PlayerCombatController : MonoBehaviour
             return;
         }
 
+        ResourceGatherer gatherer = GetComponent<ResourceGatherer>();
+        if (gatherer != null && gatherer.ShouldBlockPrimaryAttack())
+        {
+            return;
+        }
+
         Vector2 attackDirection = ResolveAttackDirection();
         bool attackAccepted = movementController == null || movementController.TryStartAttack();
         if (!attackAccepted)
@@ -89,17 +95,6 @@ public sealed class PlayerCombatController : MonoBehaviour
     private void ProcessAttackHit(Vector2 attackDirection)
     {
         Vector2 hitCenter = (Vector2)transform.position + attackDirection * Mathf.Max(0f, attackRange);
-        
-        // Also hit resources
-        Collider2D[] resourceHits = Physics2D.OverlapCircleAll(hitCenter, Mathf.Max(0.05f, attackRadius));
-        var gatherer = GetComponent<ResourceGatherer>();
-        if (gatherer != null)
-        {
-            foreach (var hit in resourceHits)
-            {
-                gatherer.OnHitResource(hit.gameObject);
-            }
-        }
 
         Collider2D[] hits = Physics2D.OverlapCircleAll(hitCenter, Mathf.Max(0.05f, attackRadius), enemyLayers);
 Debug.Log($"[PlayerCombat] hitsFound={hits.Length}", this);

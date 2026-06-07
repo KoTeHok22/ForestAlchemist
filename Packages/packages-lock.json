@@ -7,6 +7,16 @@
       "dependencies": {},
       "hash": "f40a5c771e16fd0e0b682186f51f7a112599b707"
     },
+    "com.coplaydev.coplay": {
+      "version": "https://github.com/CoplayDev/unity-plugin.git#beta",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.inputsystem": "1.1.1",
+        "com.unity.cloud.gltfast": "6.12.1"
+      },
+      "hash": "377ff5d3e14e1a095c30be8ef8e1d4c57dd0e322"
+    },
     "com.unity.2d.animation": {
       "version": "13.0.4",
       "depth": 0,
@@ -179,6 +189,18 @@
         "com.unity.test-framework": "1.4.6",
         "com.unity.nuget.mono-cecil": "1.11.5",
         "com.unity.test-framework.performance": "3.0.3"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.dt.app-ui": {
+      "version": "2.2.0-pre.11",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.physics": "1.0.0",
+        "com.unity.modules.androidjni": "1.0.0",
+        "com.unity.modules.uielements": "1.0.0",
+        "com.unity.modules.screencapture": "1.0.0"
       },
       "url": "https://packages.unity.com"
     },

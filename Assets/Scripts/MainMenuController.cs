@@ -192,6 +192,7 @@ public sealed class MainMenuController : MonoBehaviour
         }
 
         ClearLoginInputs();
+        GameCore.Instance.ReloadRuntimeProgress();
         CloseOverlayPanels();
         ApplySessionState();
         RefreshRecordsView();
@@ -208,6 +209,7 @@ public sealed class MainMenuController : MonoBehaviour
         }
 
         ClearLoginInputs();
+        GameCore.Instance.ReloadRuntimeProgress();
         CloseOverlayPanels();
         ApplySessionState();
         RefreshRecordsView();
@@ -216,6 +218,7 @@ public sealed class MainMenuController : MonoBehaviour
     public void Logout()
     {
         accountService.Logout();
+        GameCore.Instance.ReloadRuntimeProgress();
         ApplyGuestSettings();
         CloseOverlayPanels();
         ApplySessionState();
@@ -352,6 +355,7 @@ public sealed class MainMenuController : MonoBehaviour
         if (pendingNewGameReset)
         {
             accountService.ResetProgress();
+            GameCore.Instance.ReloadRuntimeProgress();
             RefreshRecordsView();
             pendingNewGameReset = false;
         }

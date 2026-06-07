@@ -21,6 +21,7 @@ public sealed class InventoryService : MonoBehaviour
 
     public PlayerInventory HomeStorage { get; private set; }
     public PlayerInventory ExpeditionInventory => ExpeditionManager.Instance.ExpeditionInventory;
+    private Action homeStorageChangedHandler;
 
     private void Awake()
     {
@@ -40,15 +41,27 @@ public sealed class InventoryService : MonoBehaviour
         var progress = GameCore.Instance.CurrentProgress;
         if (progress != null)
         {
+            if (HomeStorage != null && homeStorageChangedHandler != null)
+            {
+                HomeStorage.OnInventoryChanged -= homeStorageChangedHandler;
+            }
+
             HomeStorage = new PlayerInventory(new PlayerInventorySave { slots = progress.homeStorage.slots });
-            HomeStorage.OnInventoryChanged += () => {
+            homeStorageChangedHandler = () => {
                 progress.homeStorage.slots = HomeStorage.GetAllSlots();
+                GameProgressUtility.Touch(progress);
                 GameCore.Instance.SaveProgress();
             };
+            HomeStorage.OnInventoryChanged += homeStorageChangedHandler;
 
             EnsureStarterResources(progress);
             EnsureDefaultLoadout(progress);
         }
+    }
+
+    public void ReloadFromCurrentAccount()
+    {
+        InitializeHomeStorage();
     }
 
     private void EnsureStarterResources(GameProgressData progress)

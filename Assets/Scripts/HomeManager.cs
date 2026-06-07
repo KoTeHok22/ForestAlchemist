@@ -11,7 +11,7 @@ public sealed class HomeManager : MonoBehaviour
 
     private void Awake()
     {
-        if (homeInventoryDisplay == null) homeInventoryDisplay = Object.FindAnyObjectByType<InventoryDisplay>();
+        if (homeInventoryDisplay == null) homeInventoryDisplay = FindInventoryDisplay();
         if (iconProvider == null) iconProvider = Object.FindAnyObjectByType<LevelQuestIconProvider>();
         if (gardenVisuals == null) gardenVisuals = Object.FindAnyObjectByType<GardenVisuals>();
         if (gardenHarvest == null) gardenHarvest = Object.FindAnyObjectByType<GardenHarvestInteraction>();
@@ -55,5 +55,11 @@ public sealed class HomeManager : MonoBehaviour
         {
             expeditionPreparationUI.Open();
         }
+    }
+
+    private static InventoryDisplay FindInventoryDisplay()
+    {
+        InventoryDisplay[] displays = Object.FindObjectsByType<InventoryDisplay>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        return displays.Length > 0 ? displays[0] : null;
     }
 }

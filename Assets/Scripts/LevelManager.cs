@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public sealed class LevelManager : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public sealed class LevelManager : MonoBehaviour
     [SerializeField] private InventoryDisplay inventoryDisplay;
     [SerializeField] private ResourceGatherer resourceGatherer;
     [SerializeField] private OrcBloodDropHandler bloodDropHandler;
+    [SerializeField] private GameObject gatherPanel;
+    [SerializeField] private Scrollbar gatherProgressBar;
 
     [Header("Visibility")]
     [SerializeField] private VisibilitySystem visibilitySystem;
@@ -90,8 +93,28 @@ public sealed class LevelManager : MonoBehaviour
                 {
                     player.AddComponent<GatherProgressDisplay>();
                 }
+
+                GatherProgressDisplay gatherDisplay = player.GetComponent<GatherProgressDisplay>();
+                if (gatherDisplay != null)
+                {
+                    gatherDisplay.Configure(gatherPanel, gatherProgressBar);
+                }
             }
         }
+
+        if (resourceGatherer != null)
+        {
+            GatherProgressDisplay gatherDisplay = resourceGatherer.GetComponent<GatherProgressDisplay>();
+            if (gatherDisplay == null)
+            {
+                gatherDisplay = resourceGatherer.gameObject.AddComponent<GatherProgressDisplay>();
+            }
+
+            gatherDisplay.Configure(gatherPanel, gatherProgressBar);
+            resourceGatherer.ConfigureProgressDisplay(gatherDisplay);
+        }
+
+        GatherableResourceInteraction.AttachToSceneObjects();
 
         if (bloodDropHandler == null)
         {
@@ -110,7 +133,8 @@ public sealed class LevelManager : MonoBehaviour
 
         if (inventoryDisplay == null)
         {
-            inventoryDisplay = FindFirstObjectByType<InventoryDisplay>();
+            InventoryDisplay[] displays = Object.FindObjectsByType<InventoryDisplay>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            inventoryDisplay = displays.Length > 0 ? displays[0] : null;
         }
 
         if (iconProvider == null)

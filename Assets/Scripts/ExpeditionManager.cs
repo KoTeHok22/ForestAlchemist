@@ -39,6 +39,9 @@ public sealed class ExpeditionManager : MonoBehaviour
     public string ActiveReturnMethod { get; private set; }
     public ExpeditionResult PendingResult { get; private set; }
 
+    private ExpeditionStats lastResultStats = new ExpeditionStats();
+    private Action expeditionInventoryChangedHandler;
+
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -49,8 +52,42 @@ public sealed class ExpeditionManager : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
 
-        ExpeditionInventory = new PlayerInventory("expedition_inventory.json");
+        ReloadFromCurrentAccount();
+    }
+
+    public void ReloadFromCurrentAccount()
+    {
+        if (ExpeditionInventory != null)
+        {
+            ExpeditionInventory.OnInventoryChanged -= UpdateVisibility;
+            if (expeditionInventoryChangedHandler != null)
+            {
+                ExpeditionInventory.OnInventoryChanged -= expeditionInventoryChangedHandler;
+            }
+        }
+
+        GameProgressData progress = GameCore.Instance.CurrentProgress;
+        PlayerInventorySave save = new PlayerInventorySave
+        {
+            slots = progress?.expeditionInventory?.slots ?? new List<InventorySlot>()
+        };
+
+        ExpeditionInventory = new PlayerInventory(save);
         ExpeditionInventory.OnInventoryChanged += UpdateVisibility;
+        expeditionInventoryChangedHandler = () =>
+        {
+            GameProgressData currentProgress = GameCore.Instance.CurrentProgress;
+            if (currentProgress?.expeditionInventory == null)
+            {
+                return;
+            }
+
+            currentProgress.expeditionInventory.slots = ExpeditionInventory.GetAllSlots();
+            GameProgressUtility.Touch(currentProgress);
+            GameCore.Instance.SaveProgress();
+        };
+        ExpeditionInventory.OnInventoryChanged += expeditionInventoryChangedHandler;
+        UpdateVisibility();
     }
 
     private void UpdateVisibility()
@@ -76,9 +113,29 @@ public sealed class ExpeditionManager : MonoBehaviour
         OnExpeditionStarted?.Invoke();
     }
 
+    public void EnterCurrentLevelExpedition()
+    {
+        if (IsInExpedition)
+        {
+            return;
+        }
+
+        PrepareForExpedition();
+        CurrentSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+        IsInExpedition = true;
+        PendingResult = ExpeditionResult.None;
+        ReturnUnlocked = false;
+        ActiveReturnMethod = string.Empty;
+        CurrentVisibility = 0f;
+        OnExpeditionStarted?.Invoke();
+    }
+
     public void EndExpedition(ExpeditionResult result)
     {
         if (!IsInExpedition) return;
+
+        GameProgressData progress = GameCore.Instance.CurrentProgress;
+        int reachedThreatLevel = progress != null ? progress.orcs.threatLevel : 0;
 
         if (result == ExpeditionResult.Success && !ReturnUnlocked)
         {
@@ -91,16 +148,29 @@ public sealed class ExpeditionManager : MonoBehaviour
         if (result == ExpeditionResult.Success)
         {
             TransferLootToHome();
-            GameCore.Instance.CurrentProgress.stats.successfulExpeditions++;
+            if (progress != null)
+            {
+                progress.stats.successfulExpeditions++;
+                progress.stats.deepestThreatReached = Mathf.Max(progress.stats.deepestThreatReached, reachedThreatLevel);
+            }
+
             GardenService.Instance.AdvanceGrowth();
             OrcEvolutionService.Instance.Evolve(false);
         }
         else if (result == ExpeditionResult.Death)
         {
             ExpeditionInventory.Clear();
-            GameCore.Instance.CurrentProgress.stats.totalDeaths++;
+
+            if (progress != null)
+            {
+                progress.stats.totalDeaths++;
+                progress.stats.deepestThreatReached = Mathf.Max(progress.stats.deepestThreatReached, reachedThreatLevel);
+            }
+
             OrcEvolutionService.Instance.Evolve(true);
         }
+
+        lastResultStats = CreateStatsSnapshot(progress);
 
         ReturnUnlocked = false;
         ActiveReturnMethod = string.Empty;
@@ -108,7 +178,7 @@ public sealed class ExpeditionManager : MonoBehaviour
 
         GameCore.Instance.SaveProgress();
         OnExpeditionEnded?.Invoke(result);
-        SceneManager.LoadScene("Home");
+        StartCoroutine(LoadHomeSceneNextFrame());
     }
 
     public bool TryConsumePendingResult(out ExpeditionResult result)
@@ -136,6 +206,16 @@ public sealed class ExpeditionManager : MonoBehaviour
     }
 
     public bool CanReturn() => IsInExpedition && ReturnUnlocked;
+
+    public ExpeditionStats GetLastResultStatsSnapshot()
+    {
+        return new ExpeditionStats
+        {
+            successfulExpeditions = lastResultStats.successfulExpeditions,
+            totalDeaths = lastResultStats.totalDeaths,
+            deepestThreatReached = lastResultStats.deepestThreatReached
+        };
+    }
 
     private void TransferLootToHome()
     {
@@ -178,5 +258,26 @@ public sealed class ExpeditionManager : MonoBehaviour
             homeStorage.RemoveItem(slot.itemName, amountToTake);
             ExpeditionInventory.AddItem(slot.itemName, amountToTake);
         }
+    }
+
+    private System.Collections.IEnumerator LoadHomeSceneNextFrame()
+    {
+        yield return null;
+        SceneManager.LoadScene("Home");
+    }
+
+    private static ExpeditionStats CreateStatsSnapshot(GameProgressData progress)
+    {
+        if (progress == null)
+        {
+            return new ExpeditionStats();
+        }
+
+        return new ExpeditionStats
+        {
+            successfulExpeditions = progress.stats.successfulExpeditions,
+            totalDeaths = progress.stats.totalDeaths,
+            deepestThreatReached = progress.stats.deepestThreatReached
+        };
     }
 }

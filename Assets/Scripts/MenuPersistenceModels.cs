@@ -22,6 +22,7 @@ public sealed class MenuAccountData
 [Serializable]
 public sealed class GameProgressData
 {
+    public string lastUpdatedUtc = string.Empty;
     public HomeStorageData homeStorage = new HomeStorageData();
     public GardenData garden = new GardenData();
     public OrcEvolutionData orcs = new OrcEvolutionData();
@@ -29,6 +30,9 @@ public sealed class GameProgressData
     public HotbarData hotbar = new HotbarData();
     public ExpeditionStats stats = new ExpeditionStats();
     public ExpeditionLoadoutData loadout = new ExpeditionLoadoutData();
+    public HomeStorageData expeditionInventory = new HomeStorageData();
+    public PlayerQuestSave quests = new PlayerQuestSave();
+    public PlayerScoreSaveData score = new PlayerScoreSaveData();
 }
 
 [Serializable]

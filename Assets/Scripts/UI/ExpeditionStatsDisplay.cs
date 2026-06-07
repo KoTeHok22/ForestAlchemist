@@ -4,14 +4,15 @@ using UnityEngine.UI;
 
 public sealed class ExpeditionStatsDisplay : MonoBehaviour
 {
+    private const string ExpeditionCountTextName = "СколькоПоходовВЛесБылоСделано";
+
     [SerializeField] private TMP_Text statsText;
     [SerializeField] private TMP_Text visibilityText;
-
-    private bool runtimeUiBuilt;
+    [SerializeField] private TMP_Text expeditionCountText;
 
     private void Awake()
     {
-        BuildRuntimeUiIfNeeded();
+        ResolveTextReferences();
     }
 
     private void Start()
@@ -37,17 +38,19 @@ public sealed class ExpeditionStatsDisplay : MonoBehaviour
 
     private void RefreshStats()
     {
-        if (statsText == null) return;
+        ResolveTextReferences();
+
+        if (statsText == null && expeditionCountText == null) return;
 
         var progress = GameCore.Instance.CurrentProgress;
         if (progress == null)
         {
-            statsText.text = string.Empty;
+            SetAttemptTexts(string.Empty);
             return;
         }
 
-        int threat = GameCore.Instance.CurrentProgress != null ? GameCore.Instance.CurrentProgress.orcs.threatLevel : 1;
-        statsText.text = $"Успешных походов: {progress.stats.successfulExpeditions}\nСмертей: {progress.stats.totalDeaths}\nУгроза леса: {threat}";
+        int expeditionAttempts = progress.stats.successfulExpeditions + progress.stats.totalDeaths;
+        SetAttemptTexts(expeditionAttempts.ToString());
     }
 
     private void OnEnable()
@@ -78,52 +81,38 @@ public sealed class ExpeditionStatsDisplay : MonoBehaviour
         RefreshStats();
     }
 
-    private void BuildRuntimeUiIfNeeded()
+    private void ResolveTextReferences()
     {
-        if (runtimeUiBuilt || (statsText != null && visibilityText != null))
+        if (statsText == null)
         {
-            runtimeUiBuilt = true;
-            return;
+            statsText = GetComponent<TMP_Text>();
         }
 
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null)
+        if (expeditionCountText == null)
         {
-            return;
+            TMP_Text[] texts = FindObjectsByType<TMP_Text>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < texts.Length; i++)
+            {
+                if (texts[i] != null && texts[i].name == ExpeditionCountTextName)
+                {
+                    expeditionCountText = texts[i];
+                    break;
+                }
+            }
         }
-
-        GameObject root = new GameObject("RuntimeExpeditionStats", typeof(RectTransform), typeof(VerticalLayoutGroup));
-        root.transform.SetParent(canvas.transform, false);
-        RectTransform rect = root.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0f, 1f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = new Vector2(20f, -20f);
-        rect.sizeDelta = new Vector2(320f, 140f);
-
-        VerticalLayoutGroup layout = root.GetComponent<VerticalLayoutGroup>();
-        layout.spacing = 6f;
-        layout.childControlWidth = true;
-        layout.childControlHeight = false;
-        layout.childForceExpandHeight = false;
-
-        statsText = CreateText(root.transform, string.Empty, 20, FontStyles.Bold);
-        visibilityText = CreateText(root.transform, string.Empty, 18, FontStyles.Normal);
-        visibilityText.enableWordWrapping = true;
-        runtimeUiBuilt = true;
     }
 
-    private static TMP_Text CreateText(Transform parent, string content, float fontSize, FontStyles style)
+    private void SetAttemptTexts(string text)
     {
-        GameObject textObject = new GameObject("Text", typeof(RectTransform));
-        textObject.transform.SetParent(parent, false);
-        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
-        text.text = content;
-        text.fontSize = fontSize;
-        text.fontStyle = style;
-        text.color = Color.white;
-        text.alignment = TextAlignmentOptions.TopLeft;
-        return text;
+        if (statsText != null)
+        {
+            statsText.text = text;
+        }
+
+        if (expeditionCountText != null && expeditionCountText != statsText)
+        {
+            expeditionCountText.text = text;
+        }
     }
 
     private static string GetReturnMethodName(string methodId)

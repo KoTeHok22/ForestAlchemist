@@ -154,6 +154,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         QueueRequiredChunks(forceRefresh: true);
         ProcessSpawnQueue();
         SpawnGuaranteedObjectives();
+        GatherableResourceInteraction.AttachToSceneObjects();
     }
 
     private void Update()
@@ -163,7 +164,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
             return;
         }
 
-        if (Keyboard.current != null && Keyboard.current.iKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.f8Key.wasPressedThisFrame)
         {
             RegenerateChunks();
         }
@@ -541,6 +542,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
             instance.name = template.name;
             instance.transform.localScale = template.transform.localScale;
             instance.SetActive(true);
+            GatherableResourceInteraction.TryAttachToInstance(instance);
 
             Bounds instanceBounds = CalculateInstanceBounds(instance);
             if (instanceBounds.size != Vector3.zero && IsOverlappingPlacedObject(instanceBounds))

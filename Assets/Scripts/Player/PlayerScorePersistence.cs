@@ -25,6 +25,12 @@ public sealed class JsonPlayerScoreRepository : IPlayerScoreRepository
 
     public PlayerScoreSaveData Load()
     {
+        GameProgressData progress = GameCore.Instance.CurrentProgress;
+        if (progress?.score != null)
+        {
+            return progress.score;
+        }
+
         if (!File.Exists(saveFilePath))
         {
             return new PlayerScoreSaveData();
@@ -50,6 +56,15 @@ public sealed class JsonPlayerScoreRepository : IPlayerScoreRepository
 
     public void Save(PlayerScoreSaveData data)
     {
+        GameProgressData progress = GameCore.Instance.CurrentProgress;
+        if (progress != null)
+        {
+            progress.score = data ?? new PlayerScoreSaveData();
+            GameProgressUtility.Touch(progress);
+            GameCore.Instance.SaveProgress();
+            return;
+        }
+
         try
         {
             string directory = Path.GetDirectoryName(saveFilePath);

@@ -25,4 +25,9 @@ public sealed class PlayerScoreProvider : MonoBehaviour
             scoreService = new PersistentPlayerScoreService(new JsonPlayerScoreRepository());
         }
     }
+
+    public void ReloadFromCurrentAccount()
+    {
+        scoreService = new PersistentPlayerScoreService(new JsonPlayerScoreRepository());
+    }
 }

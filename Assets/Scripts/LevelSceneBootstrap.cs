@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.SceneManagement;
 
 public sealed class LevelSceneBootstrap : MonoBehaviour
 {
@@ -10,9 +13,12 @@ public sealed class LevelSceneBootstrap : MonoBehaviour
     private void Awake()
     {
         EnsureServices();
+        EnsureExpeditionSession();
+        EnsureEventSystem();
         SpawnPlayerIfNeeded();
         EnsureLevelManager();
         EnsureWeatherSystem();
+        EnsureHealthDisplay();
 
         QuestManager.Instance.ResetExpeditionProgress();
     }
@@ -79,5 +85,39 @@ public sealed class LevelSceneBootstrap : MonoBehaviour
         ExpeditionManager.Instance.GetHashCode();
         InventoryService.Instance.GetHashCode();
         QuestManager.Instance.GetHashCode();
+    }
+
+    private static void EnsureExpeditionSession()
+    {
+        if (SceneManager.GetActiveScene().name == "Level" && !ExpeditionManager.Instance.IsInExpedition)
+        {
+            ExpeditionManager.Instance.EnterCurrentLevelExpedition();
+        }
+    }
+
+    private static void EnsureHealthDisplay()
+    {
+        GameObject healthPanel = GameObject.Find("Canvas/Main/PlayerInfo/HealthPanel");
+        if (healthPanel == null)
+        {
+            return;
+        }
+
+        if (healthPanel.GetComponent<PlayerHealthDisplay>() == null)
+        {
+            healthPanel.AddComponent<PlayerHealthDisplay>();
+        }
+    }
+
+    private static void EnsureEventSystem()
+    {
+        if (FindFirstObjectByType<EventSystem>() != null)
+        {
+            return;
+        }
+
+        GameObject go = new GameObject("EventSystem");
+        go.AddComponent<EventSystem>();
+        go.AddComponent<InputSystemUIInputModule>();
     }
 }

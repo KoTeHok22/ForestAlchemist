@@ -74,6 +74,31 @@ public sealed class JsonMenuAccountRepository : IMenuAccountRepository
             account.settings ??= MenuSettingsFactory.CreateDefault();
             account.playerData ??= new MenuPlayerProgressData();
             account.playerData.lastUpdatedUtc ??= string.Empty;
+            account.gameProgress ??= new GameProgressData();
+            account.gameProgress.lastUpdatedUtc ??= string.Empty;
+            account.gameProgress.homeStorage ??= new HomeStorageData();
+            account.gameProgress.homeStorage.slots ??= new System.Collections.Generic.List<InventorySlot>();
+            account.gameProgress.garden ??= new GardenData();
+            account.gameProgress.orcs ??= new OrcEvolutionData();
+            account.gameProgress.crafting ??= new CraftingProgressData();
+            account.gameProgress.crafting.unlockedRecipes ??= new System.Collections.Generic.List<string>();
+            account.gameProgress.crafting.craftedSpells ??= new System.Collections.Generic.List<string>();
+            account.gameProgress.hotbar ??= new HotbarData();
+            account.gameProgress.hotbar.slotItemIds ??= new System.Collections.Generic.List<string>(new string[10]);
+            while (account.gameProgress.hotbar.slotItemIds.Count < 10)
+            {
+                account.gameProgress.hotbar.slotItemIds.Add(string.Empty);
+            }
+
+            account.gameProgress.stats ??= new ExpeditionStats();
+            account.gameProgress.loadout ??= new ExpeditionLoadoutData();
+            account.gameProgress.loadout.consumables ??= new System.Collections.Generic.List<InventorySlot>();
+            account.gameProgress.expeditionInventory ??= new HomeStorageData();
+            account.gameProgress.expeditionInventory.slots ??= new System.Collections.Generic.List<InventorySlot>();
+            account.gameProgress.quests ??= new PlayerQuestSave();
+            account.gameProgress.quests.boardQuestIds ??= new System.Collections.Generic.List<string>();
+            account.gameProgress.quests.activeQuestIds ??= new System.Collections.Generic.List<string>();
+            account.gameProgress.score ??= new PlayerScoreSaveData();
         }
     }
 

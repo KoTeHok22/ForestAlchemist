@@ -119,6 +119,104 @@ public interface IMenuSettingsApplier
     void Apply(MenuSettingsData settings);
 }
 
+public static class GameProgressUtility
+{
+    public static GameProgressData CreateDefault()
+    {
+        return new GameProgressData();
+    }
+
+    public static void Touch(GameProgressData progress)
+    {
+        if (progress == null)
+        {
+            return;
+        }
+
+        progress.lastUpdatedUtc = DateTime.UtcNow.ToString("O");
+    }
+
+    public static bool HasMeaningfulProgress(GameProgressData progress)
+    {
+        if (progress == null)
+        {
+            return false;
+        }
+
+        if (progress.homeStorage?.slots != null && progress.homeStorage.slots.Any(slot => slot != null && slot.count > 0))
+        {
+            return true;
+        }
+
+        if (progress.expeditionInventory?.slots != null && progress.expeditionInventory.slots.Any(slot => slot != null && slot.count > 0))
+        {
+            return true;
+        }
+
+        if (progress.loadout?.consumables != null && progress.loadout.consumables.Any(slot => slot != null && slot.count > 0))
+        {
+            return true;
+        }
+
+        if (progress.hotbar?.slotItemIds != null && progress.hotbar.slotItemIds.Any(itemId => !string.IsNullOrWhiteSpace(itemId)))
+        {
+            return true;
+        }
+
+        if (progress.crafting != null)
+        {
+            if (progress.crafting.level > 1 || progress.crafting.craftingXp > 0)
+            {
+                return true;
+            }
+
+            if ((progress.crafting.unlockedRecipes?.Count ?? 0) > 0 || (progress.crafting.craftedSpells?.Count ?? 0) > 0)
+            {
+                return true;
+            }
+        }
+
+        if (progress.garden != null)
+        {
+            if (progress.garden.currentStage > 0 || progress.garden.expeditionsToNextStage != 1 || progress.garden.maxStage != 3)
+            {
+                return true;
+            }
+        }
+
+        if (progress.orcs != null)
+        {
+            if (progress.orcs.threatLevel > 1 || !Mathf.Approximately(progress.orcs.statMultiplier, 1f))
+            {
+                return true;
+            }
+        }
+
+        if (progress.stats != null)
+        {
+            if (progress.stats.successfulExpeditions > 0 || progress.stats.totalDeaths > 0 || progress.stats.deepestThreatReached > 0)
+            {
+                return true;
+            }
+        }
+
+        if (progress.quests != null)
+        {
+            if ((progress.quests.boardQuestIds?.Count ?? 0) > 0 || (progress.quests.activeQuestIds?.Count ?? 0) > 0)
+            {
+                return true;
+            }
+        }
+
+        if (progress.score != null && progress.score.totalScore > 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
+}
+
 public sealed class UnityMenuSettingsApplier : IMenuSettingsApplier
 {
     private static readonly Vector2Int[] ResolutionOptions =
@@ -220,11 +318,7 @@ public sealed class MenuAccountService : IMenuAccountService
     public MenuSaveRoot SaveData { get; private set; }
     public MenuAccountData CurrentAccount { get; private set; }
     public bool IsAuthenticated => CurrentAccount != null;
-    public bool HasSavedGame => IsAuthenticated
-        && CurrentAccount.playerData != null
-        && (CurrentAccount.playerData.completedLevel > 0
-            || CurrentAccount.playerData.score > 0
-            || !string.IsNullOrWhiteSpace(CurrentAccount.playerData.lastUpdatedUtc));
+    public bool HasSavedGame => IsAuthenticated && GameProgressUtility.HasMeaningfulProgress(CurrentAccount.gameProgress);
 
     public MenuAccountService(IMenuAccountRepository repository, IPasswordService passwordService)
     {
@@ -308,7 +402,8 @@ public sealed class MenuAccountService : IMenuAccountService
             username = normalizedUsername,
             passwordHash = passwordService.Hash(password),
             settings = MenuSettingsFactory.CreateDefault(),
-            playerData = new MenuPlayerProgressData()
+            playerData = new MenuPlayerProgressData(),
+            gameProgress = GameProgressUtility.CreateDefault()
         };
 
         SaveData.accounts.Add(newAccount);
@@ -338,6 +433,9 @@ public sealed class MenuAccountService : IMenuAccountService
             lastUpdatedUtc = DateTime.UtcNow.ToString("O")
         };
 
+        CurrentAccount.gameProgress = GameProgressUtility.CreateDefault();
+        GameProgressUtility.Touch(CurrentAccount.gameProgress);
+
         Save();
     }
 
@@ -352,6 +450,9 @@ public sealed class MenuAccountService : IMenuAccountService
         CurrentAccount.playerData.completedLevel = Math.Max(CurrentAccount.playerData.completedLevel, completedLevel);
         CurrentAccount.playerData.score = Math.Max(0, score);
         CurrentAccount.playerData.lastUpdatedUtc = DateTime.UtcNow.ToString("O");
+        CurrentAccount.gameProgress ??= GameProgressUtility.CreateDefault();
+        CurrentAccount.gameProgress.score.totalScore = Math.Max(0, score);
+        GameProgressUtility.Touch(CurrentAccount.gameProgress);
         Save();
     }
 
@@ -361,6 +462,7 @@ public sealed class MenuAccountService : IMenuAccountService
         {
             CurrentAccount.settings ??= MenuSettingsFactory.CreateDefault();
             CurrentAccount.playerData ??= new MenuPlayerProgressData();
+            CurrentAccount.gameProgress ??= GameProgressUtility.CreateDefault();
         }
 
         repository.Save(SaveData);
