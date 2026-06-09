@@ -1,0 +1,491 @@
+/* ============================================================
+   Forest Alchemist · MainMenu USS
+   Recreates the original Canvas look with App UI
+   ============================================================ */
+
+/* ---------- Root / font ---------- */
+
+.root-panel {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    -unity-font: url("project://database/Assets/Resources/Menu/Fonts/arturito.ttf");
+    -unity-font-definition: url("project://database/Assets/Resources/Menu/Fonts/arturito.ttf");
+}
+
+.root-panel > .appui-panel__main {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* ---------- Full-screen background ---------- */
+
+.background-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-image: resource("Menu/background");
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+/* ---------- Screen containers ---------- */
+
+.screen {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.screen--main {
+    display: flex;
+}
+
+.screen--overlay {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.screen--visible {
+    display: flex;
+}
+
+.dim-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+}
+
+.dim-bg--strong {
+    background-color: rgba(5, 10, 6, 0.92);
+}
+
+/* ---------- Logo (top-left) ---------- */
+
+.logo {
+    position: absolute;
+    top: 16px;
+    left: 24px;
+    width: 620px;
+    height: 360px;
+    background-image: resource("Menu/logo");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* ---------- Account chip (top-right) ---------- */
+
+.account-chip {
+    position: absolute;
+    top: 26px;
+    right: 30px;
+    width: 392px;
+    height: 162px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    background-image: resource("Menu/Generated/ribbon2_trim");
+    -unity-slice-left: 150;
+    -unity-slice-right: 150;
+    -unity-slice-top: 90;
+    -unity-slice-bottom: 90;
+    -unity-slice-scale: 0.38px;
+    padding-left: 30px;
+    padding-right: 36px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+.account-icon {
+    display: none;
+}
+
+.account-label {
+    flex-grow: 1;
+    color: #f4ead2;
+    font-size: 36px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.account-button-hit {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* ---------- Settings gear (bottom-right) ---------- */
+
+.settings-gear {
+    position: absolute;
+    bottom: 36px;
+    right: 36px;
+    width: 110px;
+    height: 110px;
+    background-image: resource("Menu/settings");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.settings-gear:hover {
+    scale: 1.08 1.08;
+}
+
+.settings-gear-hit {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* ---------- Wooden buttons (left column) ---------- */
+
+.button-backing {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 620px;
+    background-color: rgba(8, 14, 9, 0.38);
+}
+
+.main-buttons {
+    position: absolute;
+    left: 64px;
+    top: 50%;
+    width: 440px;
+    translate: 0 -42%;
+}
+
+.wood-btn {
+    width: 100%;
+    height: 118px;
+    margin-bottom: 10px;
+    background-image: resource("Menu/btn");
+    -unity-slice-left: 170;
+    -unity-slice-right: 170;
+    -unity-slice-top: 150;
+    -unity-slice-bottom: 150;
+    -unity-slice-scale: 0.42px;
+    align-items: center;
+    justify-content: center;
+    transition: scale 0.12s ease-out;
+}
+
+.wood-btn:hover {
+    scale: 1.04 1.04;
+}
+
+.wood-btn:active {
+    scale: 0.97 0.97;
+}
+
+.wood-btn__label {
+    color: #fbedc6;
+    font-size: 38px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
+}
+
+.wood-btn--inline {
+    flex-grow: 1;
+    margin-left: 6px;
+    margin-right: 6px;
+    height: 96px;
+    margin-bottom: 0;
+}
+
+.wood-btn--inline .wood-btn__label {
+    font-size: 30px;
+}
+
+/* ---------- Disabled visuals (controller toggles SetEnabled) ---------- */
+
+.wood-btn:disabled {
+    opacity: 0.45;
+}
+
+/* ---------- Version stamp ---------- */
+
+.version-stamp {
+    position: absolute;
+    bottom: 18px;
+    left: 24px;
+    color: rgba(244, 234, 210, 0.55);
+    font-size: 14px;
+    -unity-font-style: italic;
+}
+
+/* ---------- Wood frame (dialogs) ---------- */
+
+.wood-frame {
+    width: 690px;
+    height: 940px;
+    max-height: 98%;
+    padding-top: 232px;
+    padding-bottom: 100px;
+    padding-left: 110px;
+    padding-right: 100px;
+    background-image: resource("Menu/Generated/modal2_trim");
+    -unity-slice-left: 90;
+    -unity-slice-right: 76;
+    -unity-slice-top: 255;
+    -unity-slice-bottom: 84;
+    -unity-slice-scale: 0.72px;
+    position: relative;
+}
+
+.wood-frame--narrow {
+    width: 640px;
+    height: 880px;
+}
+
+.wood-frame--centered {
+    justify-content: center;
+}
+
+.frame-title {
+    position: absolute;
+    top: 54px;
+    left: 64px;
+    right: 64px;
+    height: 104px;
+    color: #f4ead2;
+    font-size: 38px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+}
+
+.frame-subtitle {
+    color: #5a3d22;
+    font-size: 25px;
+    -unity-font-style: italic;
+    -unity-text-align: middle-center;
+    margin-bottom: 20px;
+    white-space: normal;
+}
+
+.frame-subtitle--warning {
+    color: #9c3a1a;
+    -unity-font-style: bold;
+}
+
+.frame-close {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 64px;
+    height: 64px;
+    background-image: resource("Menu/Generated/close_btn");
+    -unity-background-scale-mode: scale-to-fit;
+    transition: scale 0.12s ease-out;
+}
+
+.frame-close:hover {
+    scale: 1.12 1.12;
+}
+
+/* ---------- Form rows ---------- */
+
+.form-row {
+    margin-bottom: 14px;
+}
+
+.form-label {
+    color: #3d2812;
+    font-size: 28px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+}
+
+.form-status {
+    color: #f2725a;
+    font-size: 19px;
+    -unity-font-style: italic;
+    min-height: 24px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    -unity-text-align: middle-center;
+}
+
+.form-actions {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.form-actions--single {
+    justify-content: center;
+}
+
+.form-actions--vertical {
+    flex-direction: column;
+    align-items: center;
+    margin-top: 24px;
+}
+
+.wood-btn--block {
+    width: 92%;
+    height: 116px;
+    margin-bottom: 16px;
+    margin-left: 0;
+    margin-right: 0;
+    flex-grow: 0;
+}
+
+.wood-btn--block .wood-btn__label {
+    font-size: 31px;
+    padding-left: 64px;
+    padding-right: 64px;
+    white-space: nowrap;
+}
+
+.wood-btn--block .wood-btn__label--tight {
+    font-size: 24px;
+    padding-left: 54px;
+    padding-right: 54px;
+}
+
+/* ---------- Settings sections ---------- */
+
+.settings-scroll {
+    max-height: 560px;
+    margin-bottom: 10px;
+    padding-right: 6px;
+}
+
+.section-title {
+    color: #7a3f12;
+    font-size: 36px;
+    -unity-font-style: bold;
+    margin-top: 18px;
+    margin-bottom: 10px;
+}
+
+.setting-toggle-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.setting-toggle-label {
+    color: #3d2812;
+    font-size: 28px;
+    -unity-font-style: bold;
+}
+
+/* ---------- Records ---------- */
+
+.records-header {
+    flex-direction: row;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background-color: rgba(74, 48, 24, 0.85);
+    border-radius: 4px;
+}
+
+.records-col {
+    color: #ffe8b0;
+    font-size: 22px;
+    -unity-font-style: bold;
+}
+
+.records-col--rank { width: 40px; }
+.records-col--name { flex-grow: 1; }
+.records-col--level { width: 60px; -unity-text-align: middle-center; }
+.records-col--score { width: 90px; -unity-text-align: middle-right; }
+
+.records-list {
+    min-height: 280px;
+    max-height: 360px;
+}
+
+.records-row {
+    flex-direction: row;
+    padding: 8px 12px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+}
+
+.records-row--alt {
+    background-color: rgba(40, 25, 15, 0.4);
+}
+
+.records-row--top {
+    background-color: rgba(120, 80, 35, 0.55);
+    border-left-width: 3px;
+    border-left-color: #ffd877;
+}
+
+.records-cell {
+    color: #3d2812;
+    font-size: 21px;
+    -unity-font-style: bold;
+}
+
+/* ---------- Load screen ---------- */
+
+.load-content {
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.load-title {
+    color: #fbedc6;
+    font-size: 40px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
+}
+
+.load-subtitle {
+    color: #d6c69b;
+    font-size: 20px;
+    -unity-font-style: italic;
+    margin-bottom: 30px;
+}
+
+.load-spinner {
+    margin-bottom: 24px;
+}
+
+.load-bar {
+    width: 60%;
+}
+
+
+/* Slim vertical scroller so it stays inside the parchment, not on the frame */
+.settings-scroll #unity-content-and-vertical-scroll-container {
+    width: 100%;
+}
+.settings-scroll .unity-scroller--vertical {
+    width: 8px;
+    margin-right: 2px;
+}
+.settings-scroll .unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: rgba(74, 48, 24, 0.7);
+    border-radius: 4px;
+}
+.settings-scroll .unity-scroller--vertical .unity-scroller__low-button,
+.settings-scroll .unity-scroller--vertical .unity-scroller__high-button {
+    display: none;
+}

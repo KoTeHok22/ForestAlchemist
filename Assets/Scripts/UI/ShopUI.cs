@@ -1,26 +1,27 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
 
+/// <summary>
+/// App UI shop. Keeps the ShopUI class name + Open()/Close() so the existing
+/// ShopInteraction continues to find and drive it without changes. Renders on a
+/// runtime-created UIDocument (doska bulletin board) instead of the legacy Canvas.
+/// </summary>
 public sealed class ShopUI : MonoBehaviour
 {
-    [Header("Scene UI")]
-    [SerializeField] private GameObject shopPanel;
-    [SerializeField] private Transform itemsContainer;
-    [SerializeField] private GameObject itemButtonTemplate;
-    [SerializeField] private TMP_Text bloodCountText;
-    [SerializeField] private Button closeButton;
+    private const string ViewPath = "Assets/UI/HomePanels/ShopView.uxml";
+    private const string SettingsPath = "Assets/UI/HomePanels/HomePanelsSettings.asset";
 
-    private bool runtimeUiBuilt;
+    private UIDocument document;
+    private VisualElement root;
+    private VisualElement dimBg;
+    private Label bloodCount;
+    private ScrollView itemsList;
+
+    private bool built;
 
     private void Awake()
     {
-        BuildRuntimeUiIfNeeded();
-        if (shopPanel != null) shopPanel.SetActive(false);
-        BindCloseButton();
-        if (itemButtonTemplate != null) itemButtonTemplate.SetActive(false);
-
         ShopService.Instance.OnItemPurchased += Refresh;
     }
 
@@ -32,209 +33,83 @@ public sealed class ShopUI : MonoBehaviour
 
     public void Open()
     {
-        BuildRuntimeUiIfNeeded();
-        if (itemsContainer == null || itemButtonTemplate == null)
-        {
-            return;
-        }
-
-        if (shopPanel != null) shopPanel.SetActive(true);
+        EnsureBuilt();
+        if (root == null) return;
+        if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
         Refresh(null);
     }
 
     public void Close()
     {
-        if (shopPanel != null) shopPanel.SetActive(false);
+        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
+    }
+
+    private void EnsureBuilt()
+    {
+        if (built && document != null) return;
+
+        document = GetComponent<UIDocument>();
+        if (document == null) document = gameObject.AddComponent<UIDocument>();
+
+#if UNITY_EDITOR
+        if (document.visualTreeAsset == null)
+            document.visualTreeAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ViewPath);
+        if (document.panelSettings == null)
+            document.panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(SettingsPath);
+#endif
+
+        root = document.rootVisualElement;
+        if (root == null) return;
+
+        dimBg = root.Q<VisualElement>("dim-bg");
+        bloodCount = root.Q<Label>("blood-count");
+        itemsList = root.Q<ScrollView>("items-list");
+
+        var closeX = root.Q<VisualElement>("btn-close-x");
+        if (closeX != null) closeX.RegisterCallback<ClickEvent>(_ => Close());
+
+        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
+        built = true;
     }
 
     private void Refresh(string _)
     {
+        if (root == null) return;
         UpdateBloodCount();
         PopulateItems();
     }
 
     private void UpdateBloodCount()
     {
-        if (bloodCountText == null) return;
+        if (bloodCount == null) return;
         var homeStorage = InventoryService.Instance.HomeStorage;
         int blood = homeStorage != null ? homeStorage.GetItemCount(ItemCatalog.OrcBlood) : 0;
-        bloodCountText.text = $"{ItemCatalog.GetDisplayName(ItemCatalog.OrcBlood)}: {blood}";
+        bloodCount.text = $"{ItemCatalog.GetDisplayName(ItemCatalog.OrcBlood)}: {blood}";
     }
 
     private void PopulateItems()
     {
-        ClearContainer();
+        if (itemsList == null) return;
+        itemsList.contentContainer.Clear();
 
         List<ShopService.ShopItem> items = ShopService.Instance.GetAvailableItems();
-        for (int i = 0; i < items.Count; i++)
+        foreach (ShopService.ShopItem item in items)
         {
-            ShopService.ShopItem shopItem = items[i];
-            GameObject btn = Instantiate(itemButtonTemplate, itemsContainer);
-            btn.SetActive(true);
-            btn.name = $"ShopItem_{shopItem.itemId}";
+            string capturedId = item.itemId;
 
-            TMP_Text label = btn.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = $"{shopItem.displayName} ({shopItem.priceInBlood} крови)";
+            var row = new VisualElement();
+            row.AddToClassList("shop-row");
 
-            Button button = btn.GetComponent<Button>();
-            if (button != null)
-            {
-                string capturedId = shopItem.itemId;
-                button.onClick.AddListener(() => OnPurchaseClicked(capturedId));
-            }
+            var name = new Label(item.displayName);
+            name.AddToClassList("shop-row__name");
+            row.Add(name);
+
+            var price = new Label($"{item.priceInBlood} крови");
+            price.AddToClassList("shop-row__price");
+            row.Add(price);
+
+            row.RegisterCallback<ClickEvent>(_ => ShopService.Instance.TryPurchase(capturedId));
+            itemsList.contentContainer.Add(row);
         }
-    }
-
-    private void OnPurchaseClicked(string itemId)
-    {
-        ShopService.Instance.TryPurchase(itemId);
-    }
-
-    private void ClearContainer()
-    {
-        if (itemsContainer == null) return;
-        for (int i = itemsContainer.childCount - 1; i >= 0; i--)
-        {
-            Transform child = itemsContainer.GetChild(i);
-            if (child.gameObject == itemButtonTemplate) continue;
-            Destroy(child.gameObject);
-        }
-    }
-
-    private void BuildRuntimeUiIfNeeded()
-    {
-        if (runtimeUiBuilt || shopPanel != null)
-        {
-            BindCloseButton();
-            runtimeUiBuilt = true;
-            return;
-        }
-
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            GameObject canvasObject = new GameObject("ShopCanvas");
-            canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvasObject.AddComponent<GraphicRaycaster>();
-        }
-
-        shopPanel = new GameObject("ShopPanel", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup));
-        shopPanel.transform.SetParent(canvas.transform, false);
-
-        RectTransform panelRect = shopPanel.GetComponent<RectTransform>();
-        panelRect.anchorMin = new Vector2(0.5f, 0.5f);
-        panelRect.anchorMax = new Vector2(0.5f, 0.5f);
-        panelRect.pivot = new Vector2(0.5f, 0.5f);
-        panelRect.sizeDelta = new Vector2(560f, 520f);
-
-        Image panelImage = shopPanel.GetComponent<Image>();
-        panelImage.color = new Color(0.1f, 0.08f, 0.06f, 0.96f);
-
-        VerticalLayoutGroup layout = shopPanel.GetComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(18, 18, 18, 18);
-        layout.spacing = 10f;
-        layout.childControlHeight = false;
-        layout.childControlWidth = true;
-        layout.childForceExpandHeight = false;
-
-        TMP_Text title = CreateText(shopPanel.transform, "Магазин", 30, FontStyles.Bold);
-        title.alignment = TextAlignmentOptions.Center;
-
-        bloodCountText = CreateText(shopPanel.transform, string.Empty, 20, FontStyles.Bold);
-        bloodCountText.color = new Color(1f, 0.85f, 0.85f, 1f);
-        bloodCountText.alignment = TextAlignmentOptions.Center;
-
-        GameObject listRoot = new GameObject("ItemsContainer", typeof(RectTransform), typeof(VerticalLayoutGroup));
-        listRoot.transform.SetParent(shopPanel.transform, false);
-        itemsContainer = listRoot.transform;
-
-        VerticalLayoutGroup listLayout = listRoot.GetComponent<VerticalLayoutGroup>();
-        listLayout.spacing = 8f;
-        listLayout.childControlHeight = false;
-        listLayout.childControlWidth = true;
-        listLayout.childForceExpandHeight = false;
-
-        LayoutElement listSize = listRoot.AddComponent<LayoutElement>();
-        listSize.preferredHeight = 360f;
-
-        itemButtonTemplate = CreateButtonTemplate(itemsContainer, "ShopItemTemplate");
-        itemButtonTemplate.SetActive(false);
-
-        closeButton = CreateButton(shopPanel.transform, "Закрыть", Close);
-        SetPreferredWidth(closeButton.gameObject, 180f);
-        BindCloseButton();
-
-        shopPanel.SetActive(false);
-        runtimeUiBuilt = true;
-    }
-
-    private void BindCloseButton()
-    {
-        if (closeButton == null)
-        {
-            return;
-        }
-
-        closeButton.onClick.RemoveListener(Close);
-        closeButton.onClick.AddListener(Close);
-    }
-
-    private static TMP_Text CreateText(Transform parent, string content, float fontSize, FontStyles style)
-    {
-        GameObject textObject = new GameObject("Text", typeof(RectTransform));
-        textObject.transform.SetParent(parent, false);
-        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
-        text.text = content;
-        text.fontSize = fontSize;
-        text.fontStyle = style;
-        text.color = Color.white;
-        text.enableWordWrapping = true;
-        return text;
-    }
-
-    private static GameObject CreateButtonTemplate(Transform parent, string name)
-    {
-        GameObject buttonObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-        buttonObject.transform.SetParent(parent, false);
-        buttonObject.GetComponent<Image>().color = new Color(0.22f, 0.18f, 0.12f, 1f);
-        buttonObject.GetComponent<LayoutElement>().preferredHeight = 48f;
-
-        TMP_Text label = CreateText(buttonObject.transform, string.Empty, 18f, FontStyles.Normal);
-        label.alignment = TextAlignmentOptions.Center;
-        RectTransform labelRect = label.rectTransform;
-        labelRect.anchorMin = Vector2.zero;
-        labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = new Vector2(10f, 0f);
-        labelRect.offsetMax = new Vector2(-10f, 0f);
-
-        return buttonObject;
-    }
-
-    private static Button CreateButton(Transform parent, string label, UnityEngine.Events.UnityAction callback)
-    {
-        GameObject buttonObject = CreateButtonTemplate(parent, $"Button_{label}");
-        buttonObject.SetActive(true);
-        Button button = buttonObject.GetComponent<Button>();
-        button.onClick.AddListener(callback);
-        TMP_Text text = buttonObject.GetComponentInChildren<TMP_Text>();
-        if (text != null)
-        {
-            text.text = label;
-        }
-
-        return button;
-    }
-
-    private static void SetPreferredWidth(GameObject gameObject, float width)
-    {
-        LayoutElement layout = gameObject.GetComponent<LayoutElement>();
-        if (layout == null)
-        {
-            layout = gameObject.AddComponent<LayoutElement>();
-        }
-
-        layout.preferredWidth = width;
     }
 }

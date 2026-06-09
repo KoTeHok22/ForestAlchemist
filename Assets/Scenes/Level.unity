@@ -12005,6 +12005,7 @@ GameObject:
   - component: {fileID: 1031734682}
   - component: {fileID: 1031734681}
   - component: {fileID: 1031734685}
+  - component: {fileID: 1031734686}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -12129,6 +12130,19 @@ MonoBehaviour:
   windowedModeToggle: {fileID: 0}
   musicSlider: {fileID: 0}
   sfxSlider: {fileID: 0}
+--- !u!114 &1031734686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1031734680}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dced81f6954a5e242b3fb5e483061b86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameOverlayBootstrap
+  overlayPrefab: {fileID: 0}
 --- !u!1 &1043776379
 GameObject:
   m_ObjectHideFlags: 0

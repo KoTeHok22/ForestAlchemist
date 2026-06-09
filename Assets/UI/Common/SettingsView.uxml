@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements"
+      xmlns:appui="Unity.AppUI.UI"
+      xmlns:ui="UnityEngine.UIElements">
+
+    <!-- Reusable settings fragment. Host attaches a SettingsPanelController
+         to the element named "settings-fragment". Used by MainMenu and Pause. -->
+    <ui:VisualElement name="settings-fragment" class="settings-fragment">
+        <ui:ScrollView name="settings-scroll" class="settings-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden">
+
+            <ui:Label text="Графика" class="section-title" />
+
+            <ui:VisualElement class="form-row">
+                <ui:Label text="Разрешение" class="form-label" />
+                <appui:Dropdown name="settings-resolution" class="form-input" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="form-row">
+                <ui:Label text="Качество" class="form-label" />
+                <appui:Dropdown name="settings-quality" class="form-input" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="setting-toggle-row">
+                <ui:Label text="Оконный режим" class="setting-toggle-label" />
+                <appui:Toggle name="settings-windowed" />
+            </ui:VisualElement>
+
+            <ui:Label text="Звук" class="section-title" />
+
+            <ui:VisualElement class="setting-toggle-row">
+                <ui:Label text="Музыка" class="setting-toggle-label" />
+                <appui:Toggle name="settings-music-enabled" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="form-row">
+                <ui:Label text="Громкость музыки" class="form-label" />
+                <appui:SliderFloat name="settings-music-volume" low-value="0" high-value="1" value="1" class="form-input" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="setting-toggle-row">
+                <ui:Label text="Звуковые эффекты" class="setting-toggle-label" />
+                <appui:Toggle name="settings-sfx-enabled" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="form-row">
+                <ui:Label text="Громкость SFX" class="form-label" />
+                <appui:SliderFloat name="settings-sfx-volume" low-value="0" high-value="1" value="1" class="form-input" />
+            </ui:VisualElement>
+
+        </ui:ScrollView>
+    </ui:VisualElement>
+</UXML>

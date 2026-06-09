@@ -1,0 +1,264 @@
+/* ============================================================
+   Forest Alchemist · Common in-game UI USS
+   Shared frame / buttons / settings used by Pause, Load, HUD.
+   Frame visuals mirror the MainMenu modal (modal2_trim 9-slice).
+   ============================================================ */
+
+/* ---------- Panel root (transparent overlay) ---------- */
+
+.panel-root {
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    -unity-font: url("project://database/Assets/Resources/Menu/Fonts/arturito.ttf");
+    -unity-font-definition: url("project://database/Assets/Resources/Menu/Fonts/arturito.ttf");
+}
+
+.panel-root > .appui-panel__main {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+/* ---------- Dim backdrop ---------- */
+
+.dim-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.55);
+    align-items: center;
+    justify-content: center;
+}
+
+.dim-bg--strong {
+    background-color: rgba(5, 10, 6, 0.92);
+}
+
+.hidden {
+    display: none;
+}
+
+/* ---------- Wood frame (9-slice modal2_trim) ---------- */
+
+.wood-frame {
+    width: 690px;
+    height: 940px;
+    max-height: 98%;
+    padding-top: 232px;
+    padding-bottom: 100px;
+    padding-left: 110px;
+    padding-right: 100px;
+    background-image: resource("Menu/Generated/modal2_trim");
+    -unity-slice-left: 90;
+    -unity-slice-right: 76;
+    -unity-slice-top: 255;
+    -unity-slice-bottom: 84;
+    -unity-slice-scale: 0.72px;
+    position: relative;
+}
+
+.wood-frame--narrow {
+    width: 640px;
+    height: 880px;
+}
+
+.frame-title {
+    position: absolute;
+    top: 54px;
+    left: 64px;
+    right: 64px;
+    height: 104px;
+    color: #f4ead2;
+    font-size: 38px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.9);
+}
+
+.frame-subtitle {
+    color: #5a3d22;
+    font-size: 20px;
+    -unity-font-style: italic;
+    -unity-text-align: middle-center;
+    margin-bottom: 16px;
+    white-space: normal;
+}
+
+.frame-close {
+    position: absolute;
+    top: 28px;
+    right: 22px;
+    width: 64px;
+    height: 64px;
+    background-image: resource("Menu/Generated/close_btn");
+    -unity-background-scale-mode: scale-to-fit;
+    transition: scale 0.12s ease-out;
+}
+
+.frame-close:hover {
+    scale: 1.12 1.12;
+}
+
+/* ---------- Wooden buttons ---------- */
+
+.wood-btn {
+    background-image: resource("Menu/btn");
+    -unity-slice-left: 170;
+    -unity-slice-right: 170;
+    -unity-slice-top: 150;
+    -unity-slice-bottom: 150;
+    -unity-slice-scale: 0.42px;
+    align-items: center;
+    justify-content: center;
+    transition: scale 0.12s ease-out;
+}
+
+.wood-btn:hover {
+    scale: 1.04 1.04;
+}
+
+.wood-btn:active {
+    scale: 0.97 0.97;
+}
+
+.wood-btn:disabled {
+    opacity: 0.45;
+}
+
+.wood-btn__label {
+    color: #fbedc6;
+    font-size: 31px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
+}
+
+/* Vertical, full-width block button (text never reaches carved corners) */
+.wood-btn--block {
+    width: 92%;
+    height: 116px;
+    margin-bottom: 16px;
+    flex-grow: 0;
+}
+
+.wood-btn--block .wood-btn__label {
+    padding-left: 64px;
+    padding-right: 64px;
+    white-space: nowrap;
+}
+
+.wood-btn--block .wood-btn__label--tight {
+    font-size: 24px;
+    padding-left: 54px;
+    padding-right: 54px;
+}
+
+/* ---------- Action column ---------- */
+
+.actions-column {
+    flex-direction: column;
+    align-items: center;
+    margin-top: 24px;
+}
+
+/* ---------- Settings fragment (shared with MainMenu) ---------- */
+
+.settings-scroll {
+    max-height: 560px;
+    margin-bottom: 10px;
+    padding-right: 6px;
+}
+
+.settings-scroll .unity-scroller--vertical {
+    width: 8px;
+    margin-right: 2px;
+}
+
+.settings-scroll .unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: rgba(74, 48, 24, 0.7);
+    border-radius: 4px;
+}
+
+.settings-scroll .unity-scroller--vertical .unity-scroller__low-button,
+.settings-scroll .unity-scroller--vertical .unity-scroller__high-button {
+    display: none;
+}
+
+.section-title {
+    color: #7a3f12;
+    font-size: 36px;
+    -unity-font-style: bold;
+    margin-top: 18px;
+    margin-bottom: 10px;
+}
+
+.form-row {
+    margin-bottom: 14px;
+}
+
+.form-label {
+    color: #3d2812;
+    font-size: 28px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+}
+
+.setting-toggle-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.setting-toggle-label {
+    color: #3d2812;
+    font-size: 28px;
+    -unity-font-style: bold;
+}
+
+/* ---------- Load screen ---------- */
+
+.load-content {
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.load-logo {
+    width: 520px;
+    height: 300px;
+    background-image: resource("Menu/logo");
+    -unity-background-scale-mode: scale-to-fit;
+    margin-bottom: 12px;
+}
+
+.load-title {
+    color: #fbedc6;
+    font-size: 44px;
+    -unity-font-style: bold;
+    margin-bottom: 8px;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.8);
+}
+
+.load-subtitle {
+    color: #d6c69b;
+    font-size: 22px;
+    -unity-font-style: italic;
+    margin-bottom: 30px;
+}
+
+.load-spinner {
+    margin-bottom: 24px;
+}
+
+.load-bar {
+    width: 60%;
+}

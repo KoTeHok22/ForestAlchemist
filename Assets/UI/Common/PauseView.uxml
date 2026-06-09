@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements"
+      xmlns:appui="Unity.AppUI.UI"
+      xmlns:ui="UnityEngine.UIElements">
+
+    <Style src="CommonStyles.uss" />
+
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+
+        <!-- ===== PAUSE MENU ===== -->
+        <ui:VisualElement name="screen-pause" class="dim-bg">
+            <ui:VisualElement class="wood-frame wood-frame--narrow">
+                <ui:Label text="Пауза" class="frame-title" />
+
+                <ui:VisualElement class="actions-column">
+                    <ui:VisualElement name="btn-resume" class="wood-btn wood-btn--block">
+                        <ui:Label text="Продолжить" class="wood-btn__label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="btn-settings" class="wood-btn wood-btn--block">
+                        <ui:Label text="Настройки" class="wood-btn__label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="btn-save" class="wood-btn wood-btn--block">
+                        <ui:Label text="Сохранить" class="wood-btn__label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="btn-save-exit" class="wood-btn wood-btn--block">
+                        <ui:Label text="Сохранить и выйти" class="wood-btn__label wood-btn__label--tight" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- ===== SETTINGS ===== -->
+        <ui:VisualElement name="screen-settings" class="dim-bg hidden">
+            <ui:VisualElement class="wood-frame">
+                <ui:Label text="Настройки" class="frame-title" />
+
+                <ui:VisualElement name="settings-fragment" class="settings-fragment">
+                    <ui:ScrollView name="settings-scroll" class="settings-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden">
+
+                        <ui:Label text="Графика" class="section-title" />
+
+                        <ui:VisualElement class="form-row">
+                            <ui:Label text="Разрешение" class="form-label" />
+                            <appui:Dropdown name="settings-resolution" class="form-input" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="form-row">
+                            <ui:Label text="Качество" class="form-label" />
+                            <appui:Dropdown name="settings-quality" class="form-input" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="setting-toggle-row">
+                            <ui:Label text="Оконный режим" class="setting-toggle-label" />
+                            <appui:Toggle name="settings-windowed" />
+                        </ui:VisualElement>
+
+                        <ui:Label text="Звук" class="section-title" />
+
+                        <ui:VisualElement class="setting-toggle-row">
+                            <ui:Label text="Музыка" class="setting-toggle-label" />
+                            <appui:Toggle name="settings-music-enabled" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="form-row">
+                            <ui:Label text="Громкость музыки" class="form-label" />
+                            <appui:SliderFloat name="settings-music-volume" low-value="0" high-value="1" value="1" class="form-input" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="setting-toggle-row">
+                            <ui:Label text="Звуковые эффекты" class="setting-toggle-label" />
+                            <appui:Toggle name="settings-sfx-enabled" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="form-row">
+                            <ui:Label text="Громкость SFX" class="form-label" />
+                            <appui:SliderFloat name="settings-sfx-volume" low-value="0" high-value="1" value="1" class="form-input" />
+                        </ui:VisualElement>
+
+                    </ui:ScrollView>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="btn-settings-close" class="frame-close" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+    </appui:Panel>
+</UXML>

@@ -1,0 +1,37 @@
+/* Forest Alchemist Theme — extends App UI dark theme with custom forest palette */
+
+@import url("/Packages/com.unity.dt.app-ui/PackageResources/Styles/Themes/App UI.tss");
+
+VisualElement {
+    /* Primary palette — deep forest green */
+    --appui-accent-100: #1a2e1f;
+    --appui-accent-200: #234029;
+    --appui-accent-300: #2c5234;
+    --appui-accent-400: #3a6e44;
+    --appui-accent-500: #4a8a56;
+    --appui-accent-600: #5fa86c;
+    --appui-accent-700: #7bc485;
+    --appui-accent-800: #9adba1;
+    --appui-accent-900: #c3ebc7;
+    --appui-accent-1000: #e2f5e4;
+    --appui-accent-1100: #f2faf3;
+    --appui-accent-1200: #ffffff;
+
+    /* Background — deep forest night */
+    --appui-base-100: #0a0f0c;
+    --appui-base-200: #111814;
+    --appui-base-300: #18221c;
+    --appui-base-400: #1f2b24;
+    --appui-base-500: #28362d;
+    --appui-base-600: #324135;
+    --appui-base-700: #3e503f;
+    --appui-base-800: #4d6049;
+    --appui-base-900: #607053;
+    --appui-base-1000: #7a8a6a;
+
+    /* Foreground / text */
+    --appui-foreground-100: #f0ead9;
+    --appui-foreground-200: #d8d2c2;
+    --appui-foreground-300: #b8b3a3;
+    --appui-foreground-400: #918d7e;
+}

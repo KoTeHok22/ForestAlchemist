@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements"
+      xmlns:appui="Unity.AppUI.UI"
+      xmlns:ui="UnityEngine.UIElements">
+
+    <Style src="CommonStyles.uss" />
+
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+
+        <ui:VisualElement name="screen-load" class="dim-bg dim-bg--strong hidden">
+            <ui:VisualElement class="load-content">
+                <ui:VisualElement name="load-logo" class="load-logo" picking-mode="Ignore" />
+                <ui:Label name="load-title" text="Подготовка экспедиции" class="load-title" />
+                <ui:Label name="load-subtitle" text="Алхимик собирает котомку…" class="load-subtitle" />
+                <appui:CircularProgress name="load-spinner" size="L" class="load-spinner" />
+                <appui:LinearProgress name="load-bar" class="load-bar" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+    </appui:Panel>
+</UXML>

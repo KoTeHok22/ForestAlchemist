@@ -66,6 +66,9 @@ public class PlayerTopDownController : MonoBehaviour
 
     private bool IsAttacking => attackTimer > 0f;
 
+    /// <summary>Current stamina as a 0..1 fraction (read-only, for HUD).</summary>
+    public float StaminaNormalized => maxStamina > 0f ? Mathf.Clamp01(currentStamina / maxStamina) : 0f;
+
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();

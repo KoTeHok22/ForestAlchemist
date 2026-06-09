@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements"
+      xmlns:appui="Unity.AppUI.UI"
+      xmlns:ui="UnityEngine.UIElements">
+
+    <Style src="HudStyles.uss" />
+
+    <appui:Panel name="panel-root" class="hud-root" theme="dark" scale="medium" picking-mode="Ignore">
+
+        <!-- ===== Top-left player cluster ===== -->
+        <ui:VisualElement name="hud-player" class="hud-player" picking-mode="Ignore">
+            <ui:VisualElement name="portrait" class="portrait" picking-mode="Ignore">
+                <ui:VisualElement name="portrait-fill" class="portrait-fill" picking-mode="Ignore" />
+                <ui:VisualElement name="portrait-ring" class="portrait-ring" picking-mode="Ignore" />
+                <ui:Label name="portrait-badge" text="0" class="portrait-badge" picking-mode="Ignore" />
+            </ui:VisualElement>
+
+            <ui:VisualElement name="player-stats" class="player-stats" picking-mode="Ignore">
+                <ui:VisualElement name="hearts" class="hearts" picking-mode="Ignore">
+                    <ui:VisualElement name="heart-0" class="heart" picking-mode="Ignore" />
+                    <ui:VisualElement name="heart-1" class="heart" picking-mode="Ignore" />
+                    <ui:VisualElement name="heart-2" class="heart" picking-mode="Ignore" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="bar-stamina" class="stat-bar stat-bar--stamina" picking-mode="Ignore">
+                    <ui:VisualElement name="bar-stamina-fill" class="stat-bar__fill" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:VisualElement name="bar-mana" class="stat-bar stat-bar--mana" picking-mode="Ignore">
+                    <ui:VisualElement name="bar-mana-fill" class="stat-bar__fill" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:VisualElement name="bar-shield" class="stat-bar stat-bar--shield" picking-mode="Ignore">
+                    <ui:VisualElement name="bar-shield-fill" class="stat-bar__fill" picking-mode="Ignore" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- ===== Quests (top-right) ===== -->
+        <ui:VisualElement name="hud-quests" class="hud-quests" picking-mode="Ignore" />
+
+        <!-- ===== Hotbar (bottom-center) ===== -->
+        <ui:VisualElement name="hud-hotbar" class="hud-hotbar" picking-mode="Ignore" />
+
+    </appui:Panel>
+</UXML>

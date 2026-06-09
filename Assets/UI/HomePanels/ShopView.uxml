@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="doska" class="doska-frame">
+                <ui:VisualElement class="doska-content">
+                    <ui:Label name="title" text="Магазин редкостей" class="doska-title" />
+                    <ui:Label name="blood-count" text="" class="doska-subtitle" />
+                    <ui:ScrollView name="items-list" class="shop-list" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+                </ui:VisualElement>
+                <ui:VisualElement name="btn-close-x" class="doska-close" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>

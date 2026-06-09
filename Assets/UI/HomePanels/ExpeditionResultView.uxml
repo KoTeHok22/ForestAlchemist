@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="doska" class="doska-frame">
+                <ui:VisualElement class="doska-content">
+                    <ui:Label name="title" text="Экспедиция завершена" class="doska-title" />
+                    <ui:Label name="subtitle" text="" class="doska-subtitle" />
+                    <ui:Label name="body" text="" class="doska-body" />
+                    <ui:VisualElement class="doska-actions">
+                        <ui:VisualElement name="btn-close" class="wood-btn">
+                            <ui:Label text="Закрыть" class="wood-btn__label" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="btn-close-x" class="doska-close" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>
