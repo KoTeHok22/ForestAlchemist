@@ -1,52 +1,66 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
 
+/// <summary>
+/// App UI expedition preparation board. Keeps the ExpeditionPreparationUI class
+/// name + Open()/Close()/StartPreparedExpedition() so ExpeditionStarter continues
+/// to find and drive it without changes. Renders on a runtime-created UIDocument
+/// (doska bulletin board) instead of the legacy Canvas. The player picks which
+/// consumables (and how many) to carry from the home storage into the expedition.
+/// </summary>
 public sealed class ExpeditionPreparationUI : MonoBehaviour
 {
-    private const string PanelName = "ExpeditionPreparationPanel";
+    private const string ViewPath = "Assets/UI/HomePanels/ExpeditionPrepView.uxml";
+    private const string SettingsPath = "Assets/UI/HomePanels/ExpeditionPrepPanelSettings.asset";
+
     private static readonly string[] SupportedItems =
     {
         ItemCatalog.HealthPotion,
         ItemCatalog.ManaPotion,
         ItemCatalog.ShieldScroll,
-        ItemCatalog.ReturnScroll
+        ItemCatalog.ReturnScroll,
+        ItemCatalog.StaminaElixir,
+        ItemCatalog.GreaterHealthPotion,
+        ItemCatalog.GreaterManaPotion,
+        ItemCatalog.EnhancedShieldScroll,
+        ItemCatalog.EarthAmulet,
+        ItemCatalog.LifebloomElixir,
+        ItemCatalog.ShamanWard,
+        ItemCatalog.WarchiefBrew,
+        ItemCatalog.BloodcrownTonic
     };
 
-    [Header("Scene UI")]
-    [SerializeField] private GameObject panelRoot;
-    [SerializeField] private TMP_Text summaryText;
-    [SerializeField] private Button closeButton;
-    [SerializeField] private Button clearButton;
-    [SerializeField] private Button quickFillButton;
-    [SerializeField] private Button startButton;
+    private UIDocument document;
+    private VisualElement root;
+    private VisualElement panelRoot;
+    private VisualElement dimBg;
+    private Label summary;
+    private VisualElement rowsContainer;
+    private AppUIClickRouter clickRouter;
 
-    private readonly Dictionary<string, TMP_Text> countTexts = new Dictionary<string, TMP_Text>();
-    private readonly Dictionary<string, TMP_Text> stockTexts = new Dictionary<string, TMP_Text>();
-    private bool uiBuilt;
+    private readonly Dictionary<string, Label> countLabels = new Dictionary<string, Label>();
+    private readonly Dictionary<string, Label> stockLabels = new Dictionary<string, Label>();
+    private readonly Dictionary<string, VisualElement> minusButtons = new Dictionary<string, VisualElement>();
+    private readonly Dictionary<string, VisualElement> plusButtons = new Dictionary<string, VisualElement>();
 
-    private void Awake()
-    {
-        BindButtons();
-        CacheSceneRows();
-    }
+    private bool built;
 
     public void Open()
     {
-        BuildIfNeeded();
+        EnsureBuilt();
+        if (root == null) return;
+        if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
         Refresh();
-        panelRoot.SetActive(true);
         Time.timeScale = 0f;
     }
 
     public void Close()
     {
-        if (panelRoot != null)
-        {
-            panelRoot.SetActive(false);
-        }
-
+        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
+        // Otherwise the Panel keeps eating all pointer events on top of HUD.
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
         Time.timeScale = 1f;
     }
 
@@ -61,223 +75,124 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         Time.timeScale = 1f;
     }
 
-    private void BuildIfNeeded()
+    private void EnsureBuilt()
     {
-        if (uiBuilt)
-        {
-            return;
-        }
+        if (built && document != null) return;
 
-        if (HasSceneUi())
-        {
-            CacheSceneRows();
-            BindButtons();
-            panelRoot.SetActive(false);
-            uiBuilt = true;
-            return;
-        }
+        document = GetComponent<UIDocument>();
+        if (document == null) document = gameObject.AddComponent<UIDocument>();
 
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            GameObject canvasObject = new GameObject("PreparationCanvas");
-            canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvasObject.AddComponent<GraphicRaycaster>();
-        }
+#if UNITY_EDITOR
+        if (document.visualTreeAsset == null)
+            document.visualTreeAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ViewPath);
+        if (document.panelSettings == null)
+            document.panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(SettingsPath);
+#endif
 
-        panelRoot = new GameObject(PanelName, typeof(RectTransform), typeof(Image));
-        panelRoot.transform.SetParent(canvas.transform, false);
+        root = document.rootVisualElement;
+        if (root == null) return;
 
-        RectTransform rect = panelRoot.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = new Vector2(620f, 420f);
+        panelRoot = root.Q<VisualElement>("panel-root");
+        dimBg = root.Q<VisualElement>("dim-bg");
+        summary = root.Q<Label>("summary");
+        rowsContainer = root.Q<VisualElement>("rows");
 
-        Image background = panelRoot.GetComponent<Image>();
-        background.color = new Color(0.08f, 0.12f, 0.1f, 0.95f);
+        clickRouter = new AppUIClickRouter(root);
 
-        VerticalLayoutGroup layout = panelRoot.AddComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(20, 20, 20, 20);
-        layout.spacing = 10f;
-        layout.childControlHeight = false;
-        layout.childControlWidth = true;
-        layout.childForceExpandHeight = false;
+        var closeX = root.Q<VisualElement>("btn-close-x");
+        if (closeX != null) clickRouter.Add(closeX, Close);
 
-        CreateHeader(panelRoot.transform);
-        CreateSummary(panelRoot.transform);
-        CreateItemRows(panelRoot.transform);
-        CreateFooter(panelRoot.transform);
-        BindButtons();
+        var btnAuto = root.Q<VisualElement>("btn-auto");
+        if (btnAuto != null) clickRouter.Add(btnAuto, ApplyRecommendedLoadout);
 
-        panelRoot.SetActive(false);
-        uiBuilt = true;
+        var btnClear = root.Q<VisualElement>("btn-clear");
+        if (btnClear != null) clickRouter.Add(btnClear, ClearLoadout);
+
+        var btnStart = root.Q<VisualElement>("btn-start");
+        if (btnStart != null) clickRouter.Add(btnStart, StartPreparedExpedition);
+
+        BuildRows();
+
+        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        built = true;
     }
 
-    private bool HasSceneUi()
+    private void BuildRows()
     {
-        return panelRoot != null && summaryText != null;
-    }
-
-    private void CacheSceneRows()
-    {
-        countTexts.Clear();
-        stockTexts.Clear();
-
-        if (panelRoot == null)
-        {
-            return;
-        }
+        if (rowsContainer == null) return;
+        rowsContainer.Clear();
+        clickRouter?.RemoveDead();
+        countLabels.Clear();
+        stockLabels.Clear();
+        minusButtons.Clear();
+        plusButtons.Clear();
 
         for (int i = 0; i < SupportedItems.Length; i++)
         {
             string itemId = SupportedItems[i];
-            Transform row = panelRoot.transform.Find($"Body/Row_{itemId}");
-            if (row == null)
-            {
-                continue;
-            }
 
-            TMP_Text stockText = row.Find("Stock")?.GetComponent<TMP_Text>();
-            TMP_Text countText = row.Find("Count")?.GetComponent<TMP_Text>();
-            if (stockText != null)
-            {
-                stockTexts[itemId] = stockText;
-            }
+            var row = new VisualElement();
+            row.AddToClassList("prep-row");
 
-            if (countText != null)
-            {
-                countTexts[itemId] = countText;
-            }
+            var icon = new VisualElement();
+            icon.AddToClassList("prep-row__icon");
+            Sprite sprite = Resources.Load<Sprite>($"Game/Icons/{itemId}");
+            if (sprite != null) icon.style.backgroundImage = new StyleBackground(sprite);
+            row.Add(icon);
 
-            Button minusButton = row.Find("Minus")?.GetComponent<Button>();
-            Button plusButton = row.Find("Plus")?.GetComponent<Button>();
-            if (minusButton != null)
-            {
-                minusButton.onClick.RemoveAllListeners();
-                minusButton.onClick.AddListener(() => ChangeCount(itemId, -1));
-            }
+            var info = new VisualElement();
+            info.AddToClassList("prep-row__info");
 
-            if (plusButton != null)
-            {
-                plusButton.onClick.RemoveAllListeners();
-                plusButton.onClick.AddListener(() => ChangeCount(itemId, 1));
-            }
+            var name = new Label(ItemCatalog.GetDisplayName(itemId));
+            name.AddToClassList("prep-row__name");
+            info.Add(name);
+
+            var stock = new Label(string.Empty);
+            stock.AddToClassList("prep-row__stock");
+            stockLabels[itemId] = stock;
+            info.Add(stock);
+
+            row.Add(info);
+
+            var stepper = new VisualElement();
+            stepper.AddToClassList("prep-row__stepper");
+
+            VisualElement minus = MakeStep("−"); // minus sign
+            minusButtons[itemId] = minus;
+            clickRouter.Add(minus, () => ChangeCount(itemId, -1));
+            stepper.Add(minus);
+
+            var count = new Label("0");
+            count.AddToClassList("prep-count");
+            countLabels[itemId] = count;
+            stepper.Add(count);
+
+            VisualElement plus = MakeStep("+");
+            plusButtons[itemId] = plus;
+            clickRouter.Add(plus, () => ChangeCount(itemId, 1));
+            stepper.Add(plus);
+
+            row.Add(stepper);
+            rowsContainer.Add(row);
         }
     }
 
-    private void BindButtons()
+    private static VisualElement MakeStep(string glyph)
     {
-        BindButton(closeButton, Close);
-        BindButton(clearButton, ClearLoadout);
-        BindButton(quickFillButton, ApplyRecommendedLoadout);
-        BindButton(startButton, StartPreparedExpedition);
-    }
-
-    private static void BindButton(Button button, UnityEngine.Events.UnityAction action)
-    {
-        if (button == null)
-        {
-            return;
-        }
-
-        button.onClick.RemoveListener(action);
-        button.onClick.AddListener(action);
-    }
-
-    private void CreateHeader(Transform parent)
-    {
-        TMP_Text title = CreateText(parent, "Подготовка к экспедиции", 30, FontStyles.Bold);
-        title.alignment = TextAlignmentOptions.Center;
-
-        TMP_Text hint = CreateText(parent, "Выбери расходники, которые возьмёшь из домашнего хранилища.", 18, FontStyles.Normal);
-        hint.alignment = TextAlignmentOptions.Center;
-        hint.color = new Color(0.85f, 0.92f, 0.88f, 1f);
-    }
-
-    private void CreateSummary(Transform parent)
-    {
-        summaryText = CreateText(parent, string.Empty, 18, FontStyles.Normal);
-        summaryText.alignment = TextAlignmentOptions.Left;
-        summaryText.color = new Color(1f, 0.95f, 0.75f, 1f);
-    }
-
-    private void CreateItemRows(Transform parent)
-    {
-        for (int i = 0; i < SupportedItems.Length; i++)
-        {
-            string itemId = SupportedItems[i];
-
-            GameObject row = new GameObject($"Row_{itemId}", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-            row.transform.SetParent(parent, false);
-
-            HorizontalLayoutGroup rowLayout = row.GetComponent<HorizontalLayoutGroup>();
-            rowLayout.spacing = 8f;
-            rowLayout.childControlWidth = false;
-            rowLayout.childControlHeight = false;
-            rowLayout.childForceExpandWidth = false;
-            rowLayout.childForceExpandHeight = false;
-
-            LayoutElement rowSize = row.AddComponent<LayoutElement>();
-            rowSize.preferredHeight = 42f;
-
-            TMP_Text nameText = CreateText(row.transform, GetDisplayName(itemId), 18, FontStyles.Bold);
-            nameText.alignment = TextAlignmentOptions.Left;
-            SetPreferredWidth(nameText.gameObject, 220f);
-
-            TMP_Text stockText = CreateText(row.transform, string.Empty, 16, FontStyles.Normal);
-            stockText.alignment = TextAlignmentOptions.Left;
-            SetPreferredWidth(stockText.gameObject, 120f);
-            stockTexts[itemId] = stockText;
-
-            Button minusButton = CreateButton(row.transform, "-", () => ChangeCount(itemId, -1));
-            SetPreferredWidth(minusButton.gameObject, 48f);
-
-            TMP_Text countText = CreateText(row.transform, "0", 18, FontStyles.Bold);
-            countText.alignment = TextAlignmentOptions.Center;
-            SetPreferredWidth(countText.gameObject, 48f);
-            countTexts[itemId] = countText;
-
-            Button plusButton = CreateButton(row.transform, "+", () => ChangeCount(itemId, 1));
-            SetPreferredWidth(plusButton.gameObject, 48f);
-        }
-    }
-
-    private void CreateFooter(Transform parent)
-    {
-        GameObject row = new GameObject("Footer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-        row.transform.SetParent(parent, false);
-
-        HorizontalLayoutGroup rowLayout = row.GetComponent<HorizontalLayoutGroup>();
-        rowLayout.spacing = 12f;
-        rowLayout.childAlignment = TextAnchor.MiddleCenter;
-        rowLayout.childControlHeight = false;
-        rowLayout.childControlWidth = false;
-        rowLayout.childForceExpandWidth = false;
-        rowLayout.childForceExpandHeight = false;
-
-        LayoutElement rowSize = row.AddComponent<LayoutElement>();
-        rowSize.preferredHeight = 56f;
-
-        quickFillButton = CreateButton(row.transform, "Авто", ApplyRecommendedLoadout);
-        SetPreferredWidth(quickFillButton.gameObject, 120f);
-
-        clearButton = CreateButton(row.transform, "Очистить", ClearLoadout);
-        SetPreferredWidth(clearButton.gameObject, 140f);
-
-        closeButton = CreateButton(row.transform, "Отмена", Close);
-        SetPreferredWidth(closeButton.gameObject, 160f);
-
-        startButton = CreateButton(row.transform, "В лес", StartPreparedExpedition);
-        SetPreferredWidth(startButton.gameObject, 200f);
+        var btn = new VisualElement();
+        btn.AddToClassList("prep-step");
+        var label = new Label(glyph);
+        label.AddToClassList("prep-step__label");
+        btn.Add(label);
+        return btn;
     }
 
     private void ChangeCount(string itemId, int delta)
     {
         GameProgressData progress = GameCore.Instance.CurrentProgress;
         PlayerInventory homeStorage = InventoryService.Instance.HomeStorage;
+        EnsureLoadout(progress);
         if (progress?.loadout?.consumables == null || homeStorage == null)
         {
             return;
@@ -290,8 +205,48 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         Refresh();
     }
 
+    private void ApplyRecommendedLoadout()
+    {
+        GameProgressData progress = GameCore.Instance.CurrentProgress;
+        PlayerInventory homeStorage = InventoryService.Instance.HomeStorage;
+        EnsureLoadout(progress);
+        if (progress?.loadout?.consumables == null || homeStorage == null)
+        {
+            return;
+        }
+
+        SetCount(progress.loadout.consumables, homeStorage, ItemCatalog.HealthPotion, 2);
+        SetCount(progress.loadout.consumables, homeStorage, ItemCatalog.ManaPotion, 2);
+        SetCount(progress.loadout.consumables, homeStorage, ItemCatalog.ShieldScroll, 1);
+        SetCount(progress.loadout.consumables, homeStorage, ItemCatalog.ReturnScroll, 1);
+        GameCore.Instance.SaveProgress();
+        Refresh();
+    }
+
+    private void ClearLoadout()
+    {
+        GameProgressData progress = GameCore.Instance.CurrentProgress;
+        if (progress?.loadout?.consumables == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < progress.loadout.consumables.Count; i++)
+        {
+            if (progress.loadout.consumables[i] != null)
+            {
+                progress.loadout.consumables[i].count = 0;
+            }
+        }
+
+        GameCore.Instance.SaveProgress();
+        Refresh();
+    }
+
     private void Refresh()
     {
+        if (root == null) return;
+
         GameProgressData progress = GameCore.Instance.CurrentProgress;
         PlayerInventory homeStorage = InventoryService.Instance.HomeStorage;
         EnsureLoadout(progress);
@@ -314,59 +269,33 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
 
             selectedItems += slot.count;
 
-            if (countTexts.TryGetValue(itemId, out TMP_Text countText))
+            if (countLabels.TryGetValue(itemId, out Label countLabel))
             {
-                countText.text = slot.count.ToString();
+                countLabel.text = slot.count.ToString();
             }
 
-            if (stockTexts.TryGetValue(itemId, out TMP_Text stockText))
+            if (stockLabels.TryGetValue(itemId, out Label stockLabel))
             {
-                stockText.text = $"В доме: {stock}";
+                stockLabel.text = $"В доме: {stock}";
             }
-        }
 
-        if (summaryText != null)
-        {
-            summaryText.text = $"Выбрано предметов: {selectedItems}. Всё выбранное исчезнет при смерти в походе.";
-        }
-
-        GameCore.Instance.SaveProgress();
-    }
-
-    private void ApplyRecommendedLoadout()
-    {
-        GameProgressData progress = GameCore.Instance.CurrentProgress;
-        PlayerInventory homeStorage = InventoryService.Instance.HomeStorage;
-        EnsureLoadout(progress);
-        if (progress?.loadout?.consumables == null || homeStorage == null)
-        {
-            return;
-        }
-
-        SetCount(progress.loadout.consumables, homeStorage, ItemCatalog.HealthPotion, 2);
-        SetCount(progress.loadout.consumables, homeStorage, ItemCatalog.ManaPotion, 2);
-        SetCount(progress.loadout.consumables, homeStorage, ItemCatalog.ShieldScroll, 1);
-        SetCount(progress.loadout.consumables, homeStorage, ItemCatalog.ReturnScroll, 1);
-        Refresh();
-    }
-
-    private void ClearLoadout()
-    {
-        GameProgressData progress = GameCore.Instance.CurrentProgress;
-        if (progress?.loadout?.consumables == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i < progress.loadout.consumables.Count; i++)
-        {
-            if (progress.loadout.consumables[i] != null)
+            if (minusButtons.TryGetValue(itemId, out VisualElement minus))
             {
-                progress.loadout.consumables[i].count = 0;
+                minus.EnableInClassList("prep-step--disabled", slot.count <= 0);
+            }
+
+            if (plusButtons.TryGetValue(itemId, out VisualElement plus))
+            {
+                plus.EnableInClassList("prep-step--disabled", slot.count >= stock);
             }
         }
 
-        Refresh();
+        if (summary != null)
+        {
+            summary.text = selectedItems > 0
+                ? $"Выбрано предметов: {selectedItems}. Всё выбранное исчезнет при смерти в походе."
+                : "Возьми расходники из домашнего хранилища. Всё выбранное исчезнет при смерти в походе.";
+        }
     }
 
     private static InventorySlot GetOrCreateLoadoutSlot(List<InventorySlot> slots, string itemId)
@@ -407,58 +336,5 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         InventorySlot slot = GetOrCreateLoadoutSlot(slots, itemId);
         int stock = homeStorage.GetItemCount(itemId);
         slot.count = Mathf.Clamp(requestedCount, 0, stock);
-    }
-
-    private static TMP_Text CreateText(Transform parent, string content, float fontSize, FontStyles style)
-    {
-        GameObject textObject = new GameObject("Text", typeof(RectTransform));
-        textObject.transform.SetParent(parent, false);
-        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
-        text.text = content;
-        text.fontSize = fontSize;
-        text.fontStyle = style;
-        text.color = Color.white;
-        text.enableWordWrapping = false;
-        return text;
-    }
-
-    private static Button CreateButton(Transform parent, string label, UnityEngine.Events.UnityAction callback)
-    {
-        GameObject buttonObject = new GameObject($"Button_{label}", typeof(RectTransform), typeof(Image), typeof(Button));
-        buttonObject.transform.SetParent(parent, false);
-
-        Image image = buttonObject.GetComponent<Image>();
-        image.color = new Color(0.22f, 0.34f, 0.28f, 1f);
-
-        Button button = buttonObject.GetComponent<Button>();
-        button.onClick.AddListener(callback);
-
-        TMP_Text text = CreateText(buttonObject.transform, label, 18f, FontStyles.Bold);
-        text.alignment = TextAlignmentOptions.Center;
-        RectTransform textRect = text.rectTransform;
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = Vector2.zero;
-        textRect.offsetMax = Vector2.zero;
-
-        LayoutElement layout = buttonObject.AddComponent<LayoutElement>();
-        layout.preferredHeight = 44f;
-        return button;
-    }
-
-    private static void SetPreferredWidth(GameObject gameObject, float width)
-    {
-        LayoutElement layout = gameObject.GetComponent<LayoutElement>();
-        if (layout == null)
-        {
-            layout = gameObject.AddComponent<LayoutElement>();
-        }
-
-        layout.preferredWidth = width;
-    }
-
-    private static string GetDisplayName(string itemId)
-    {
-        return ItemCatalog.GetDisplayName(itemId);
     }
 }

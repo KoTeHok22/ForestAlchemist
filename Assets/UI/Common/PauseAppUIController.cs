@@ -14,6 +14,7 @@ public sealed class PauseAppUIController : MonoBehaviour
     private UIDocument document;
     private VisualElement root;
 
+    private VisualElement panelRoot;
     private VisualElement screenPause;
     private VisualElement screenSettings;
 
@@ -50,6 +51,7 @@ public sealed class PauseAppUIController : MonoBehaviour
 
     private void CacheElements()
     {
+        panelRoot        = root.Q<VisualElement>("panel-root");
         screenPause      = root.Q<VisualElement>("screen-pause");
         screenSettings   = root.Q<VisualElement>("screen-settings");
         btnResume        = root.Q<VisualElement>("btn-resume");
@@ -59,20 +61,16 @@ public sealed class PauseAppUIController : MonoBehaviour
         btnSettingsClose = root.Q<VisualElement>("btn-settings-close");
     }
 
+    private AppUIClickRouter clickRouter;
+
     private void BindButtons()
     {
-        BindClick(btnResume, Resume);
-        BindClick(btnSettings, OpenSettings);
-        BindClick(btnSave, Save);
-        BindClick(btnSaveExit, SaveAndExit);
-        BindClick(btnSettingsClose, CloseSettings);
-    }
-
-    private static void BindClick(VisualElement element, System.Action callback)
-    {
-        if (element == null || callback == null) return;
-        element.RegisterCallback<ClickEvent>(_ => callback());
-        element.pickingMode = PickingMode.Position;
+        clickRouter = new AppUIClickRouter(root);
+        clickRouter.Add(btnResume, Resume);
+        clickRouter.Add(btnSettings, OpenSettings);
+        clickRouter.Add(btnSave, Save);
+        clickRouter.Add(btnSaveExit, SaveAndExit);
+        clickRouter.Add(btnSettingsClose, CloseSettings);
     }
 
     private void Update()
@@ -108,6 +106,7 @@ public sealed class PauseAppUIController : MonoBehaviour
 
         SetVisible(screenPause, true);
         SetVisible(screenSettings, false);
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
 
         settings.PushCurrent();
         isPaused = true;
@@ -159,6 +158,8 @@ public sealed class PauseAppUIController : MonoBehaviour
         }
 
         isPaused = false;
+        // Otherwise the Panel keeps eating all pointer events on top of HUD.
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
     }
 
     private static void SetVisible(VisualElement element, bool visible)

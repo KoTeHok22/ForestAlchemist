@@ -236,7 +236,6 @@ public sealed class UnityMenuSettingsApplier : IMenuSettingsApplier
         float sfxVolume = source.sfxEnabled ? Mathf.Clamp01(source.sfxVolume) : 0f;
 
         AudioListener.volume = Mathf.Max(musicVolume, sfxVolume);
-        Time.timeScale = 1f;
 
         int qualityIndex = Mathf.Clamp(source.qualityDropdownIndex, 0, QualityLevels.Length - 1);
         QualitySettings.SetQualityLevel(QualityLevels[qualityIndex], true);

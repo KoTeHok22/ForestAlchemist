@@ -51,7 +51,7 @@ public sealed class ChestInteraction : MonoBehaviour
 
     private void HandleInteraction()
     {
-        if (isHovered && Mouse.current.leftButton.wasPressedThisFrame)
+        if (isHovered && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             OpenChest();
         }

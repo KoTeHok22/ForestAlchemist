@@ -16,6 +16,7 @@ public sealed class LoadingOverlayController : MonoBehaviour
 
     private UIDocument document;
     private VisualElement root;
+    private VisualElement panelRoot;
     private VisualElement screenLoad;
     private LinearProgress bar;
 
@@ -32,6 +33,7 @@ public sealed class LoadingOverlayController : MonoBehaviour
         root = document.rootVisualElement;
         if (root == null) return;
 
+        panelRoot = root.Q<VisualElement>("panel-root");
         screenLoad = root.Q<VisualElement>("screen-load");
         bar = root.Q<LinearProgress>("load-bar");
         Hide();
@@ -40,11 +42,14 @@ public sealed class LoadingOverlayController : MonoBehaviour
     public void Hide()
     {
         if (screenLoad != null) screenLoad.style.display = DisplayStyle.None;
+        // Otherwise the Panel keeps eating all pointer events on top of Pause/HUD.
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
     }
 
     private void ShowVisual()
     {
         if (screenLoad != null) screenLoad.style.display = DisplayStyle.Flex;
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
         SetProgress(0f);
     }
 

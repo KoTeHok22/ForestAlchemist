@@ -42,6 +42,12 @@ public sealed class PlayerCombatController : MonoBehaviour
             return;
         }
 
+        // Skip attack when game is paused (Pause/Settings overlay sets timeScale = 0).
+        if (Time.timeScale <= 0f)
+        {
+            return;
+        }
+
         if (attackCooldownTimer > 0f)
         {
             return;

@@ -1,168 +1,268 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UIElements;
 
+/// <summary>
+/// App UI crafting board. Keeps the CraftingUI class name + Open()/Close() so
+/// existing interaction scripts (CraftingStationInteraction, ChestInteraction-as-crafting)
+/// can drive it without changes. Renders on a runtime-created UIDocument hosted on a
+/// dedicated child GameObject (so it doesn't share a Transform with the carrier
+/// sprite/collider and lose pointer events).
+/// </summary>
 public sealed class CraftingUI : MonoBehaviour
 {
-    [Header("Panels")]
-    [SerializeField] private GameObject craftingPanel;
-    [SerializeField] private GameObject recipesContainer;
-    [SerializeField] private GameObject spellsContainer;
+    private const string ViewPath = "Assets/UI/HomePanels/CraftingView.uxml";
+    private const string SettingsPath = "Assets/UI/HomePanels/CraftingPanelSettings.asset";
+    private const string ChildName = "CraftingOverlay_AppUI";
 
-    [Header("Recipe Template")]
-    [SerializeField] private GameObject recipeButtonTemplate;
-    [SerializeField] private GameObject spellButtonTemplate;
+    private UIDocument document;
+    private VisualElement root;
+    private VisualElement panelRoot;
+    private VisualElement dimBg;
+    private VisualElement tabRecipes;
+    private VisualElement tabSpells;
+    private ScrollView itemsList;
+    private Label craftLevel;
+    private Label craftXp;
+    private Label detailName;
+    private Label detailResult;
+    private Label detailIngredients;
+    private VisualElement btnCraft;
+    private Label btnCraftLabel;
+    private AppUIClickRouter clickRouter;
 
-    [Header("Details")]
-    [SerializeField] private TMP_Text recipeNameText;
-    [SerializeField] private TMP_Text recipeIngredientsText;
-    [SerializeField] private TMP_Text recipeResultText;
-    [SerializeField] private Button craftButton;
-    [SerializeField] private TMP_Text craftButtonText;
-    [SerializeField] private TMP_Text craftingLevelText;
-    [SerializeField] private TMP_Text craftingXpText;
-
-    [Header("Close")]
-    [SerializeField] private Button closeButton;
-
+    private bool built;
+    private bool isSpellMode;
     private RecipeDefinition selectedRecipe;
     private SpellDefinition selectedSpell;
-    private bool isSpellMode;
-    private bool runtimeUiBuilt;
-
-    private void Awake()
-    {
-        BuildRuntimeUiIfNeeded();
-        if (craftingPanel != null) craftingPanel.SetActive(false);
-        BindButtons();
-        if (recipeButtonTemplate != null) recipeButtonTemplate.SetActive(false);
-        if (spellButtonTemplate != null) spellButtonTemplate.SetActive(false);
-    }
+    private VisualElement selectedRow;
+    private System.Action onCloseRequested;
 
     private void OnDestroy()
     {
-        CraftingProgressionService.Instance.OnLevelChanged -= RefreshLevelDisplay;
-        CraftingProgressionService.Instance.OnXpChanged -= RefreshXpDisplay;
+        if (CraftingProgressionService.Instance != null)
+        {
+            CraftingProgressionService.Instance.OnLevelChanged -= RefreshLevelDisplay;
+            CraftingProgressionService.Instance.OnXpChanged -= RefreshXpDisplay;
+        }
     }
 
-    public void Open()
-    {
-        BuildRuntimeUiIfNeeded();
-        if (recipesContainer == null || spellsContainer == null || recipeButtonTemplate == null || spellButtonTemplate == null)
-        {
-            return;
-        }
+    public void Open() => Open(null);
 
-        if (craftingPanel != null) craftingPanel.SetActive(true);
+    public void Open(System.Action onClose)
+    {
+        EnsureBuilt();
+        if (root == null) return;
+
+        onCloseRequested = onClose;
+        if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
+
+        CraftingProgressionService.Instance.OnLevelChanged -= RefreshLevelDisplay;
+        CraftingProgressionService.Instance.OnXpChanged -= RefreshXpDisplay;
         CraftingProgressionService.Instance.OnLevelChanged += RefreshLevelDisplay;
         CraftingProgressionService.Instance.OnXpChanged += RefreshXpDisplay;
+
         RefreshLevelDisplay(CraftingProgressionService.Instance.GetCurrentLevel(), 0);
         RefreshXpDisplay(CraftingProgressionService.Instance.GetCurrentXp(), CraftingProgressionService.Instance.GetXpForNextLevel());
-        PopulateRecipes();
-        PopulateSpells();
+
+        SetTab(false);
     }
 
     public void Close()
     {
-        if (craftingPanel != null) craftingPanel.SetActive(false);
+        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+
+        if (CraftingProgressionService.Instance != null)
+        {
+            CraftingProgressionService.Instance.OnLevelChanged -= RefreshLevelDisplay;
+            CraftingProgressionService.Instance.OnXpChanged -= RefreshXpDisplay;
+        }
+
+        var cb = onCloseRequested;
+        onCloseRequested = null;
+        cb?.Invoke();
+    }
+
+    private void EnsureBuilt()
+    {
+        if (built && document != null) return;
+
+        Transform existing = transform.Find(ChildName);
+        GameObject host = existing != null ? existing.gameObject : new GameObject(ChildName);
+        if (existing == null) host.transform.SetParent(null, false);
+
+        document = host.GetComponent<UIDocument>();
+        if (document == null) document = host.AddComponent<UIDocument>();
+
+#if UNITY_EDITOR
+        if (document.visualTreeAsset == null)
+            document.visualTreeAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ViewPath);
+        if (document.panelSettings == null)
+            document.panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(SettingsPath);
+#endif
+
+        root = document.rootVisualElement;
+        if (root == null) return;
+
+        panelRoot = root.Q<VisualElement>("panel-root");
+        dimBg = root.Q<VisualElement>("dim-bg");
+        craftLevel = root.Q<Label>("craft-level");
+        craftXp = root.Q<Label>("craft-xp");
+        tabRecipes = root.Q<VisualElement>("tab-recipes");
+        tabSpells = root.Q<VisualElement>("tab-spells");
+        itemsList = root.Q<ScrollView>("items-list");
+        detailName = root.Q<Label>("detail-name");
+        detailResult = root.Q<Label>("detail-result");
+        detailIngredients = root.Q<Label>("detail-ingredients");
+        btnCraft = root.Q<VisualElement>("btn-craft");
+        btnCraftLabel = root.Q<Label>("btn-craft-label");
+
+        clickRouter = new AppUIClickRouter(root);
+        var closeX = root.Q<VisualElement>("btn-close-x");
+        if (closeX != null) clickRouter.Add(closeX, Close);
+        if (tabRecipes != null) clickRouter.Add(tabRecipes, () => SetTab(false));
+        if (tabSpells != null) clickRouter.Add(tabSpells, () => SetTab(true));
+        if (btnCraft != null) clickRouter.Add(btnCraft, OnCraftClicked);
+
+        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        built = true;
+    }
+
+    private void SetTab(bool spells)
+    {
+        isSpellMode = spells;
+        selectedRecipe = null;
+        selectedSpell = null;
+        selectedRow = null;
+
+        if (tabRecipes != null)
+        {
+            if (!spells) tabRecipes.AddToClassList("craft-tab--active");
+            else tabRecipes.RemoveFromClassList("craft-tab--active");
+        }
+        if (tabSpells != null)
+        {
+            if (spells) tabSpells.AddToClassList("craft-tab--active");
+            else tabSpells.RemoveFromClassList("craft-tab--active");
+        }
+
+        if (spells) PopulateSpells();
+        else PopulateRecipes();
+
+        ClearDetails();
     }
 
     private void PopulateRecipes()
     {
-        ClearContainer(recipesContainer);
+        if (itemsList == null) return;
+        itemsList.contentContainer.Clear();
+        clickRouter?.RemoveDead();
+
         List<RecipeDefinition> recipes = CraftingManager.Instance.GetAvailableRecipes();
-
-        for (int i = 0; i < recipes.Count; i++)
+        foreach (var recipe in recipes)
         {
-            RecipeDefinition recipe = recipes[i];
-            GameObject btn = Instantiate(recipeButtonTemplate, recipesContainer.transform);
-            btn.SetActive(true);
-            btn.name = $"Recipe_{recipe.recipeId}";
+            RecipeDefinition captured = recipe;
+            var row = new VisualElement();
+            row.AddToClassList("craft-row");
 
-            TMP_Text label = btn.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = ItemCatalog.GetDisplayName(recipe.resultItemName);
+            var label = new Label(ItemCatalog.GetDisplayName(recipe.resultItemName));
+            label.AddToClassList("craft-row__name");
+            row.Add(label);
 
-            Button button = btn.GetComponent<Button>();
-            if (button != null)
-            {
-                RecipeDefinition captured = recipe;
-                button.onClick.AddListener(() => SelectRecipe(captured));
-            }
+            clickRouter.Add(row, () => SelectRecipe(captured, row));
+            itemsList.contentContainer.Add(row);
         }
     }
 
     private void PopulateSpells()
     {
-        ClearContainer(spellsContainer);
+        if (itemsList == null) return;
+        itemsList.contentContainer.Clear();
+        clickRouter?.RemoveDead();
+
         List<SpellDefinition> spells = CraftingManager.Instance.GetAvailableSpellRecipes();
         var progress = GameCore.Instance.CurrentProgress;
 
-        for (int i = 0; i < spells.Count; i++)
+        foreach (var spell in spells)
         {
-            SpellDefinition spell = spells[i];
             bool alreadyCrafted = progress != null && progress.crafting.craftedSpells.Contains(spell.spellId);
+            SpellDefinition captured = spell;
 
-            GameObject btn = Instantiate(spellButtonTemplate, spellsContainer.transform);
-            btn.SetActive(true);
-            btn.name = $"Spell_{spell.spellId}";
+            var row = new VisualElement();
+            row.AddToClassList("craft-row");
+            if (alreadyCrafted) row.AddToClassList("craft-row--locked");
 
-            TMP_Text label = btn.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = $"{spell.displayName} [{spell.element.ToRussianName()}]{(alreadyCrafted ? " *" : "")}";
+            var label = new Label($"{spell.displayName} [{spell.element.ToRussianName()}]{(alreadyCrafted ? " ★" : "")}");
+            label.AddToClassList("craft-row__name");
+            row.Add(label);
 
-            Button button = btn.GetComponent<Button>();
-            if (button != null)
-            {
-                SpellDefinition captured = spell;
-                button.onClick.AddListener(() => SelectSpell(captured));
-            }
+            clickRouter.Add(row, () => SelectSpell(captured, row));
+            itemsList.contentContainer.Add(row);
         }
     }
 
-    private void SelectRecipe(RecipeDefinition recipe)
+    private void SelectRecipe(RecipeDefinition recipe, VisualElement row)
     {
         selectedRecipe = recipe;
         selectedSpell = null;
-        isSpellMode = false;
+        UpdateSelectedRow(row);
         UpdateDetailsPanel();
     }
 
-    private void SelectSpell(SpellDefinition spell)
+    private void SelectSpell(SpellDefinition spell, VisualElement row)
     {
         selectedSpell = spell;
         selectedRecipe = null;
-        isSpellMode = true;
+        UpdateSelectedRow(row);
         UpdateDetailsPanel();
+    }
+
+    private void UpdateSelectedRow(VisualElement row)
+    {
+        if (selectedRow != null) selectedRow.RemoveFromClassList("craft-row--selected");
+        selectedRow = row;
+        if (selectedRow != null) selectedRow.AddToClassList("craft-row--selected");
+    }
+
+    private void ClearDetails()
+    {
+        if (detailName != null) detailName.text = isSpellMode ? "Выбери заклинание" : "Выбери рецепт";
+        if (detailResult != null) detailResult.text = string.Empty;
+        if (detailIngredients != null) detailIngredients.text = string.Empty;
+        if (btnCraftLabel != null) btnCraftLabel.text = "Создать";
+        if (btnCraft != null) btnCraft.SetEnabled(false);
     }
 
     private void UpdateDetailsPanel()
     {
         if (isSpellMode && selectedSpell != null)
         {
-            if (recipeNameText != null) recipeNameText.text = $"{selectedSpell.displayName} [{selectedSpell.element.ToRussianName()}]";
-            if (recipeIngredientsText != null)
-            {
-                recipeIngredientsText.text = FormatIngredients(selectedSpell.recipeIngredients);
-            }
-            if (recipeResultText != null) recipeResultText.text = $"Заклинание: {selectedSpell.description}";
-            if (craftButton != null)
-            {
-                var progress = GameCore.Instance.CurrentProgress;
-                bool alreadyCrafted = progress != null && progress.crafting.craftedSpells.Contains(selectedSpell.spellId);
-                craftButton.interactable = !alreadyCrafted && CraftingManager.Instance.CanCraftSpell(selectedSpell);
-                if (craftButtonText != null) craftButtonText.text = alreadyCrafted ? "Изучено" : "Создать";
-            }
+            if (detailName != null) detailName.text = $"{selectedSpell.displayName} [{selectedSpell.element.ToRussianName()}]";
+            if (detailResult != null) detailResult.text = selectedSpell.description ?? string.Empty;
+            if (detailIngredients != null) detailIngredients.text = FormatIngredients(selectedSpell.recipeIngredients);
+
+            var progress = GameCore.Instance.CurrentProgress;
+            bool alreadyCrafted = progress != null && progress.crafting.craftedSpells.Contains(selectedSpell.spellId);
+            bool canCraft = !alreadyCrafted && CraftingManager.Instance.CanCraftSpell(selectedSpell);
+
+            if (btnCraftLabel != null) btnCraftLabel.text = alreadyCrafted ? "Изучено" : "Создать";
+            if (btnCraft != null) btnCraft.SetEnabled(canCraft);
         }
         else if (!isSpellMode && selectedRecipe != null)
         {
-            if (recipeNameText != null) recipeNameText.text = ItemCatalog.GetDisplayName(selectedRecipe.resultItemName);
-            if (recipeIngredientsText != null) recipeIngredientsText.text = FormatIngredients(selectedRecipe.ingredients);
-            if (recipeResultText != null) recipeResultText.text = $"Результат: {selectedRecipe.resultCount}x {ItemCatalog.GetDisplayName(selectedRecipe.resultItemName)}";
-            if (craftButton != null)
-            {
-                craftButton.interactable = CraftingManager.Instance.CanCraft(selectedRecipe);
-                if (craftButtonText != null) craftButtonText.text = "Создать";
-            }
+            if (detailName != null) detailName.text = ItemCatalog.GetDisplayName(selectedRecipe.resultItemName);
+            if (detailResult != null) detailResult.text = $"Результат: {selectedRecipe.resultCount}× {ItemCatalog.GetDisplayName(selectedRecipe.resultItemName)}";
+            if (detailIngredients != null) detailIngredients.text = FormatIngredients(selectedRecipe.ingredients);
+
+            if (btnCraftLabel != null) btnCraftLabel.text = "Создать";
+            if (btnCraft != null) btnCraft.SetEnabled(CraftingManager.Instance.CanCraft(selectedRecipe));
+        }
+        else
+        {
+            ClearDetails();
         }
     }
 
@@ -185,12 +285,12 @@ public sealed class CraftingUI : MonoBehaviour
         }
     }
 
-    private string FormatIngredients(List<InventorySlot> ingredients)
+    private static string FormatIngredients(List<InventorySlot> ingredients)
     {
         if (ingredients == null || ingredients.Count == 0) return "Нет ингредиентов";
 
         var storage = InventoryService.Instance.HomeStorage;
-        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        var sb = new System.Text.StringBuilder();
 
         for (int i = 0; i < ingredients.Count; i++)
         {
@@ -202,193 +302,13 @@ public sealed class CraftingUI : MonoBehaviour
         return sb.ToString();
     }
 
-    private void RefreshLevelDisplay(int level, int xp)
+    private void RefreshLevelDisplay(int level, int _)
     {
-        if (craftingLevelText != null) craftingLevelText.text = $"Уровень крафта: {level}";
+        if (craftLevel != null) craftLevel.text = $"Уровень крафта: {level}";
     }
 
     private void RefreshXpDisplay(int currentXp, int nextXp)
     {
-        if (craftingXpText != null) craftingXpText.text = $"Опыт: {currentXp}/{nextXp}";
-    }
-
-    private void ClearContainer(GameObject container)
-    {
-        if (container == null) return;
-
-        for (int i = container.transform.childCount - 1; i >= 0; i--)
-        {
-            Transform child = container.transform.GetChild(i);
-            if (child.gameObject == recipeButtonTemplate || child.gameObject == spellButtonTemplate) continue;
-            Destroy(child.gameObject);
-        }
-    }
-
-    private void BuildRuntimeUiIfNeeded()
-    {
-        if (runtimeUiBuilt || craftingPanel != null)
-        {
-            BindButtons();
-            runtimeUiBuilt = true;
-            return;
-        }
-
-        Canvas canvas = FindFirstObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            GameObject canvasObject = new GameObject("CraftingCanvas");
-            canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObject.AddComponent<CanvasScaler>().uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvasObject.AddComponent<GraphicRaycaster>();
-        }
-
-        craftingPanel = new GameObject("CraftingPanel", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup));
-        craftingPanel.transform.SetParent(canvas.transform, false);
-
-        RectTransform panelRect = craftingPanel.GetComponent<RectTransform>();
-        panelRect.anchorMin = new Vector2(0.5f, 0.5f);
-        panelRect.anchorMax = new Vector2(0.5f, 0.5f);
-        panelRect.pivot = new Vector2(0.5f, 0.5f);
-        panelRect.sizeDelta = new Vector2(960f, 620f);
-
-        craftingPanel.GetComponent<Image>().color = new Color(0.08f, 0.1f, 0.08f, 0.97f);
-
-        VerticalLayoutGroup rootLayout = craftingPanel.GetComponent<VerticalLayoutGroup>();
-        rootLayout.padding = new RectOffset(18, 18, 18, 18);
-        rootLayout.spacing = 10f;
-        rootLayout.childControlHeight = false;
-        rootLayout.childControlWidth = true;
-        rootLayout.childForceExpandHeight = false;
-
-        TMP_Text title = CreateText(craftingPanel.transform, "Крафт и алхимия", 30, FontStyles.Bold);
-        title.alignment = TextAlignmentOptions.Center;
-
-        craftingLevelText = CreateText(craftingPanel.transform, string.Empty, 18, FontStyles.Bold);
-        craftingXpText = CreateText(craftingPanel.transform, string.Empty, 18, FontStyles.Normal);
-
-        GameObject body = new GameObject("Body", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-        body.transform.SetParent(craftingPanel.transform, false);
-        HorizontalLayoutGroup bodyLayout = body.GetComponent<HorizontalLayoutGroup>();
-        bodyLayout.spacing = 10f;
-        bodyLayout.childControlWidth = true;
-        bodyLayout.childControlHeight = true;
-        bodyLayout.childForceExpandWidth = true;
-        bodyLayout.childForceExpandHeight = true;
-        body.AddComponent<LayoutElement>().preferredHeight = 430f;
-
-        recipesContainer = CreateListSection(body.transform, "Рецепты", 260f);
-        spellsContainer = CreateListSection(body.transform, "Спеллы", 260f);
-        Transform detailsSection = CreateListSection(body.transform, "Детали", 360f).transform;
-
-        recipeNameText = CreateText(detailsSection, "Выбери рецепт", 24, FontStyles.Bold);
-        recipeIngredientsText = CreateText(detailsSection, string.Empty, 18, FontStyles.Normal);
-        recipeIngredientsText.enableWordWrapping = true;
-        recipeResultText = CreateText(detailsSection, string.Empty, 18, FontStyles.Normal);
-        recipeResultText.enableWordWrapping = true;
-
-        craftButton = CreateButton(detailsSection, "Создать", OnCraftClicked);
-        craftButtonText = craftButton.GetComponentInChildren<TMP_Text>();
-
-        recipeButtonTemplate = CreateListButton(recipesContainer.transform, "RecipeTemplate");
-        recipeButtonTemplate.SetActive(false);
-        spellButtonTemplate = CreateListButton(spellsContainer.transform, "SpellTemplate");
-        spellButtonTemplate.SetActive(false);
-
-        closeButton = CreateButton(craftingPanel.transform, "Закрыть", Close);
-        closeButton.GetComponent<LayoutElement>().preferredWidth = 180f;
-        BindButtons();
-
-        craftingPanel.SetActive(false);
-        runtimeUiBuilt = true;
-    }
-
-    private void BindButtons()
-    {
-        if (closeButton != null)
-        {
-            closeButton.onClick.RemoveListener(Close);
-            closeButton.onClick.AddListener(Close);
-        }
-
-        if (craftButton != null)
-        {
-            craftButton.onClick.RemoveListener(OnCraftClicked);
-            craftButton.onClick.AddListener(OnCraftClicked);
-        }
-    }
-
-    private static GameObject CreateListSection(Transform parent, string title, float width)
-    {
-        GameObject section = new GameObject(title, typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(LayoutElement));
-        section.transform.SetParent(parent, false);
-        section.GetComponent<Image>().color = new Color(0.14f, 0.17f, 0.14f, 0.96f);
-        section.GetComponent<LayoutElement>().preferredWidth = width;
-
-        VerticalLayoutGroup layout = section.GetComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(12, 12, 12, 12);
-        layout.spacing = 8f;
-        layout.childControlWidth = true;
-        layout.childControlHeight = false;
-        layout.childForceExpandHeight = false;
-
-        TMP_Text titleText = CreateText(section.transform, title, 22, FontStyles.Bold);
-        titleText.alignment = TextAlignmentOptions.Center;
-
-        GameObject content = new GameObject("Content", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(LayoutElement));
-        content.transform.SetParent(section.transform, false);
-        content.GetComponent<LayoutElement>().preferredHeight = 360f;
-
-        VerticalLayoutGroup contentLayout = content.GetComponent<VerticalLayoutGroup>();
-        contentLayout.spacing = 6f;
-        contentLayout.childControlWidth = true;
-        contentLayout.childControlHeight = false;
-        contentLayout.childForceExpandHeight = false;
-        return content;
-    }
-
-    private static GameObject CreateListButton(Transform parent, string name)
-    {
-        GameObject buttonObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-        buttonObject.transform.SetParent(parent, false);
-        buttonObject.GetComponent<Image>().color = new Color(0.24f, 0.28f, 0.22f, 1f);
-        buttonObject.GetComponent<LayoutElement>().preferredHeight = 44f;
-
-        TMP_Text label = CreateText(buttonObject.transform, string.Empty, 18f, FontStyles.Normal);
-        label.alignment = TextAlignmentOptions.Center;
-        RectTransform rect = label.rectTransform;
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = new Vector2(8f, 0f);
-        rect.offsetMax = new Vector2(-8f, 0f);
-        return buttonObject;
-    }
-
-    private static Button CreateButton(Transform parent, string label, UnityEngine.Events.UnityAction callback)
-    {
-        GameObject buttonObject = CreateListButton(parent, $"Button_{label}");
-        Button button = buttonObject.GetComponent<Button>();
-        button.onClick.AddListener(callback);
-        TMP_Text text = buttonObject.GetComponentInChildren<TMP_Text>();
-        if (text != null)
-        {
-            text.text = label;
-            text.fontStyle = FontStyles.Bold;
-        }
-
-        return button;
-    }
-
-    private static TMP_Text CreateText(Transform parent, string content, float fontSize, FontStyles style)
-    {
-        GameObject textObject = new GameObject("Text", typeof(RectTransform));
-        textObject.transform.SetParent(parent, false);
-        TextMeshProUGUI text = textObject.AddComponent<TextMeshProUGUI>();
-        text.text = content;
-        text.fontSize = fontSize;
-        text.fontStyle = style;
-        text.color = Color.white;
-        text.enableWordWrapping = false;
-        return text;
+        if (craftXp != null) craftXp.text = $"Опыт: {currentXp}/{nextXp}";
     }
 }

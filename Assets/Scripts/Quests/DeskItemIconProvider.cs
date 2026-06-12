@@ -1,20 +1,25 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public sealed class DeskItemIconProvider : MonoBehaviour, IQuestItemIconProvider
 {
-    [SerializeField] private Transform itemsContainer;
+    [SerializeField] private Sprite sakuraIcon;
+    [SerializeField] private Sprite oakIcon;
+    [SerializeField] private Sprite appleIcon;
+    [SerializeField] private Sprite orcDropIcon;
+    [SerializeField] private Sprite orcBloodIcon;
 
     public Sprite GetIcon(string itemName)
     {
-        if (itemsContainer == null)
-            return null;
+        itemName = ItemCatalog.Normalize(itemName);
 
-        Transform item = itemsContainer.Find(itemName);
-        if (item == null)
-            return null;
-
-        Image image = item.GetComponent<Image>();
-        return image != null ? image.sprite : null;
+        return itemName switch
+        {
+            ItemCatalog.SakuraSapling => sakuraIcon,
+            ItemCatalog.OakSapling => oakIcon,
+            ItemCatalog.AppleSapling => appleIcon,
+            ItemCatalog.GreenOrcDrop => orcDropIcon,
+            ItemCatalog.OrcBlood => orcBloodIcon,
+            _ => null
+        };
     }
 }

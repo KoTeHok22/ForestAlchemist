@@ -19,7 +19,9 @@ public sealed class HudAppUIController : MonoBehaviour
     private VisualElement manaFill;
     private VisualElement shieldFill;
     private VisualElement hotbarContainer;
+    private VisualElement questsContainer;
 
+    private readonly VisualElement[] slotRoots = new VisualElement[HotbarManager.SlotCount];
     private readonly VisualElement[] slotIcons = new VisualElement[HotbarManager.SlotCount];
     private readonly VisualElement[] slotCooldowns = new VisualElement[HotbarManager.SlotCount];
 
@@ -27,6 +29,9 @@ public sealed class HudAppUIController : MonoBehaviour
     private PlayerSpellCaster spellCaster;
     private PlayerBuffReceiver buffReceiver;
     private PlayerTopDownController playerController;
+
+    private PlayerQuestService subscribedQuestService;
+    private bool questManagerSubscribed;
 
     private void OnEnable()
     {
@@ -44,6 +49,7 @@ public sealed class HudAppUIController : MonoBehaviour
     {
         UnsubscribeHotbar();
         UnsubscribeStats();
+        UnsubscribeQuests();
     }
 
     private void Start()
@@ -51,6 +57,8 @@ public sealed class HudAppUIController : MonoBehaviour
         ResolvePlayerRefs();
         SubscribeStats();
         RefreshExpeditionBadge();
+        SubscribeQuestManager();
+        EnsureQuestService();
     }
 
     private void Update()
@@ -61,6 +69,12 @@ public sealed class HudAppUIController : MonoBehaviour
             ResolvePlayerRefs();
             SubscribeStats();
         }
+
+        // Inventory containers may also appear later (expedition pack on entering Level).
+        SubscribeInventoryEvents();
+
+        // Quest service is created by LevelManager / QuestBoardGenerator after the HUD.
+        EnsureQuestService();
 
         if (playerController != null) SetFill(staminaFill, playerController.StaminaNormalized);
         UpdateCooldowns();
@@ -76,6 +90,7 @@ public sealed class HudAppUIController : MonoBehaviour
         manaFill = root.Q<VisualElement>("bar-mana-fill");
         shieldFill = root.Q<VisualElement>("bar-shield-fill");
         hotbarContainer = root.Q<VisualElement>("hud-hotbar");
+        questsContainer = root.Q<VisualElement>("hud-quests");
     }
 
     // ---------- Hotbar ----------
@@ -95,6 +110,7 @@ public sealed class HudAppUIController : MonoBehaviour
             var slot = new VisualElement();
             slot.AddToClassList("hotbar-slot");
             slot.pickingMode = PickingMode.Ignore;
+            slotRoots[i] = slot;
 
             var icon = new VisualElement();
             icon.AddToClassList("hotbar-slot__icon");
@@ -128,8 +144,40 @@ public sealed class HudAppUIController : MonoBehaviour
         if (slotIcons[index] == null) return;
 
         string itemId = HotbarManager.Instance.GetSlotItem(index);
-        Sprite icon = GetItemIcon(itemId);
+        bool owned = PlayerOwnsSlotItem(itemId);
+        Sprite icon = owned ? GetItemIcon(itemId) : null;
+
+        // Hide the whole slot when the player hasn't crafted/picked up this item.
+        if (slotRoots[index] != null)
+            slotRoots[index].style.display = (owned && icon != null) ? DisplayStyle.Flex : DisplayStyle.None;
+
         slotIcons[index].style.backgroundImage = icon != null ? new StyleBackground(icon) : new StyleBackground();
+    }
+
+    private bool PlayerOwnsSlotItem(string itemId)
+    {
+        if (string.IsNullOrEmpty(itemId)) return false;
+
+        // Spells: only show if the player has crafted them.
+        if (itemId.StartsWith("spell_"))
+        {
+            var progress = GameCore.Instance != null ? GameCore.Instance.CurrentProgress : null;
+            return progress != null
+                && progress.crafting != null
+                && progress.crafting.craftedSpells != null
+                && progress.crafting.craftedSpells.Contains(itemId);
+        }
+
+        // Consumables: show only if the player actually has at least one in inventory.
+        // In expedition we read the expedition pack; at Home, the home storage.
+        if (ExpeditionManager.Instance != null && ExpeditionManager.Instance.IsInExpedition)
+        {
+            var pack = ExpeditionManager.Instance.ExpeditionInventory;
+            return pack != null && pack.GetItemCount(itemId) > 0;
+        }
+
+        var storage = InventoryService.Instance != null ? InventoryService.Instance.HomeStorage : null;
+        return storage != null && storage.GetItemCount(itemId) > 0;
     }
 
     private Sprite GetItemIcon(string itemId)
@@ -163,17 +211,72 @@ public sealed class HudAppUIController : MonoBehaviour
 
     private void SubscribeHotbar()
     {
-        if (HotbarManager.Instance == null) return;
-        HotbarManager.Instance.OnSlotUsed += OnSlotUsed;
+        if (HotbarManager.Instance != null)
+            HotbarManager.Instance.OnSlotUsed += OnSlotUsed;
+
+        if (CraftingManager.Instance != null)
+        {
+            CraftingManager.Instance.OnSpellCrafted += OnAnySpellCrafted;
+            CraftingManager.Instance.OnRecipeCrafted += OnAnyRecipeCrafted;
+        }
+
+        SubscribeInventoryEvents();
     }
 
     private void UnsubscribeHotbar()
     {
-        if (HotbarManager.Instance == null) return;
-        HotbarManager.Instance.OnSlotUsed -= OnSlotUsed;
+        if (HotbarManager.Instance != null)
+            HotbarManager.Instance.OnSlotUsed -= OnSlotUsed;
+
+        if (CraftingManager.Instance != null)
+        {
+            CraftingManager.Instance.OnSpellCrafted -= OnAnySpellCrafted;
+            CraftingManager.Instance.OnRecipeCrafted -= OnAnyRecipeCrafted;
+        }
+
+        UnsubscribeInventoryEvents();
     }
 
-    private void OnSlotUsed(int index) => RefreshSlot(index);
+    private PlayerInventory subscribedHomeStorage;
+    private PlayerInventory subscribedExpeditionInventory;
+
+    private void SubscribeInventoryEvents()
+    {
+        var storage = InventoryService.Instance != null ? InventoryService.Instance.HomeStorage : null;
+        if (storage != null && storage != subscribedHomeStorage)
+        {
+            if (subscribedHomeStorage != null) subscribedHomeStorage.OnInventoryChanged -= OnInventoryChanged;
+            storage.OnInventoryChanged += OnInventoryChanged;
+            subscribedHomeStorage = storage;
+        }
+
+        var pack = ExpeditionManager.Instance != null ? ExpeditionManager.Instance.ExpeditionInventory : null;
+        if (pack != null && pack != subscribedExpeditionInventory)
+        {
+            if (subscribedExpeditionInventory != null) subscribedExpeditionInventory.OnInventoryChanged -= OnInventoryChanged;
+            pack.OnInventoryChanged += OnInventoryChanged;
+            subscribedExpeditionInventory = pack;
+        }
+    }
+
+    private void UnsubscribeInventoryEvents()
+    {
+        if (subscribedHomeStorage != null) subscribedHomeStorage.OnInventoryChanged -= OnInventoryChanged;
+        if (subscribedExpeditionInventory != null) subscribedExpeditionInventory.OnInventoryChanged -= OnInventoryChanged;
+        subscribedHomeStorage = null;
+        subscribedExpeditionInventory = null;
+    }
+
+    // Inventory drives both the hotbar (item ownership) and CollectItem quest progress.
+    private void OnInventoryChanged()
+    {
+        RefreshHotbarAll();
+        RefreshQuests();
+    }
+
+    private void OnSlotUsed(int index) { RefreshSlot(index); }
+    private void OnAnySpellCrafted(SpellDefinition _) => RefreshHotbarAll();
+    private void OnAnyRecipeCrafted(RecipeDefinition _) => RefreshHotbarAll();
 
     // ---------- Stats (HP / mana / shield) ----------
 
@@ -251,5 +354,129 @@ public sealed class HudAppUIController : MonoBehaviour
         var progress = GameCore.Instance != null ? GameCore.Instance.CurrentProgress : null;
         int attempts = progress != null ? progress.stats.successfulExpeditions + progress.stats.totalDeaths : 0;
         portraitBadge.text = attempts.ToString();
+    }
+
+    // ---------- Active quest tracker (top-right) ----------
+
+    // The quest service is owned by the active scene: LevelManager during an
+    // expedition, QuestBoardGenerator at Home. Both write the same save, so the
+    // accepted-quest list stays consistent across scenes.
+    private PlayerQuestService ResolveQuestService()
+    {
+        LevelManager level = FindFirstObjectByType<LevelManager>();
+        if (level != null)
+        {
+            PlayerQuestService levelService = level.GetQuestService();
+            if (levelService != null) return levelService;
+        }
+
+        QuestBoardGenerator board = FindFirstObjectByType<QuestBoardGenerator>();
+        return board != null ? board.Service : null;
+    }
+
+    private void SubscribeQuestManager()
+    {
+        if (questManagerSubscribed) return;
+        QuestManager qm = QuestManager.Instance;
+        if (qm == null) return;
+
+        qm.OnQuestProgressUpdated += OnQuestProgressUpdated;
+        qm.OnQuestCompleted += OnQuestCompleted;
+        questManagerSubscribed = true;
+    }
+
+    private void EnsureQuestService()
+    {
+        PlayerQuestService current = ResolveQuestService();
+        if (current == subscribedQuestService)
+        {
+            return;
+        }
+
+        if (subscribedQuestService != null)
+            subscribedQuestService.OnQuestsChanged -= RefreshQuests;
+
+        subscribedQuestService = current;
+        if (subscribedQuestService != null)
+            subscribedQuestService.OnQuestsChanged += RefreshQuests;
+
+        RefreshQuests();
+    }
+
+    private void UnsubscribeQuests()
+    {
+        if (subscribedQuestService != null)
+            subscribedQuestService.OnQuestsChanged -= RefreshQuests;
+        subscribedQuestService = null;
+
+        if (questManagerSubscribed && QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestProgressUpdated -= OnQuestProgressUpdated;
+            QuestManager.Instance.OnQuestCompleted -= OnQuestCompleted;
+        }
+        questManagerSubscribed = false;
+    }
+
+    private void OnQuestProgressUpdated(string questId, int value) => RefreshQuests();
+    private void OnQuestCompleted(string questId) => RefreshQuests();
+
+    private void RefreshQuests()
+    {
+        if (questsContainer == null) return;
+        questsContainer.Clear();
+
+        PlayerQuestService service = subscribedQuestService ?? ResolveQuestService();
+        if (service == null) return;
+
+        List<QuestData> active = service.GetActiveQuests();
+        if (active == null || active.Count == 0) return;
+
+        foreach (QuestData quest in active)
+        {
+            if (quest == null) continue;
+
+            var row = new VisualElement();
+            row.AddToClassList("quest-row");
+            row.pickingMode = PickingMode.Ignore;
+
+            var title = new Label(string.IsNullOrEmpty(quest.description) ? "Задание" : quest.description);
+            title.AddToClassList("quest-row__title");
+            title.pickingMode = PickingMode.Ignore;
+            row.Add(title);
+
+            var progress = new Label(GetQuestProgressText(quest));
+            progress.AddToClassList("quest-row__progress");
+            progress.pickingMode = PickingMode.Ignore;
+            row.Add(progress);
+
+            questsContainer.Add(row);
+        }
+    }
+
+    private string GetQuestProgressText(QuestData quest)
+    {
+        int required = Mathf.Max(1, quest.requiredCount);
+        int current;
+
+        // CollectItem progress is the count carried in the expedition pack, but only
+        // while an expedition is underway. At Home (no pack yet) it reads back the
+        // tracked progress, which is 0 before the run — otherwise the home stockpile
+        // would falsely satisfy "collect X" objectives the moment the chest holds them.
+        bool inExpedition = ExpeditionManager.Instance != null && ExpeditionManager.Instance.IsInExpedition;
+        if (quest.type == QuestType.CollectItem && inExpedition)
+        {
+            PlayerInventory pack = ExpeditionManager.Instance.ExpeditionInventory;
+            string targetId = quest.GetResolvedTargetId();
+            current = pack != null && !string.IsNullOrEmpty(targetId)
+                ? pack.GetItemCount(targetId)
+                : QuestManager.Instance.GetProgress(quest.id);
+        }
+        else
+        {
+            current = QuestManager.Instance.GetProgress(quest.id);
+        }
+
+        current = Mathf.Clamp(current, 0, required);
+        return current >= required ? $"Готово ✓   {current}/{required}" : $"{current} / {required}";
     }
 }

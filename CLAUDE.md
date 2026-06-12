@@ -224,11 +224,33 @@ ItemCatalog.OrcBlood, ItemCatalog.SakuraSapling, ItemCatalog.HealthPotion и т.
 
 Реальные текстуры/иконки можно генерировать и редактировать через OpenAI-совместимый endpoint Codex Sale.
 
-- **Generation:** `POST https://codex.sale/v1/images/generations`
-- **Edit:** `POST https://codex.sale/v1/images/edits` (multipart, поле `image`)
-- **Заголовок:** `Authorization: Bearer <API_KEY>`
+### ⚠️ ГЛАВНОЕ ПРАВИЛО: реальные PNG, а НЕ CSS-примитивы
+Для рамок, портретов, слотов, кнопок, иконок и любого «деревянного/лесного» вида — **генерировать реальные PNG-ассеты** через gpt-image-2 и использовать их как `background-image` (+ 9-slice при необходимости). **НЕ рисовать** рамки/кнопки/диски через `background-color` + `border-radius` + `border-width` — это выглядит плоско и «генерённо», не в стиле игры. Если подходящего спрайта нет в `Resources/` — сгенерировать его, а не подделывать примитивом.
+
+### Endpoints / ключ
+- **Generation:** `POST https://codex.sale/v1/images/generations` (JSON body, `Content-Type: application/json`)
+- **Edit:** `POST https://codex.sale/v1/images/edits` (multipart/form-data, поле `image="@file.png"`)
+- **Responses (альт.):** `POST https://codex.sale/v1/responses` (`tools:[{type:"image_generation"}]`, `tool_choice:"required"`)
+- **Заголовок:** `Authorization: Bearer sk-inv-vge8miU-jgH5pdlCn99hGgLXC4k_sE0N`
 - **Параметры:** `model: "gpt-image-2"` (обяз.), `prompt`, `size` (`1024x1024`|`1536x1024`|`1024x1536`), `response_format` (`b64_json`|`url`).
+
+Пример generation (curl):
+```
+curl https://codex.sale/v1/images/generations \
+  -H "Authorization: Bearer sk-inv-vge8miU-jgH5pdlCn99hGgLXC4k_sE0N" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-image-2","prompt":"...","size":"1024x1024","response_format":"b64_json"}'
+```
+Пример edit (curl, multipart):
+```
+curl https://codex.sale/v1/images/edits \
+  -H "Authorization: Bearer sk-inv-vge8miU-jgH5pdlCn99hGgLXC4k_sE0N" \
+  -F model="gpt-image-2" -F image="@input.png" \
+  -F prompt="Replace the background with a clean white studio scene" -F size="1024x1024"
+```
+
 - Ответ b64 — это **C2PA-помеченный PNG**; b64-строку парсить аккуратно (искать `"b64_json":"` и резать до следующей `"`).
+- **Просить белый фон**: в промпте требовать "fully centered on a completely flat solid pure white background (#FFFFFF), plenty of white margin, isolated on white". Затем удалять белый фон (flood-fill прозрачности от 4 краёв по порогу белизны — Python или C#) и **обрезать прозрачные поля** (auto-trim), чтобы рисунок плотно занимал холст (см. раздел «Удаление белого фона»).
 
 ### Как генерировать надёжно в этом окружении
 - `curl` через Bash работает (самый быстрый путь), но в текущей сессии инструмент Bash периодически "срезает" параметр — тогда генерировать **прямо из Unity** через `unity_execute_code`:
@@ -282,15 +304,36 @@ gpt-image-2 НЕ делает прозрачный фон даже по запр
 
 ## Текущее состояние миграции UI на App UI (актуально)
 
-См. **`PROMPT.md`** — полная постановка задачи и инструкция для продолжения.
+См. **`PROMPT.md`** — постановка задачи. Полный статус — в памяти проекта (`project_forestalchemist_ui_migration`).
 
-**Готово:** главное меню (`MainMenu_AppUI`), модалки меню переписаны под новые ассеты.
-**Актуальные ассеты** в `Assets/Resources/Menu/Generated/` (все 1024², Uncompressed, фон удалён):
-`modal2` (рамка диалога), `ribbon2` (лента-плашка), `close_btn`, `settings_gear`, `account_icon`, `doska_clean`.
-Старые `modal_frame`/`title_ribbon`/`wood_button` УДАЛЕНЫ (заменены на modal2/ribbon2).
+### Архитектура внутриигровых оверлеев
+- `Assets/UI/Common/` — универсальные: `CommonStyles.uss`, `PauseView.uxml`+`PauseAppUIController.cs`,
+  `SettingsView.uxml`+`SettingsPanelController.cs` (общий класс настроек, НЕ MonoBehaviour — общий для меню и паузы),
+  `LoadView.uxml`+`LoadingOverlayController.cs`, `HudView.uxml`+`HudStyles.uss`+`HudAppUIController.cs`,
+  `GameOverlayBootstrap.cs`, `AppUIClickRouter.cs`.
+- Префаб `Assets/Resources/UI/GameOverlayUI.prefab` = root с дочерними UIDocument'ами (Pause/Load/Hud/ExpeditionResult).
+- `GameOverlayBootstrap` висит на `Canvas` сцен Home+Level, на Awake инстанцирует префаб и отключает legacy:
+  `PauseMenuController.enabled=false`, `Canvas/Pause`, `Canvas/Load`, `Canvas/Main/{PlayerInfo,Abilities,Tasks}`,
+  `Canvas/ExpeditionResultPanel`, `Canvas/ShopUI/ShopPanel`.
+- Home-панели на стиле "доска объявлений" (`HomePanelsStyles.uss`, `Resources/Menu/DoskaUI`): ExpeditionResult, Shop (готовы).
+- **Переписанные uGUI-контроллеры сохраняют имя класса и `Open()/Close()`** → интеракции (`ShopInteraction` и т.п.) не трогаем.
 
-**В работе / осталось:** довести модалки меню визуально → подключить ExpeditionResult вместо Canvas →
-перенести Home-панели (Shop, Storage, Crafting, ExpeditionPreparation, Pause) → HUD Level.
+### Готово
+Меню (модалки), Pause+Settings, Load (вёрстка), HUD (портрет/сердца/бары/хотбар), ExpeditionResult, Shop, ExpeditionPreparation (экран сборов — фон-рюкзак `Menu/Generated/backpack.png`, открывается из `ExpeditionStarter`). Все проверены вживую.
+
+### Осталось
+Crafting, HomeStorage, Desk (Home); Weather/Inventory/Gathering/ActiveQuest (Level); подключить Load к переходам; затем отключить весь Canvas.
+
+### ⚠️ КРИТИЧНЫЕ ПРАВИЛА App UI-оверлеев (подтверждено в этой сессии)
+1. **Прозрачный фон Panel = обязательно.** В USS каждого оверлея `.panel-root { background-color: rgba(0,0,0,0); }`.
+   Иначе `<appui:Panel>` рисует тёмный фон темы на весь экран и при sortingOrder выше HUD = ЧЁРНЫЙ ЭКРАН в Play.
+2. **Реальные PNG, а НЕ CSS-примитивы** (см. раздел про генерацию). Рамки/портреты/слоты — генерить/вырезать спрайты.
+3. **Вырезание суб-спрайтов из атласов** (сердца/слоты): `Graphics.Blit(sprite.texture, RT)` + `Texture2D.ReadPixels(sprite.textureRect)`,
+   потом импорт Sprite/Single/Point/Uncompressed. НЕ ручные координаты `GetPixels32` (флип Y + масштаб атласа = мусор).
+   Готовые: `Generated/heart.png`, `slot.png`, `portrait.png` (медальон), `statpanel.png` (9-slice border 150/120).
+4. **Клики:** обработчики кнопок — через `AppUIClickRouter` (`new AppUIClickRouter(root); r.Add(btn, cb)`),
+   а не `RegisterCallback<ClickEvent>`. Размер: `.panel-root` absolute fill + `.dim-bg` width/height 100%, иначе worldBound кнопок = 0.
+5. **Скриншоты смотреть на ПОЛНОМ экране** (не мелкие) — HUD и панели оценивать как игрок их видит.
 
 **Чеклист против зависаний (перед каждым Refresh):**
 1. Не в Play Mode. 2. PNG = 1024², Uncompressed, без mip. 3. spriteBorder == USS slice.

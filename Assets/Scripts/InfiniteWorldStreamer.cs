@@ -31,6 +31,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
     [SerializeField] private int baseSeed = 24680;
     [SerializeField] private float baseSpawnChance = 0.15f;
     [SerializeField] private float minBaseDistance = 200f;
+    [SerializeField] private float playerSpawnExclusionRadius = 100f;
 
     private readonly Dictionary<Vector2Int, GameObject> activeChunks = new Dictionary<Vector2Int, GameObject>();
     private readonly Dictionary<GameObject, Vector2Int> chunkCoordinatesByObject = new Dictionary<GameObject, Vector2Int>();
@@ -47,6 +48,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
     private readonly List<Vector3> allBasePositions = new List<Vector3>();
     private readonly List<GameObject> runtimeObjectives = new List<GameObject>();
     private Transform enemyBaseTemplateRoot;
+    private Vector3 playerSpawnExclusionCenter;
 
     private static readonly List<BaseExclusionZone> baseExclusionZones = new List<BaseExclusionZone>();
 
@@ -151,6 +153,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
             return;
         }
 
+        ResolvePlayerSpawnExclusionCenter();
         QueueRequiredChunks(forceRefresh: true);
         ProcessSpawnQueue();
         SpawnGuaranteedObjectives();
@@ -182,7 +185,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         objectSpawnAttemptsPerChunk = Mathf.Max(0, objectSpawnAttemptsPerChunk);
         objectSpawnChance = Mathf.Clamp01(objectSpawnChance);
         objectPadding = Mathf.Max(0f, objectPadding);
-
+        playerSpawnExclusionRadius = Mathf.Max(0f, playerSpawnExclusionRadius);
     }
 
     private void QueueRequiredChunks(bool forceRefresh)
@@ -949,6 +952,11 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
             return;
         }
 
+        if (IsTooCloseToPlayerSpawn(basePosition))
+        {
+            return;
+        }
+
         GameObject baseInstance = Instantiate(enemyBaseTemplateRoot.gameObject, basePosition, Quaternion.identity);
         baseInstance.name = $"EnemyBase_{coordinate.x}_{coordinate.y}";
         baseInstance.SetActive(true);
@@ -987,5 +995,30 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void ResolvePlayerSpawnExclusionCenter()
+    {
+        if (trackedTarget != null)
+        {
+            playerSpawnExclusionCenter = trackedTarget.position;
+            return;
+        }
+
+        GameObject player = GameObject.Find("Player");
+        if (player != null)
+        {
+            playerSpawnExclusionCenter = player.transform.position;
+        }
+    }
+
+    private bool IsTooCloseToPlayerSpawn(Vector3 position)
+    {
+        if (playerSpawnExclusionRadius <= 0f)
+        {
+            return false;
+        }
+
+        return Vector2.Distance(position, playerSpawnExclusionCenter) < playerSpawnExclusionRadius;
     }
 }

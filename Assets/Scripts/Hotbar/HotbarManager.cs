@@ -44,17 +44,21 @@ public sealed class HotbarManager : MonoBehaviour
     {
         if (Keyboard.current == null) return;
 
-        for (int i = 0; i < 9; i++)
+        // Skip hotkey activation while game is paused (Pause/Settings overlay).
+        if (Time.timeScale > 0f)
         {
-            if (Keyboard.current[GetDigitKey(i)].wasPressedThisFrame)
+            for (int i = 0; i < 9; i++)
             {
-                UseSlot(i);
+                if (Keyboard.current[GetDigitKey(i)].wasPressedThisFrame)
+                {
+                    UseSlot(i);
+                }
             }
-        }
 
-        if (Keyboard.current[Key.Digit0].wasPressedThisFrame)
-        {
-            UseSlot(9);
+            if (Keyboard.current[Key.Digit0].wasPressedThisFrame)
+            {
+                UseSlot(9);
+            }
         }
 
         TickCooldowns(Time.deltaTime);
@@ -226,8 +230,13 @@ public sealed class HotbarManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[0])) progress.hotbar.slotItemIds[0] = "spell_firebolt";
         if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[1])) progress.hotbar.slotItemIds[1] = "spell_waterspring";
-        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[2])) progress.hotbar.slotItemIds[2] = ItemCatalog.HealthPotion;
-        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[3])) progress.hotbar.slotItemIds[3] = ItemCatalog.ManaPotion;
-        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[4])) progress.hotbar.slotItemIds[4] = ItemCatalog.ReturnScroll;
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[2])) progress.hotbar.slotItemIds[2] = "spell_stoneskin";
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[3])) progress.hotbar.slotItemIds[3] = "spell_airdash";
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[4])) progress.hotbar.slotItemIds[4] = ItemCatalog.HealthPotion;
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[5])) progress.hotbar.slotItemIds[5] = ItemCatalog.ManaPotion;
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[6])) progress.hotbar.slotItemIds[6] = ItemCatalog.ShieldScroll;
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[7])) progress.hotbar.slotItemIds[7] = ItemCatalog.StaminaElixir;
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[8])) progress.hotbar.slotItemIds[8] = ItemCatalog.GreaterHealthPotion;
+        if (string.IsNullOrEmpty(progress.hotbar.slotItemIds[9])) progress.hotbar.slotItemIds[9] = ItemCatalog.ReturnScroll;
     }
 }

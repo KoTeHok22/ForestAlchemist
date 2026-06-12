@@ -20,7 +20,9 @@ public sealed class CraftingProgressionService : MonoBehaviour
 
     [Header("Progression")]
     [SerializeField] private int baseXpPerCraft = 10;
-    [SerializeField] private int[] xpThresholds = { 0, 60, 160, 320, 540, 820, 1160, 1560, 2020, 2540 };
+    // Steeper curve + higher cap so the new high-tier recipes (levels 6-8) take
+    // real grinding to unlock. Each recipe grants 10 XP, each spell 25 XP.
+    [SerializeField] private int[] xpThresholds = { 0, 90, 230, 430, 700, 1050, 1490, 2030, 2680, 3450, 4350, 5390, 6580, 7930 };
 
     public event System.Action<int, int> OnLevelChanged;
     public event System.Action<int, int> OnXpChanged;

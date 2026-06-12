@@ -14,35 +14,50 @@ public sealed class ReturnScrollAction : IItemAction
     }
 }
 
-public sealed class HealthPotionAction : IItemAction
+/// <summary>
+/// Generic consumable that combines the three player-affecting effects (instant
+/// heal, timed shield, mana restore). Used by every potion/scroll/elixir — the
+/// numbers are what separate a basic potion from an imba tonic.
+/// </summary>
+public sealed class BuffConsumableAction : IItemAction
 {
-    public void Execute()
-    {
-        PlayerHealth health = Object.FindFirstObjectByType<PlayerHealth>();
-        if (health != null) health.Heal(30);
-    }
-}
+    private readonly int heal;
+    private readonly int shield;
+    private readonly float shieldDuration;
+    private readonly int mana;
 
-public sealed class ManaPotionAction : IItemAction
-{
-    public void Execute()
+    public BuffConsumableAction(int heal, int shield, float shieldDuration, int mana)
     {
-        PlayerSpellCaster caster = Object.FindFirstObjectByType<PlayerSpellCaster>();
-        if (caster != null) caster.RestoreMana(40);
+        this.heal = heal;
+        this.shield = shield;
+        this.shieldDuration = shieldDuration;
+        this.mana = mana;
     }
-}
 
-public sealed class ShieldScrollAction : IItemAction
-{
     public void Execute()
     {
-        PlayerBuffReceiver buffReceiver = Object.FindFirstObjectByType<PlayerBuffReceiver>();
-        if (buffReceiver == null)
+        if (heal > 0)
         {
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) buffReceiver = player.AddComponent<PlayerBuffReceiver>();
+            PlayerHealth health = Object.FindFirstObjectByType<PlayerHealth>();
+            if (health != null) health.Heal(heal);
         }
-        if (buffReceiver != null) buffReceiver.ApplyShield(50, 8f);
+
+        if (mana > 0)
+        {
+            PlayerSpellCaster caster = Object.FindFirstObjectByType<PlayerSpellCaster>();
+            if (caster != null) caster.RestoreMana(mana);
+        }
+
+        if (shield > 0)
+        {
+            PlayerBuffReceiver buffReceiver = Object.FindFirstObjectByType<PlayerBuffReceiver>();
+            if (buffReceiver == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null) buffReceiver = player.AddComponent<PlayerBuffReceiver>();
+            }
+            if (buffReceiver != null) buffReceiver.ApplyShield(shield, shieldDuration);
+        }
     }
 }
 
@@ -56,17 +71,33 @@ public static class ItemActionRegistry
         switch (itemId)
         {
             case ItemCatalog.ReturnScroll: return new ReturnScrollAction();
-            case ItemCatalog.HealthPotion: return new HealthPotionAction();
-            case ItemCatalog.ManaPotion: return new ManaPotionAction();
-            case ItemCatalog.ShieldScroll: return new ShieldScrollAction();
+
+            // Базовые расходники
+            case ItemCatalog.HealthPotion:        return new BuffConsumableAction(30, 0, 0f, 0);
+            case ItemCatalog.ManaPotion:          return new BuffConsumableAction(0, 0, 0f, 40);
+            case ItemCatalog.ShieldScroll:        return new BuffConsumableAction(0, 50, 8f, 0);
+            case ItemCatalog.StaminaElixir:       return new BuffConsumableAction(20, 0, 0f, 40);
+
+            // Улучшенные расходники
+            case ItemCatalog.GreaterHealthPotion: return new BuffConsumableAction(70, 0, 0f, 0);
+            case ItemCatalog.GreaterManaPotion:   return new BuffConsumableAction(0, 0, 0f, 90);
+            case ItemCatalog.EnhancedShieldScroll:return new BuffConsumableAction(0, 100, 12f, 0);
+            case ItemCatalog.EarthAmulet:         return new BuffConsumableAction(0, 80, 20f, 0);
+
+            // Имбовые расходники из покупных трофеев
+            case ItemCatalog.LifebloomElixir:     return new BuffConsumableAction(140, 0, 0f, 50);
+            case ItemCatalog.ShamanWard:          return new BuffConsumableAction(0, 160, 14f, 70);
+            case ItemCatalog.WarchiefBrew:        return new BuffConsumableAction(120, 120, 12f, 60);
+            case ItemCatalog.BloodcrownTonic:     return new BuffConsumableAction(150, 220, 16f, 80);
+
             default: return null;
         }
     }
 
     public static bool IsConsumable(string itemId)
     {
-        itemId = ItemCatalog.Normalize(itemId);
-        return itemId == ItemCatalog.ReturnScroll || itemId == ItemCatalog.HealthPotion || itemId == ItemCatalog.ManaPotion || itemId == ItemCatalog.ShieldScroll;
+        // Every non-spell item that has a usable action is a consumable.
+        return !IsSpell(itemId) && GetAction(itemId) != null;
     }
 
     public static bool IsSpell(string itemId)

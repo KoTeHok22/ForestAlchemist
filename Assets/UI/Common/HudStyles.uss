@@ -19,34 +19,23 @@
 }
 
 .portrait {
-    width: 200px;
-    height: 200px;
+    width: 240px;
+    height: 240px;
     align-items: center;
     justify-content: center;
-    margin-right: 16px;
-}
-
-/* grey avatar disc behind the ring */
-.portrait-fill {
-    position: absolute;
-    width: 64%;
-    height: 64%;
-    border-radius: 9999px;
-    background-color: rgba(150, 156, 162, 1);
-}
-
-/* the decorative ring frame on top */
-.portrait-ring {
-    position: absolute;
-    left: 0; top: 0; right: 0; bottom: 0;
-    background-image: resource("Menu/acc_logo");
+    margin-right: 4px;
+    background-image: resource("Menu/Generated/portrait");
     -unity-background-scale-mode: scale-to-fit;
 }
+
+.portrait-fill { display: none; }
+
+.portrait-ring { display: none; }
 
 .portrait-badge {
     position: absolute;
     color: #2b2b2b;
-    font-size: 80px;
+    font-size: 76px;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
 }
@@ -54,11 +43,13 @@
 .player-stats {
     flex-direction: column;
     justify-content: center;
-    padding: 20px 28px 20px 28px;
-    background-color: rgba(28, 20, 12, 0.72);
-    border-radius: 18px;
-    border-width: 4px;
-    border-color: rgba(120, 86, 50, 0.9);
+    padding: 30px 44px 30px 44px;
+    background-image: resource("Menu/Generated/statpanel");
+    -unity-slice-left: 150;
+    -unity-slice-right: 150;
+    -unity-slice-top: 120;
+    -unity-slice-bottom: 120;
+    -unity-slice-scale: 0.32px;
 }
 
 .hearts {

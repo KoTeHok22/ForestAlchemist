@@ -6,11 +6,13 @@ public sealed class ExpeditionResultAppUI : MonoBehaviour
 {
     private UIDocument document;
     private VisualElement root;
+    private VisualElement panelRoot;
     private VisualElement dimBg;
     private Label title;
     private Label subtitle;
     private Label body;
     private VisualElement btnClose;
+    private AppUIClickRouter clickRouter;
 
     private void Awake()
     {
@@ -22,14 +24,16 @@ public sealed class ExpeditionResultAppUI : MonoBehaviour
         if (document == null) document = GetComponent<UIDocument>();
         root = document.rootVisualElement;
         if (root == null) return;
+        panelRoot = root.Q<VisualElement>("panel-root");
         dimBg = root.Q<VisualElement>("dim-bg");
         title = root.Q<Label>("title");
         subtitle = root.Q<Label>("subtitle");
         body = root.Q<Label>("body");
+        clickRouter = new AppUIClickRouter(root);
         btnClose = root.Q<VisualElement>("btn-close");
-        if (btnClose != null) btnClose.RegisterCallback<ClickEvent>(_ => Hide());
+        if (btnClose != null) clickRouter.Add(btnClose, Hide);
         var btnCloseX = root.Q<VisualElement>("btn-close-x");
-        if (btnCloseX != null) btnCloseX.RegisterCallback<ClickEvent>(_ => Hide());
+        if (btnCloseX != null) clickRouter.Add(btnCloseX, Hide);
         Hide();
 
         if (ExpeditionManager.Instance != null)
@@ -50,6 +54,7 @@ public sealed class ExpeditionResultAppUI : MonoBehaviour
     {
         if (root == null) return;
         if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
         ExpeditionStats stats = ExpeditionManager.Instance.GetLastResultStatsSnapshot();
 
         string titleText;
@@ -88,5 +93,7 @@ public sealed class ExpeditionResultAppUI : MonoBehaviour
     private void Hide()
     {
         if (dimBg != null) dimBg.style.display = DisplayStyle.None;
+        // Otherwise the Panel keeps eating all pointer events on top of Pause/HUD.
+        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
     }
 }

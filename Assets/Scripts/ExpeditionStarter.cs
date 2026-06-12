@@ -1,6 +1,11 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
+/// <summary>
+/// Sits on the "ВыходВЛес" exit. Opens the expedition preparation screen when the
+/// player walks up to the exit (proximity zone). The expedition itself starts only
+/// after the player presses "В лес" inside that screen — this script never starts
+/// it directly. Re-entry: the player must leave the zone before it opens again.
+/// </summary>
 [RequireComponent(typeof(Collider2D))]
 public sealed class ExpeditionStarter : MonoBehaviour
 {
@@ -8,77 +13,72 @@ public sealed class ExpeditionStarter : MonoBehaviour
     [SerializeField] private Color highlightColor = new Color(1f, 0.95f, 0.45f, 1f);
     [SerializeField] private ExpeditionPreparationUI preparationUI;
 
+    // Hysteresis so the panel doesn't flicker open/closed right at the edge of the zone.
+    private const float ExitMargin = 0.75f;
+
     private SpriteRenderer sr;
-    private Collider2D col;
     private Color defaultColor;
-    private bool isHovered;
     private Transform player;
+    private bool wasInRange;
+    private bool openedThisVisit;
 
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
-        col = GetComponent<Collider2D>();
         if (sr != null) defaultColor = sr.color;
 
         if (preparationUI == null)
         {
             preparationUI = FindFirstObjectByType<ExpeditionPreparationUI>();
         }
-        
+
         var playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null) player = playerObj.transform;
     }
 
     private void Update()
     {
-        UpdateHoverState();
-        HandleInteraction();
-    }
-
-    private void UpdateHoverState()
-    {
-        bool inRange = IsPlayerInRange();
-        bool over = IsPointerOver();
-        bool shouldHighlight = inRange && over;
-
-        if (shouldHighlight != isHovered)
+        if (player == null)
         {
-            isHovered = shouldHighlight;
-            if (sr != null) sr.color = isHovered ? highlightColor : defaultColor;
+            var playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null) player = playerObj.transform;
+            if (player == null) return;
+        }
+
+        float distance = Vector2.Distance(transform.position, player.position);
+        bool inRange = distance <= interactionDistance;
+        bool outOfRange = distance > interactionDistance + ExitMargin;
+
+        // Rising edge: player just walked into the zone → open the preparation screen.
+        if (inRange && !wasInRange && !openedThisVisit)
+        {
+            OpenPreparation();
+            openedThisVisit = true;
+        }
+
+        // Once the player has clearly left, arm the trigger again for the next approach.
+        if (outOfRange)
+        {
+            openedThisVisit = false;
+        }
+
+        if (inRange != wasInRange)
+        {
+            wasInRange = inRange;
+            if (sr != null) sr.color = inRange ? highlightColor : defaultColor;
         }
     }
 
-    private void HandleInteraction()
+    private void OpenPreparation()
     {
-        if (isHovered && Mouse.current.leftButton.wasPressedThisFrame)
+        if (preparationUI == null)
         {
-            if (preparationUI == null)
-            {
-                preparationUI = FindFirstObjectByType<ExpeditionPreparationUI>();
-            }
-
-            if (preparationUI != null)
-            {
-                preparationUI.Open();
-            }
-            else
-            {
-                ExpeditionManager.Instance.StartExpedition();
-            }
+            preparationUI = FindFirstObjectByType<ExpeditionPreparationUI>();
         }
-    }
 
-    private bool IsPlayerInRange()
-    {
-        if (player == null) return false;
-        return Vector2.Distance(transform.position, player.position) <= interactionDistance;
-    }
-
-    private bool IsPointerOver()
-    {
-        if (Camera.main == null) return false;
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        Vector2 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
-        return col.OverlapPoint(worldPos);
+        if (preparationUI != null)
+        {
+            preparationUI.Open();
+        }
     }
 }

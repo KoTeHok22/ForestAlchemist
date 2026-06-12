@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="doska" class="doska-frame doska-frame--wide">
+                <ui:VisualElement class="doska-content doska-content--wide">
+                    <ui:VisualElement name="header-row" class="craft-header">
+                        <ui:Label name="craft-level" text="Уровень крафта: 1" class="craft-level" />
+                        <ui:Label name="craft-xp" text="Опыт: 0/100" class="craft-xp" />
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="tabs-row" class="craft-tabs">
+                        <ui:VisualElement name="tab-recipes" class="craft-tab craft-tab--active">
+                            <ui:Label text="Рецепты" class="craft-tab__label" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="tab-spells" class="craft-tab">
+                            <ui:Label text="Заклинания" class="craft-tab__label" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="body-row" class="craft-body">
+                        <ui:ScrollView name="items-list" class="craft-list" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+                        <ui:VisualElement name="details" class="craft-details">
+                            <ui:Label name="detail-name" text="Выбери рецепт" class="craft-detail__name" />
+                            <ui:Label name="detail-result" text="" class="craft-detail__result" />
+                            <ui:Label name="detail-ingredients-title" text="Ингредиенты:" class="craft-detail__section" />
+                            <ui:ScrollView name="detail-ingredients-scroll" class="craft-detail__ing-scroll" mode="Vertical" horizontal-scroller-visibility="Hidden">
+                                <ui:Label name="detail-ingredients" text="" class="craft-detail__ingredients" />
+                            </ui:ScrollView>
+                            <ui:VisualElement name="btn-craft" class="wood-btn">
+                                <ui:Label name="btn-craft-label" text="Создать" class="wood-btn__label" />
+                            </ui:VisualElement>
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label name="title" text="Крафт и алхимия" class="doska-title doska-title--top" />
+                <ui:VisualElement name="btn-close-x" class="doska-close doska-close--wide" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>

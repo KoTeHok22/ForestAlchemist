@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="chest" class="chest-frame">
+                <ui:Label name="title" text="Домашний сундук" class="chest-title" />
+                <ui:Label name="summary" text="" class="chest-summary" />
+                <ui:ScrollView name="items-list" class="chest-list" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+                <ui:VisualElement name="btn-close-x" class="chest-close">
+                    <ui:Label text="✕" class="chest-close__label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>

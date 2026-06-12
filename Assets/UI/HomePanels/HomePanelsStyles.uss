@@ -27,6 +27,40 @@
     position: relative;
 }
 
+.doska-frame--wide {
+    width: 1200px;
+    height: 920px;
+}
+
+/* Title pinned on the wooden top strip under the tiled roof */
+.doska-title.doska-title--top {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 14%;
+    -unity-text-align: middle-center;
+    color: #fbedc6;
+    font-size: 60px;
+    -unity-font-style: bold;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.85);
+}
+
+/* Content area shifted down so the title doesn't overlap quest cards */
+.doska-content.doska-content--wide {
+    top: 30%;
+    left: 8%;
+    right: 8%;
+    bottom: 7%;
+}
+
+/* Close button hit area aligned with the painted red X on the right wooden strip */
+.doska-close.doska-close--wide {
+    top: 17%;
+    right: 2%;
+    width: 76px;
+    height: 76px;
+}
+
 /* Cork writing zone (content lives here, over the bulletin board) */
 .doska-content {
     position: absolute;
@@ -109,17 +143,204 @@
 }
 
 
-/* ---------- Shop ---------- */
+/* ---------- Quest board (Desk) ---------- */
+
+.quests-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: flex-start;
+    width: 100%;
+    flex-grow: 1;
+    margin-top: 4px;
+}
+
+.quest-card {
+    width: 46%;
+    height: 240px;
+    margin: 8px;
+    padding: 22px 22px 20px 22px;
+    background-color: rgba(245, 224, 178, 0.92);
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: rgba(80, 52, 26, 0.85);
+    align-items: center;
+    justify-content: flex-start;
+    transition: scale 0.1s ease-out, background-color 0.1s ease-out;
+}
+.quest-card:hover {
+    scale: 1.02 1.02;
+    background-color: rgba(252, 234, 192, 0.96);
+}
+.quest-card--accepted {
+    background-color: rgba(180, 232, 170, 0.92);
+    border-color: rgba(56, 96, 40, 0.85);
+}
+.quest-card--accepted:hover {
+    scale: 1.0 1.0;
+    background-color: rgba(180, 232, 170, 0.92);
+}
+
+.quest-card__head {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.quest-card__icon {
+    width: 72px;
+    height: 72px;
+    margin-right: 14px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.quest-card__count {
+    color: #3a2412;
+    font-size: 32px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    flex-shrink: 1;
+}
+
+.quest-card__desc {
+    color: #4a3018;
+    font-size: 26px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    flex-grow: 1;
+    margin-bottom: 10px;
+}
+
+.quest-card__reward {
+    color: #6b3a12;
+    font-size: 28px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+/* ---------- Shop (merchant stall) ---------- */
+
+.shop-frame {
+    width: 1240px;
+    height: 1240px;
+    background-image: resource("Menu/Generated/shop_stall");
+    -unity-background-scale-mode: scale-to-fit;
+    position: relative;
+}
+
+/* Content sits inside the stall's open interior wooden panel (between the
+   side shelves, below the awning, above the counter) */
+.shop-content {
+    position: absolute;
+    left: 26%;
+    right: 26%;
+    top: 22%;
+    bottom: 29%;
+    flex-direction: column;
+    align-items: center;
+}
+
+.shop-title {
+    position: absolute;
+    top: 10.5%;
+    left: 24%;
+    right: 24%;
+    color: #fbedc6;
+    font-size: 40px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.9);
+}
+
+.shop-bloodbar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.shop-bloodbar__icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 7px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+.shop-bloodbar__count {
+    color: #ffcf6b;
+    font-size: 32px;
+    -unity-font-style: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+}
+
+.shop-tabs {
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+.shop-tab {
+    width: 144px;
+    height: 54px;
+    margin-left: 7px;
+    margin-right: 7px;
+    background-color: rgba(120, 80, 35, 0.7);
+    border-radius: 7px;
+    border-width: 2px;
+    border-color: rgba(50, 30, 16, 0.85);
+    align-items: center;
+    justify-content: center;
+    transition: scale 0.12s ease-out, background-color 0.12s ease-out;
+}
+.shop-tab:hover {
+    scale: 1.04 1.04;
+    background-color: rgba(150, 100, 45, 0.9);
+}
+.shop-tab--active {
+    background-color: rgba(200, 145, 60, 0.97);
+    border-color: rgba(70, 42, 18, 1);
+}
+.shop-tab__label {
+    color: #fbedc6;
+    font-size: 25px;
+    -unity-font-style: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.85);
+}
+
+/* Visible round close button pinned to the stall's top-right post */
+.shop-close {
+    position: absolute;
+    top: 14%;
+    right: 9%;
+    width: 46px;
+    height: 46px;
+    background-color: rgba(150, 46, 30, 0.95);
+    border-radius: 23px;
+    border-width: 3px;
+    border-color: rgba(60, 18, 12, 0.95);
+    align-items: center;
+    justify-content: center;
+    transition: scale 0.1s ease-out;
+}
+.shop-close:hover { scale: 1.08 1.08; }
+.shop-close__label {
+    color: #fbedc6;
+    font-size: 26px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 0 2px 3px rgba(0,0,0,0.8);
+}
+
 .shop-list {
     width: 100%;
     flex-grow: 1;
-    margin-top: 6px;
-    margin-bottom: 8px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
-.shop-list .unity-scroller--vertical { width: 10px; }
+.shop-list .unity-scroller--vertical { width: 8px; }
 .shop-list .unity-scroller--vertical .unity-base-slider__dragger {
     background-color: rgba(74,48,24,0.8);
-    border-radius: 5px;
+    border-radius: 4px;
 }
 .shop-list .unity-scroller--vertical .unity-scroller__low-button,
 .shop-list .unity-scroller--vertical .unity-scroller__high-button { display: none; }
@@ -127,31 +348,563 @@
 .shop-row {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    padding: 10px 18px;
-    margin-bottom: 8px;
-    margin-right: 8px;
-    background-color: rgba(58, 40, 22, 0.55);
-    border-radius: 8px;
+    justify-content: flex-start;
+    padding: 7px 12px;
+    margin-bottom: 7px;
+    margin-right: 7px;
+    background-color: rgba(245, 224, 178, 0.94);
+    border-radius: 7px;
     border-width: 2px;
-    border-color: rgba(40, 26, 14, 0.7);
-    transition: scale 0.1s ease-out;
+    border-color: rgba(80, 52, 26, 0.85);
+    transition: scale 0.1s ease-out, background-color 0.1s ease-out;
 }
 .shop-row:hover {
-    background-color: rgba(86, 58, 30, 0.7);
+    background-color: rgba(252, 234, 192, 0.98);
     scale: 1.01 1.01;
 }
-.shop-row__name {
-    color: #fff2d8;
-    font-size: 26px;
-    -unity-font-style: bold;
-    flex-grow: 1;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+.shop-row--disabled {
+    opacity: 0.5;
 }
-.shop-row__price {
-    color: #ffcf6b;
+
+.shop-row__icon {
+    width: 60px;
+    height: 60px;
+    margin-right: 12px;
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.shop-row__info {
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+}
+.shop-row__name {
+    color: #3a2412;
     font-size: 24px;
     -unity-font-style: bold;
+    white-space: normal;
+}
+.shop-row__sub {
+    color: #7a5128;
+    font-size: 17px;
+    -unity-font-style: italic;
+    white-space: nowrap;
+}
+
+.shop-row__price {
+    color: #6b3a12;
+    font-size: 26px;
+    -unity-font-style: bold;
     -unity-text-align: middle-right;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+.shop-row__price-icon {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+
+/* ---------- Expedition preparation board ---------- */
+
+/* Backpack-shaped frame replaces the wooden doska for the prep screen */
+.prep-frame {
+    width: 770px;
+    height: 960px;
+    background-image: resource("Menu/Generated/backpack");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* Content sits inside the open backpack pocket (upper area, above the flap) */
+.prep-content {
+    left: 17%;
+    right: 17%;
+    top: 19%;
+    bottom: 35%;
+    justify-content: flex-start;
+}
+
+.prep-title {
+    color: #fff3d4;
+    font-size: 38px;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 5px rgba(40, 24, 10, 0.95);
+}
+
+/* Close X painted on the backpack top-right strap area */
+.prep-close {
+    top: 4%;
+    right: 9%;
+    width: 60px;
+    height: 60px;
+}
+
+.prep-summary {
+    color: #fbe6bf;
+    font-size: 20px;
+    -unity-font-style: italic;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+    text-shadow: 0 2px 4px rgba(40, 24, 10, 0.9);
+}
+
+.prep-rows {
+    width: 100%;
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.prep-rows .unity-scroller--vertical { width: 8px; }
+.prep-rows .unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: rgba(74,48,24,0.8);
+    border-radius: 4px;
+}
+.prep-rows .unity-scroller--vertical .unity-scroller__low-button,
+.prep-rows .unity-scroller--vertical .unity-scroller__high-button { display: none; }
+
+.prep-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 66px;
+    padding: 8px 16px;
+    margin-bottom: 10px;
+    background-color: rgba(245, 224, 178, 0.92);
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: rgba(80, 52, 26, 0.85);
+}
+
+.prep-row__icon {
+    width: 56px;
+    height: 56px;
+    margin-right: 14px;
+    -unity-background-scale-mode: scale-to-fit;
+    flex-shrink: 0;
+}
+
+.prep-row__info {
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.prep-row__name {
+    color: #3a2412;
+    font-size: 26px;
+    -unity-font-style: bold;
+    white-space: nowrap;
+}
+
+.prep-row__stock {
+    color: #6b4a2a;
+    font-size: 20px;
+    -unity-font-style: italic;
+    white-space: nowrap;
+}
+
+.prep-row__stepper {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+.prep-step {
+    width: 52px;
+    height: 52px;
+    background-color: rgba(120, 80, 35, 0.9);
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: rgba(50, 30, 16, 0.9);
+    align-items: center;
+    justify-content: center;
+    transition: scale 0.1s ease-out, background-color 0.1s ease-out;
+}
+.prep-step:hover {
+    scale: 1.06 1.06;
+    background-color: rgba(150, 100, 45, 1);
+}
+.prep-step:active { scale: 0.94 0.94; }
+.prep-step--disabled {
+    opacity: 0.4;
+}
+.prep-step__label {
+    color: #fbedc6;
+    font-size: 36px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.prep-count {
+    width: 64px;
+    color: #3a2412;
+    font-size: 34px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.prep-actions {
+    position: absolute;
+    left: 7%;
+    right: 7%;
+    bottom: 7%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.prep-btn--small {
+    width: 200px;
+    height: 84px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.prep-btn--start {
+    width: 220px;
+    height: 90px;
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.prep-actions .wood-btn__label {
+    font-size: 24px;
+    padding-left: 0;
+    padding-right: 0;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+}
+
+
+/* ---------- Crafting board ---------- */
+
+.craft-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 6px;
+}
+
+.craft-level {
+    color: #3a2412;
+    font-size: 26px;
+    -unity-font-style: bold;
+}
+
+.craft-xp {
+    color: #4a3018;
+    font-size: 22px;
+    -unity-font-style: italic;
+}
+
+.craft-tabs {
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.craft-tab {
+    width: 200px;
+    height: 60px;
+    margin-left: 8px;
+    margin-right: 8px;
+    background-color: rgba(120, 80, 35, 0.65);
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: rgba(50, 30, 16, 0.8);
+    align-items: center;
+    justify-content: center;
+    transition: scale 0.12s ease-out, background-color 0.12s ease-out;
+}
+.craft-tab:hover {
+    scale: 1.04 1.04;
+    background-color: rgba(150, 100, 45, 0.85);
+}
+.craft-tab--active {
+    background-color: rgba(200, 145, 60, 0.95);
+    border-color: rgba(70, 42, 18, 1);
+}
+.craft-tab__label {
+    color: #fbedc6;
+    font-size: 26px;
+    -unity-font-style: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.craft-body {
+    flex-direction: row;
+    flex-grow: 1;
+    width: 100%;
+}
+
+.craft-list {
+    width: 46%;
+    margin-right: 12px;
+}
+
+.craft-list .unity-scroller--vertical { width: 10px; }
+.craft-list .unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: rgba(74,48,24,0.8);
+    border-radius: 5px;
+}
+.craft-list .unity-scroller--vertical .unity-scroller__low-button,
+.craft-list .unity-scroller--vertical .unity-scroller__high-button { display: none; }
+
+.craft-row {
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    margin-right: 8px;
+    background-color: rgba(245, 224, 178, 0.92);
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: rgba(80, 52, 26, 0.85);
+    transition: scale 0.1s ease-out, background-color 0.1s ease-out;
+}
+.craft-row:hover {
+    scale: 1.02 1.02;
+    background-color: rgba(252, 234, 192, 0.96);
+}
+.craft-row--selected {
+    background-color: rgba(255, 215, 119, 0.95);
+    border-color: rgba(110, 60, 20, 1);
+}
+.craft-row--locked {
+    background-color: rgba(180, 175, 160, 0.7);
+    opacity: 0.7;
+}
+.craft-row__name {
+    color: #3a2412;
+    font-size: 24px;
+    -unity-font-style: bold;
+}
+
+.craft-details {
+    width: 50%;
+    background-color: rgba(245, 224, 178, 0.92);
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: rgba(80, 52, 26, 0.85);
+    padding: 18px;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.craft-detail__name {
+    color: #3a2412;
+    font-size: 36px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 10px;
+    white-space: normal;
+}
+
+.craft-detail__result {
+    color: #4a3018;
+    font-size: 28px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-bottom: 14px;
+}
+
+.craft-detail__section {
+    color: #6b3a12;
+    font-size: 28px;
+    -unity-font-style: bold;
+    margin-bottom: 0;
+}
+
+.craft-detail__ing-scroll {
+    width: 100%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-top: 2px;
+    margin-bottom: 12px;
+}
+
+.craft-detail__ing-scroll .unity-scroll-view__content-viewport {
+    width: 100%;
+}
+
+.craft-detail__ing-scroll .unity-scroll-view__content-container {
+    width: 100%;
+}
+
+.craft-detail__ingredients {
+    width: 100%;
+    color: #4a3018;
+    font-size: 26px;
+    white-space: normal;
+    -unity-text-align: upper-center;
+}
+
+.craft-details .wood-btn {
+    width: 90%;
+    height: 80px;
+    margin-top: auto;
+}
+.craft-details .wood-btn:disabled {
+    opacity: 0.45;
+}
+
+
+/* ---------- Home storage (open treasure chest) ---------- */
+
+.chest-frame {
+    width: 900px;
+    height: 962px;
+    background-image: resource("Menu/Generated/open_chest");
+    -unity-background-scale-mode: scale-to-fit;
+    position: relative;
+}
+
+/* Title pinned on the raised open lid */
+.chest-title {
+    position: absolute;
+    top: 8%;
+    left: 14%;
+    right: 14%;
+    -unity-text-align: middle-center;
+    color: #f6e4bd;
+    font-size: 40px;
+    -unity-font-style: bold;
+    text-shadow: 0 3px 7px rgba(0,0,0,0.92);
+}
+
+.chest-summary {
+    position: absolute;
+    top: 25.5%;
+    left: 14%;
+    right: 14%;
+    -unity-text-align: middle-center;
+    color: #ecd5a6;
+    font-size: 19px;
+    -unity-font-style: italic;
+    white-space: normal;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.85);
+}
+
+/* Scrollable content lives inside the dark open cavity */
+.chest-list {
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    top: 32%;
+    bottom: 15%;
+}
+.chest-list .unity-scroller--vertical { width: 6px; }
+.chest-list .unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: rgba(214,184,130,0.7);
+    border-radius: 3px;
+}
+.chest-list .unity-scroller--vertical .unity-scroller__low-button,
+.chest-list .unity-scroller--vertical .unity-scroller__high-button { display: none; }
+
+.chest-category {
+    color: #f3dca8;
+    font-size: 23px;
+    -unity-font-style: bold;
+    margin-top: 6px;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.95);
+}
+
+.chest-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-bottom: 8px;
+}
+
+.chest-slot {
+    width: 104px;
+    height: 116px;
+    margin: 5px;
+    padding-top: 7px;
+    background-color: rgba(244, 224, 178, 0.93);
+    border-radius: 9px;
+    border-width: 2px;
+    border-color: rgba(74, 48, 24, 0.9);
+    align-items: center;
+    justify-content: flex-start;
+    transition: scale 0.1s ease-out, background-color 0.1s ease-out;
+}
+.chest-slot:hover {
+    scale: 1.05 1.05;
+    background-color: rgba(252, 234, 192, 0.98);
+}
+
+.chest-slot__icon {
+    width: 60px;
+    height: 60px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.chest-slot__name {
+    color: #3a2412;
+    font-size: 14px;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-top: 3px;
+    flex-grow: 1;
+}
+
+.chest-slot__count {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    min-width: 30px;
+    height: 30px;
+    background-color: rgba(40, 26, 14, 0.96);
+    border-radius: 15px;
+    border-width: 2px;
+    border-color: rgba(246, 228, 189, 0.92);
+    color: #ffe9b8;
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.chest-empty {
+    color: #ecd5a6;
+    font-size: 22px;
+    -unity-font-style: italic;
+    -unity-text-align: middle-center;
+    white-space: normal;
+    margin-top: 50px;
+}
+
+/* Round close button pinned to the open lid top-right */
+.chest-close {
+    position: absolute;
+    top: 3.5%;
+    right: 5%;
+    width: 54px;
+    height: 54px;
+    background-color: rgba(150, 46, 30, 0.95);
+    border-radius: 27px;
+    border-width: 3px;
+    border-color: rgba(60, 18, 12, 0.95);
+    align-items: center;
+    justify-content: center;
+    transition: scale 0.1s ease-out;
+}
+.chest-close:hover { scale: 1.08 1.08; }
+.chest-close__label {
+    color: #fbedc6;
+    font-size: 30px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    text-shadow: 0 2px 3px rgba(0,0,0,0.8);
 }

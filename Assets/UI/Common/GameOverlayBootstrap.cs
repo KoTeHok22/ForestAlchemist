@@ -29,6 +29,14 @@ public sealed class GameOverlayBootstrap : MonoBehaviour
         DisableLegacyCanvasPanels();
     }
 
+    private void Start()
+    {
+        // Some legacy quest trackers build their runtime uGUI panel in Awake/Initialize,
+        // which can land after our Awake. Re-run the disable in Start, once every
+        // Awake has executed, so the App UI HUD tracker stays the only one shown.
+        DisableLegacyCanvasPanels();
+    }
+
     private static void DisableLegacyCanvasPanels()
     {
         // The legacy PauseMenuController lives on the Canvas itself and listens
@@ -55,6 +63,26 @@ public sealed class GameOverlayBootstrap : MonoBehaviour
 
         // Legacy shop panel (ShopUI component repurposed to App UI; only the old panel is hidden).
         DisableByPath("Canvas/ShopUI/ShopPanel");
+
+        // Legacy quest board panel (replaced by App UI DeskBoardAppUI).
+        DisableByPath("Canvas/Desk");
+
+        // Legacy active-quest trackers (replaced by the App UI HUD quest tracker).
+        // Disabling the components stops them re-rendering; the runtime uGUI panel
+        // some of them build is hidden by name below.
+        DisableComponent<ActiveQuestPanel>();
+        DisableComponent<ActiveQuestHudDisplay>();
+        DisableComponent<LevelQuestHudDisplay>();
+        DisableByPath("RuntimeQuestPanel");
+    }
+
+    private static void DisableComponent<T>() where T : Behaviour
+    {
+        T component = FindFirstObjectByType<T>();
+        if (component != null)
+        {
+            component.enabled = false;
+        }
     }
 
     private static void DisableByPath(string path)

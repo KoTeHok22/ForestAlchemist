@@ -16,6 +16,18 @@ public static class ItemCatalog
     public const string ShieldScroll = "shield_scroll";
     public const string ReturnScroll = "return_scroll";
 
+    public const string GreaterHealthPotion = "greater_health_potion";
+    public const string GreaterManaPotion = "greater_mana_potion";
+    public const string EnhancedShieldScroll = "enhanced_shield_scroll";
+    public const string WarchiefBrew = "warchief_brew";
+    public const string StaminaElixir = "stamina_elixir";
+    public const string EarthAmulet = "earth_amulet";
+
+    // Imba consumables crafted from shop-bought trophies / the rare flower.
+    public const string LifebloomElixir = "lifebloom_elixir";
+    public const string ShamanWard = "shaman_ward";
+    public const string BloodcrownTonic = "bloodcrown_tonic";
+
     private static readonly Dictionary<string, string> DisplayNames = new Dictionary<string, string>
     {
         { OrcBlood, "Кровь орка" },
@@ -30,10 +42,21 @@ public static class ItemCatalog
         { ManaPotion, "Зелье маны" },
         { ShieldScroll, "Свиток щита" },
         { ReturnScroll, "Свиток возврата" },
+        { GreaterHealthPotion, "Сильное зелье здоровья" },
+        { GreaterManaPotion, "Сильное зелье маны" },
+        { EnhancedShieldScroll, "Усиленный свиток щита" },
+        { WarchiefBrew, "Эликсир вождя" },
+        { StaminaElixir, "Эликсир выносливости" },
+        { EarthAmulet, "Земляной амулет" },
+        { LifebloomElixir, "Эликсир Жизнецвета" },
+        { ShamanWard, "Оберег шамана" },
+        { BloodcrownTonic, "Тоник Кровавой Короны" },
         { "spell_firebolt", "Огненный болт" },
         { "spell_waterspring", "Источник воды" },
         { "spell_stoneskin", "Каменная кожа" },
-        { "spell_airdash", "Порыв ветра" }
+        { "spell_airdash", "Порыв ветра" },
+        { "spell_infernobolt", "Адский болт" },
+        { "spell_warchief_wrath", "Гнев вождя" }
     };
 
     private static readonly Dictionary<string, string> LegacyAliases = new Dictionary<string, string>

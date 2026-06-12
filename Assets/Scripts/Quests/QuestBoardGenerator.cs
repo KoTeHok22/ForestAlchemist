@@ -1,20 +1,20 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.UIElements;
 
+/// <summary>
+/// Populates the App UI doska bulletin board with quest cards.
+/// Wraps PlayerQuestService and feeds the runtime ActiveQuestHudDisplay.
+/// </summary>
 public sealed class QuestBoardGenerator : MonoBehaviour
 {
-    [SerializeField] private Transform tasksContainer;
-    [SerializeField] private GameObject taskTemplate;
     [SerializeField] private DeskItemIconProvider iconProvider;
     [SerializeField] private ActiveQuestHudDisplay hudDisplay;
+    [SerializeField] private DeskBoardAppUI boardUI;
 
-    [SerializeField] private Color normalColor = Color.white;
-    [SerializeField] private Color acceptedColor = new Color(0.6f, 1f, 0.6f, 1f);
-
-    private readonly List<GameObject> spawnedTasks = new List<GameObject>();
     private PlayerQuestService questService;
+
+    public PlayerQuestService Service => questService;
 
     private void Awake()
     {
@@ -25,119 +25,117 @@ public sealed class QuestBoardGenerator : MonoBehaviour
 
         if (hudDisplay != null)
             hudDisplay.Initialize(questService, iconProvider);
+
+        if (boardUI == null)
+            boardUI = GetComponent<DeskBoardAppUI>();
     }
 
     private void Start()
     {
+        // Start() runs each time the Home scene loads (i.e. after returning from
+        // an expedition) — this is where the board pool refreshes: accepted/done
+        // quests leave the board and fresh postings fill the empty slots.
+        RefreshBoard();
+    }
+
+    /// <summary>
+    /// Refreshes the board pool (drops accepted quests, refills empty slots) and
+    /// re-renders. Call this on return home / after an expedition — NOT on accept.
+    /// </summary>
+    public void RefreshBoard()
+    {
+        questService.EnsureBoardRefreshed();
         GenerateBoard();
     }
 
+    /// <summary>
+    /// Renders the current board state without touching the pool. Accepted quests
+    /// stay on the board rendered greyed-out (quest-card--accepted).
+    /// </summary>
     public void GenerateBoard()
     {
-        questService.EnsureBoardRefreshed();
-        ClearExistingTasks();
-
-        List<QuestData> boardQuests = questService.GetBoardQuests();
-
-        foreach (QuestData quest in boardQuests)
+        if (boardUI == null) return;
+        if (boardUI.TasksGrid == null)
         {
-            CreateTaskEntry(quest);
+            // UI not built yet — defer until first Open.
+            return;
         }
 
-        taskTemplate.SetActive(false);
+        VisualElement grid = boardUI.TasksGrid;
+        grid.Clear();
+
+        List<QuestData> boardQuests = questService.GetBoardQuests();
+        foreach (QuestData quest in boardQuests)
+        {
+            grid.Add(BuildCard(quest));
+        }
     }
 
-    private void CreateTaskEntry(QuestData quest)
+    private VisualElement BuildCard(QuestData quest)
     {
-        GameObject entry = Instantiate(taskTemplate, tasksContainer);
-        entry.SetActive(true);
-
         bool isActive = questService.IsQuestActive(quest.id);
 
-        Image entryImage = entry.GetComponent<Image>();
-        if (entryImage != null)
-            entryImage.color = isActive ? acceptedColor : normalColor;
+        var card = new VisualElement();
+        card.AddToClassList("quest-card");
+        if (isActive) card.AddToClassList("quest-card--accepted");
 
-        Transform itemLogo = entry.transform.Find("ItemLogo");
-        if (itemLogo != null)
+        // Head: icon + count/goal
+        var head = new VisualElement();
+        head.AddToClassList("quest-card__head");
+
+        if (quest.type == QuestType.CollectItem && iconProvider != null)
         {
-            Image logoImage = itemLogo.GetComponent<Image>();
-            if (logoImage != null && iconProvider != null)
+            string targetId = quest.GetResolvedTargetId();
+            Sprite icon = !string.IsNullOrEmpty(targetId) ? iconProvider.GetIcon(targetId) : null;
+            if (icon != null)
             {
-                string targetId = quest.GetResolvedTargetId();
-                Sprite icon = quest.type == QuestType.CollectItem && !string.IsNullOrEmpty(targetId) ? iconProvider.GetIcon(targetId) : null;
-                if (icon != null)
-                {
-                    logoImage.sprite = icon;
-                }
-                else
-                {
-                    logoImage.enabled = false;
-                }
+                var iconEl = new VisualElement();
+                iconEl.AddToClassList("quest-card__icon");
+                iconEl.style.backgroundImage = new StyleBackground(icon);
+                head.Add(iconEl);
             }
         }
 
-        Transform itemCount = entry.transform.Find("ItemCount");
-        if (itemCount != null)
+        var count = new Label(quest.type == QuestType.CollectItem
+            ? $"x{quest.requiredCount} {ItemCatalog.GetDisplayName(quest.GetResolvedTargetId())}"
+            : $"Цель: {quest.requiredCount}");
+        count.AddToClassList("quest-card__count");
+        head.Add(count);
+
+        card.Add(head);
+
+        // Description
+        if (!string.IsNullOrEmpty(quest.description))
         {
-            TextMeshProUGUI countText = itemCount.GetComponent<TextMeshProUGUI>();
-            if (countText != null)
-                countText.text = quest.type == QuestType.CollectItem
-                    ? $"x{quest.requiredCount} {ItemCatalog.GetDisplayName(quest.GetResolvedTargetId())}"
-                    : $"Цель: {quest.requiredCount}";
+            var desc = new Label(quest.description);
+            desc.AddToClassList("quest-card__desc");
+            card.Add(desc);
         }
 
-        Transform cost = entry.transform.Find("Cost");
-        if (cost != null)
-        {
-            TextMeshProUGUI costText = cost.GetComponent<TextMeshProUGUI>();
-            if (costText != null)
-                costText.text = $"{quest.rewardPoints} награды";
-        }
+        // Reward
+        var reward = new Label($"{quest.rewardPoints} награды");
+        reward.AddToClassList("quest-card__reward");
+        card.Add(reward);
 
-        Transform description = entry.transform.Find("TaskDescription");
-        if (description != null)
-        {
-            TextMeshProUGUI descText = description.GetComponent<TextMeshProUGUI>();
-            if (descText != null)
-                descText.text = quest.description;
-        }
-
-        Button button = entry.GetComponent<Button>();
-        if (button == null)
-            button = entry.AddComponent<Button>();
-
-        if (isActive)
-        {
-            button.interactable = false;
-        }
-        else
+        if (!isActive)
         {
             string capturedId = quest.id;
-            button.onClick.AddListener(() => OnQuestClicked(capturedId));
+            boardUI.ClickRouter?.Add(card, () => OnQuestClicked(capturedId));
         }
 
-        spawnedTasks.Add(entry);
+        return card;
     }
 
     private void OnQuestClicked(string questId)
     {
         if (questService.TryAcceptQuest(questId))
         {
+            // Re-render only — the accepted quest stays on the board greyed-out.
+            // The board pool refreshes later, when returning home (see Start).
             GenerateBoard();
 
             if (hudDisplay != null)
                 hudDisplay.Refresh();
         }
-    }
-
-    private void ClearExistingTasks()
-    {
-        foreach (GameObject task in spawnedTasks)
-        {
-            if (task != null)
-                Destroy(task);
-        }
-        spawnedTasks.Clear();
     }
 }

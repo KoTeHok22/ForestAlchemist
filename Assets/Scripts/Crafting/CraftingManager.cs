@@ -164,18 +164,75 @@ public sealed class CraftingManager : MonoBehaviour
 
         if (allRecipes.Count == 0)
         {
+            // Lvl 1 — basics (costlier than before)
             allRecipes.Add(CreateRecipe("health_potion_recipe", ItemCatalog.HealthPotion, 1, 1,
-                (ItemCatalog.OrcBlood, 1),
-                (ItemCatalog.AppleSapling, 1)));
+                (ItemCatalog.OrcBlood, 2),
+                (ItemCatalog.AppleSapling, 2)));
             allRecipes.Add(CreateRecipe("mana_potion_recipe", ItemCatalog.ManaPotion, 1, 1,
-                (ItemCatalog.OrcBlood, 1),
-                (ItemCatalog.SakuraSapling, 1)));
-            allRecipes.Add(CreateRecipe("shield_scroll_recipe", ItemCatalog.ShieldScroll, 1, 2,
-                (ItemCatalog.OrcBlood, 3),
-                (ItemCatalog.OakSapling, 2)));
-            allRecipes.Add(CreateRecipe("return_scroll_recipe", ItemCatalog.ReturnScroll, 1, 2,
+                (ItemCatalog.OrcBlood, 2),
+                (ItemCatalog.SakuraSapling, 2)));
+
+            // Lvl 2 — stamina elixir
+            allRecipes.Add(CreateRecipe("stamina_elixir_recipe", ItemCatalog.StaminaElixir, 1, 2,
+                (ItemCatalog.SakuraSapling, 3),
+                (ItemCatalog.AppleSapling, 3),
+                (ItemCatalog.OrcBlood, 2)));
+
+            // Lvl 3 — scrolls (now need the rare flower / more wood)
+            allRecipes.Add(CreateRecipe("shield_scroll_recipe", ItemCatalog.ShieldScroll, 1, 3,
                 (ItemCatalog.OrcBlood, 4),
+                (ItemCatalog.OakSapling, 3),
                 (ItemCatalog.RareFlower, 1)));
+            allRecipes.Add(CreateRecipe("return_scroll_recipe", ItemCatalog.ReturnScroll, 1, 3,
+                (ItemCatalog.OrcBlood, 5),
+                (ItemCatalog.RareFlower, 2),
+                (ItemCatalog.SakuraSapling, 2)));
+
+            // Lvl 4 — greater consumables (consume the base potions + rare flower)
+            allRecipes.Add(CreateRecipe("greater_health_potion_recipe", ItemCatalog.GreaterHealthPotion, 1, 4,
+                (ItemCatalog.HealthPotion, 3),
+                (ItemCatalog.RareFlower, 2),
+                (ItemCatalog.OrcBlood, 4)));
+            allRecipes.Add(CreateRecipe("greater_mana_potion_recipe", ItemCatalog.GreaterManaPotion, 1, 4,
+                (ItemCatalog.ManaPotion, 3),
+                (ItemCatalog.SakuraSapling, 4),
+                (ItemCatalog.OrcBlood, 3)));
+
+            // Lvl 5 — enhanced scroll + earth amulet (need shaman talisman)
+            allRecipes.Add(CreateRecipe("enhanced_shield_scroll_recipe", ItemCatalog.EnhancedShieldScroll, 1, 5,
+                (ItemCatalog.ShieldScroll, 2),
+                (ItemCatalog.ShamanTalisman, 1),
+                (ItemCatalog.OakSapling, 4)));
+            allRecipes.Add(CreateRecipe("earth_amulet_recipe", ItemCatalog.EarthAmulet, 1, 5,
+                (ItemCatalog.OakSapling, 6),
+                (ItemCatalog.ShamanTalisman, 2),
+                (ItemCatalog.RareFlower, 3)));
+
+            // Lvl 6 — Эликсир Жизнецвета (imba heal, built on the rare flower)
+            allRecipes.Add(CreateRecipe("lifebloom_elixir_recipe", ItemCatalog.LifebloomElixir, 1, 6,
+                (ItemCatalog.RareFlower, 4),
+                (ItemCatalog.GreaterHealthPotion, 1),
+                (ItemCatalog.OrcBlood, 6)));
+
+            // Lvl 7 — Оберег шамана (imba shield + mana) and endgame brew
+            allRecipes.Add(CreateRecipe("shaman_ward_recipe", ItemCatalog.ShamanWard, 1, 7,
+                (ItemCatalog.ShamanTalisman, 2),
+                (ItemCatalog.RareFlower, 3),
+                (ItemCatalog.GreaterManaPotion, 1),
+                (ItemCatalog.OrcBlood, 6)));
+            allRecipes.Add(CreateRecipe("warchief_brew_recipe", ItemCatalog.WarchiefBrew, 1, 7,
+                (ItemCatalog.WarchiefTrophy, 1),
+                (ItemCatalog.GreenOrcDrop, 3),
+                (ItemCatalog.RareFlower, 3),
+                (ItemCatalog.OrcBlood, 8)));
+
+            // Lvl 8 — Тоник Кровавой Короны (the ultimate consumable)
+            allRecipes.Add(CreateRecipe("bloodcrown_tonic_recipe", ItemCatalog.BloodcrownTonic, 1, 8,
+                (ItemCatalog.WarchiefTrophy, 2),
+                (ItemCatalog.ShamanTalisman, 3),
+                (ItemCatalog.GreaterHealthPotion, 2),
+                (ItemCatalog.RareFlower, 4),
+                (ItemCatalog.OrcBlood, 10)));
         }
 
         if (craftableSpells == null || craftableSpells.Length == 0)
@@ -183,13 +240,19 @@ public sealed class CraftingManager : MonoBehaviour
             craftableSpells = new[]
             {
                 CreateSpell("spell_firebolt", "Огненный Болт", "Базовый огненный снаряд.", ElementType.Fire, SpellType.Projectile, 20, 2f, 15f, 8f, 0f, 0f, 10f, 1,
-                    (ItemCatalog.OrcBlood, 2), (ItemCatalog.SakuraSapling, 1)),
+                    (ItemCatalog.OrcBlood, 3), (ItemCatalog.SakuraSapling, 2)),
                 CreateSpell("spell_waterspring", "Источник Воды", "Лечит алхимика во время похода.", ElementType.Water, SpellType.SelfBuff, 0, 4f, 18f, 0f, 0f, 4f, 0f, 1,
-                    (ItemCatalog.OrcBlood, 2), (ItemCatalog.AppleSapling, 1)),
+                    (ItemCatalog.OrcBlood, 3), (ItemCatalog.AppleSapling, 2)),
                 CreateSpell("spell_stoneskin", "Каменная Кожа", "Даёт временный щит.", ElementType.Earth, SpellType.SelfBuff, 35, 6f, 22f, 0f, 0f, 6f, 0f, 2,
-                    (ItemCatalog.OrcBlood, 4), (ItemCatalog.OakSapling, 2)),
-                CreateSpell("spell_airdash", "Порыв Ветра", "Короткий рывок для спасения.", ElementType.Air, SpellType.Dash, 0, 3f, 14f, 3f, 0f, 0f, 0f, 2,
-                    (ItemCatalog.OrcBlood, 3), (ItemCatalog.SakuraSapling, 1), (ItemCatalog.AppleSapling, 1))
+                    (ItemCatalog.OrcBlood, 5), (ItemCatalog.OakSapling, 3), (ItemCatalog.RareFlower, 1)),
+                CreateSpell("spell_airdash", "Порыв Ветра", "Короткий рывок для спасения.", ElementType.Air, SpellType.Dash, 0, 3f, 14f, 3f, 0f, 0f, 0f, 3,
+                    (ItemCatalog.OrcBlood, 4), (ItemCatalog.SakuraSapling, 2), (ItemCatalog.AppleSapling, 2)),
+
+                // Imba combat spells crafted from shop-bought orc trophies.
+                CreateSpell("spell_infernobolt", "Адский Болт", "Мощный огненный снаряд с уроном по площади попадания.", ElementType.Fire, SpellType.Projectile, 55, 4f, 35f, 12f, 2f, 0f, 14f, 5,
+                    (ItemCatalog.GreenOrcDrop, 2), (ItemCatalog.RareFlower, 2), (ItemCatalog.OrcBlood, 6)),
+                CreateSpell("spell_warchief_wrath", "Гнев Вождя", "Разрушительный снаряд вождя орков. Огромный урон.", ElementType.Fire, SpellType.Projectile, 90, 7f, 60f, 14f, 3f, 0f, 16f, 6,
+                    (ItemCatalog.WarchiefTrophy, 1), (ItemCatalog.ShamanTalisman, 2), (ItemCatalog.OrcBlood, 8))
             };
         }
     }

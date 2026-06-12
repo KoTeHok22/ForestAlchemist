@@ -1,6 +1,19 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Travelling merchant. Unlike crafting (which turns gathered materials into
+/// potions/scrolls), the shop trades in the materials themselves:
+///   • BUY — saplings, the rare flower and combat trophies that are otherwise
+///     only obtainable by farming the forest or killing specific orcs. This lets
+///     a player who is stuck (no boss drop, empty garden) buy the ingredients
+///     they need to keep crafting and planting.
+///   • SELL — convert surplus loot back into Кровь орка (the shop currency),
+///     giving expedition loot a guaranteed value sink.
+/// Buy prices are always above sell prices for the same item, so there is no
+/// arbitrage loop. Potions and scrolls are intentionally NOT sold here — those
+/// remain exclusive to crafting.
+/// </summary>
 public sealed class ShopService : MonoBehaviour
 {
     private static ShopService instance;
@@ -24,18 +37,37 @@ public sealed class ShopService : MonoBehaviour
         public string itemId;
         public string displayName;
         public int priceInBlood;
-        public bool isConsumable;
     }
 
-    [SerializeField] private List<ShopItem> shopItems = new List<ShopItem>
+    public const string CurrencyId = ItemCatalog.OrcBlood;
+
+    // What the merchant sells. Materials first (cheap, unblock crafting/garden),
+    // then the three combat trophies (pricey — a shortcut past the boss fights).
+    [SerializeField] private List<ShopItem> buyItems = new List<ShopItem>
     {
-        new ShopItem { itemId = ItemCatalog.HealthPotion, displayName = "Зелье здоровья", priceInBlood = 2, isConsumable = true },
-        new ShopItem { itemId = ItemCatalog.ManaPotion, displayName = "Зелье маны", priceInBlood = 2, isConsumable = true },
-        new ShopItem { itemId = ItemCatalog.ShieldScroll, displayName = "Свиток щита", priceInBlood = 4, isConsumable = true },
-        new ShopItem { itemId = ItemCatalog.ReturnScroll, displayName = "Свиток возврата", priceInBlood = 6, isConsumable = true }
+        new ShopItem { itemId = ItemCatalog.SakuraSapling,  displayName = "Саженец сакуры", priceInBlood = 2 },
+        new ShopItem { itemId = ItemCatalog.OakSapling,     displayName = "Саженец дуба",   priceInBlood = 2 },
+        new ShopItem { itemId = ItemCatalog.AppleSapling,   displayName = "Саженец яблони", priceInBlood = 2 },
+        new ShopItem { itemId = ItemCatalog.RareFlower,     displayName = "Редкий цветок",  priceInBlood = 5 },
+        new ShopItem { itemId = ItemCatalog.GreenOrcDrop,   displayName = "Трофей зелёного орка", priceInBlood = 6 },
+        new ShopItem { itemId = ItemCatalog.ShamanTalisman, displayName = "Шаманский талисман",   priceInBlood = 8 },
+        new ShopItem { itemId = ItemCatalog.WarchiefTrophy, displayName = "Трофей вождя",   priceInBlood = 14 }
     };
 
-    public event System.Action<string> OnItemPurchased;
+    // What the merchant buys from the player (loot → Кровь орка). Always cheaper
+    // than the corresponding buy price so re-selling is a loss, never a profit.
+    [SerializeField] private List<ShopItem> sellItems = new List<ShopItem>
+    {
+        new ShopItem { itemId = ItemCatalog.SakuraSapling,  displayName = "Саженец сакуры", priceInBlood = 1 },
+        new ShopItem { itemId = ItemCatalog.OakSapling,     displayName = "Саженец дуба",   priceInBlood = 1 },
+        new ShopItem { itemId = ItemCatalog.AppleSapling,   displayName = "Саженец яблони", priceInBlood = 1 },
+        new ShopItem { itemId = ItemCatalog.RareFlower,     displayName = "Редкий цветок",  priceInBlood = 3 },
+        new ShopItem { itemId = ItemCatalog.GreenOrcDrop,   displayName = "Трофей зелёного орка", priceInBlood = 3 },
+        new ShopItem { itemId = ItemCatalog.ShamanTalisman, displayName = "Шаманский талисман",   priceInBlood = 5 },
+        new ShopItem { itemId = ItemCatalog.WarchiefTrophy, displayName = "Трофей вождя",   priceInBlood = 9 }
+    };
+
+    public event System.Action<string> OnShopChanged;
 
     private void Awake()
     {
@@ -48,37 +80,69 @@ public sealed class ShopService : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public List<ShopItem> GetAvailableItems() => new List<ShopItem>(shopItems);
+    public List<ShopItem> GetBuyItems() => new List<ShopItem>(buyItems);
+    public List<ShopItem> GetSellItems() => new List<ShopItem>(sellItems);
 
-    public bool CanPurchase(string itemId)
+    public int GetBlood()
     {
-        ShopItem item = FindItem(itemId);
-        if (item == null) return false;
-
-        var homeStorage = InventoryService.Instance.HomeStorage;
-        return homeStorage != null && homeStorage.GetItemCount(ItemCatalog.OrcBlood) >= item.priceInBlood;
+        var storage = InventoryService.Instance.HomeStorage;
+        return storage != null ? storage.GetItemCount(CurrencyId) : 0;
     }
 
-    public bool TryPurchase(string itemId)
+    public bool CanBuy(string itemId)
     {
-        if (!CanPurchase(itemId)) return false;
+        ShopItem item = Find(buyItems, itemId);
+        return item != null && GetBlood() >= item.priceInBlood;
+    }
 
-        ShopItem item = FindItem(itemId);
-        var homeStorage = InventoryService.Instance.HomeStorage;
-        homeStorage.RemoveItem(ItemCatalog.OrcBlood, item.priceInBlood);
-        homeStorage.AddItem(item.itemId, 1);
+    public bool TryBuy(string itemId)
+    {
+        if (!CanBuy(itemId)) return false;
 
-        OnItemPurchased?.Invoke(itemId);
+        ShopItem item = Find(buyItems, itemId);
+        var storage = InventoryService.Instance.HomeStorage;
+        storage.RemoveItem(CurrencyId, item.priceInBlood);
+        storage.AddItem(item.itemId, 1);
+
+        OnShopChanged?.Invoke(itemId);
         GameCore.Instance.SaveProgress();
-
         return true;
     }
 
-    private ShopItem FindItem(string itemId)
+    // How many of this item the player still has available to sell.
+    public int GetSellStock(string itemId)
     {
-        for (int i = 0; i < shopItems.Count; i++)
+        var storage = InventoryService.Instance.HomeStorage;
+        if (storage == null) return 0;
+        return storage.GetItemCount(itemId);
+    }
+
+    public bool CanSell(string itemId)
+    {
+        ShopItem item = Find(sellItems, itemId);
+        return item != null && GetSellStock(itemId) > 0;
+    }
+
+    public bool TrySell(string itemId)
+    {
+        if (!CanSell(itemId)) return false;
+
+        ShopItem item = Find(sellItems, itemId);
+        var storage = InventoryService.Instance.HomeStorage;
+        if (!storage.RemoveItem(item.itemId, 1)) return false;
+        storage.AddItem(CurrencyId, item.priceInBlood);
+
+        OnShopChanged?.Invoke(itemId);
+        GameCore.Instance.SaveProgress();
+        return true;
+    }
+
+    private static ShopItem Find(List<ShopItem> list, string itemId)
+    {
+        string normalized = ItemCatalog.Normalize(itemId);
+        for (int i = 0; i < list.Count; i++)
         {
-            if (shopItems[i].itemId == itemId) return shopItems[i];
+            if (ItemCatalog.Normalize(list[i].itemId) == normalized) return list[i];
         }
         return null;
     }

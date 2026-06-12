@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="doska" class="doska-frame prep-frame">
+                <ui:VisualElement class="doska-content prep-content">
+                    <ui:Label name="title" text="Сборы в экспедицию" class="doska-title prep-title" />
+                    <ui:Label name="summary" text="" class="prep-summary" />
+                    <ui:ScrollView name="rows" class="prep-rows" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+                </ui:VisualElement>
+                <ui:VisualElement name="actions" class="prep-actions">
+                    <ui:VisualElement name="btn-auto" class="wood-btn prep-btn--small">
+                        <ui:Label text="Авто" class="wood-btn__label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="btn-clear" class="wood-btn prep-btn--small">
+                        <ui:Label text="Очистить" class="wood-btn__label" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="btn-start" class="wood-btn prep-btn--start">
+                        <ui:Label text="В лес!" class="wood-btn__label" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="btn-close-x" class="doska-close prep-close" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>
