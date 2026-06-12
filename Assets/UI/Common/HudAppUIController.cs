@@ -33,16 +33,13 @@ public sealed class HudAppUIController : MonoBehaviour
     private PlayerQuestService subscribedQuestService;
     private bool questManagerSubscribed;
 
+    private bool hotbarSubscribed;
+    private bool visualsInitialized;
+
     private void OnEnable()
     {
-        if (document == null) document = GetComponent<UIDocument>();
-        root = document.rootVisualElement;
-        if (root == null) return;
-
-        CacheElements();
-        BuildHotbar();
-        RefreshHotbarAll();
         SubscribeHotbar();
+        TryInitVisuals();
     }
 
     private void OnDisable()
@@ -54,6 +51,7 @@ public sealed class HudAppUIController : MonoBehaviour
 
     private void Start()
     {
+        TryInitVisuals();
         ResolvePlayerRefs();
         SubscribeStats();
         RefreshExpeditionBadge();
@@ -61,8 +59,23 @@ public sealed class HudAppUIController : MonoBehaviour
         EnsureQuestService();
     }
 
+    private void TryInitVisuals()
+    {
+        if (visualsInitialized) return;
+        if (document == null) document = GetComponent<UIDocument>();
+        root = document != null ? document.rootVisualElement : null;
+        if (root == null) return;
+
+        visualsInitialized = true;
+        CacheElements();
+        BuildHotbar();
+        RefreshHotbarAll();
+    }
+
     private void Update()
     {
+        if (!visualsInitialized) TryInitVisuals();
+
         // Player objects may spawn after the HUD; lazily resolve and refresh.
         if (playerController == null || health == null)
         {
@@ -135,6 +148,7 @@ public sealed class HudAppUIController : MonoBehaviour
 
     private void RefreshHotbarAll()
     {
+        if (!visualsInitialized) return;
         for (int i = 0; i < HotbarManager.SlotCount; i++) RefreshSlot(i);
     }
 
@@ -211,6 +225,9 @@ public sealed class HudAppUIController : MonoBehaviour
 
     private void SubscribeHotbar()
     {
+        if (hotbarSubscribed) return;
+        hotbarSubscribed = true;
+
         if (HotbarManager.Instance != null)
             HotbarManager.Instance.OnSlotUsed += OnSlotUsed;
 
@@ -225,6 +242,9 @@ public sealed class HudAppUIController : MonoBehaviour
 
     private void UnsubscribeHotbar()
     {
+        if (!hotbarSubscribed) return;
+        hotbarSubscribed = false;
+
         if (HotbarManager.Instance != null)
             HotbarManager.Instance.OnSlotUsed -= OnSlotUsed;
 
@@ -270,13 +290,14 @@ public sealed class HudAppUIController : MonoBehaviour
     // Inventory drives both the hotbar (item ownership) and CollectItem quest progress.
     private void OnInventoryChanged()
     {
+        TryInitVisuals();
         RefreshHotbarAll();
         RefreshQuests();
     }
 
     private void OnSlotUsed(int index) { RefreshSlot(index); }
-    private void OnAnySpellCrafted(SpellDefinition _) => RefreshHotbarAll();
-    private void OnAnyRecipeCrafted(RecipeDefinition _) => RefreshHotbarAll();
+    private void OnAnySpellCrafted(SpellDefinition _) { TryInitVisuals(); RefreshHotbarAll(); }
+    private void OnAnyRecipeCrafted(RecipeDefinition _) { TryInitVisuals(); RefreshHotbarAll(); }
 
     // ---------- Stats (HP / mana / shield) ----------
 
