@@ -60,10 +60,20 @@ public sealed class SpriteDepthSorter : MonoBehaviour
                 cachedCollider = GetComponent<Collider2D>();
             }
 
-            if (cachedCollider != null)
+            if (cachedCollider != null && cachedCollider.enabled)
             {
                 return cachedCollider.bounds.min.y + customPivotOffset;
             }
+        }
+
+        if (spriteRenderer == null)
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        if (spriteRenderer != null)
+        {
+            return spriteRenderer.bounds.min.y + customPivotOffset;
         }
 
         return transform.position.y + customPivotOffset;

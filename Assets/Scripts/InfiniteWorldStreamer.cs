@@ -33,6 +33,11 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
     [SerializeField] private float minBaseDistance = 200f;
     [SerializeField] private float playerSpawnExclusionRadius = 100f;
 
+    [Header("Exploration Objectives")]
+    [SerializeField] private float objectiveMinDistance = 180f;
+    [SerializeField] private float objectiveMaxDistance = 340f;
+    [SerializeField] private int objectiveSeed = 31415;
+
     private readonly Dictionary<Vector2Int, GameObject> activeChunks = new Dictionary<Vector2Int, GameObject>();
     private readonly Dictionary<GameObject, Vector2Int> chunkCoordinatesByObject = new Dictionary<GameObject, Vector2Int>();
     private readonly HashSet<Vector2Int> requiredCoordinates = new HashSet<Vector2Int>();
@@ -43,6 +48,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
     private readonly List<Vector2Int> removalBuffer = new List<Vector2Int>();
     private readonly List<GameObject> prewarmedChunks = new List<GameObject>();
     private readonly List<GameObject> objectTemplates = new List<GameObject>();
+    private readonly List<GameObject> biomeObjectBuffer = new List<GameObject>();
     private readonly List<PlacedObjectInfo> placedObjects = new List<PlacedObjectInfo>();
     private readonly Dictionary<Vector2Int, GameObject> spawnedBases = new Dictionary<Vector2Int, GameObject>();
     private readonly List<Vector3> allBasePositions = new List<Vector3>();
@@ -118,6 +124,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         {
             objectSeed = ExpeditionManager.Instance.CurrentSeed;
             baseSeed = ExpeditionManager.Instance.CurrentSeed + 100;
+            objectiveSeed = ExpeditionManager.Instance.CurrentSeed + 200;
         }
 
         if (trackedTarget == null)
@@ -154,10 +161,15 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         }
 
         ResolvePlayerSpawnExclusionCenter();
+        if (worldTemplate != null)
+        {
+            ApplyBiomeVisuals(worldTemplate.transform, Vector2Int.zero);
+        }
+
         QueueRequiredChunks(forceRefresh: true);
         ProcessSpawnQueue();
         SpawnGuaranteedObjectives();
-        GatherableResourceInteraction.AttachToSceneObjects();
+        GatherableResourceInteraction.AttachToActiveSceneObjects();
     }
 
     private void Update()
@@ -186,6 +198,8 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         objectSpawnChance = Mathf.Clamp01(objectSpawnChance);
         objectPadding = Mathf.Max(0f, objectPadding);
         playerSpawnExclusionRadius = Mathf.Max(0f, playerSpawnExclusionRadius);
+        objectiveMinDistance = Mathf.Max(playerSpawnExclusionRadius + 20f, objectiveMinDistance);
+        objectiveMaxDistance = Mathf.Max(objectiveMinDistance + 40f, objectiveMaxDistance);
     }
 
     private void QueueRequiredChunks(bool forceRefresh)
@@ -482,6 +496,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         chunk.name = $"World_{coordinate.x}_{coordinate.y}";
         chunk.SetActive(true);
 
+        ApplyBiomeVisuals(chunk.transform, coordinate);
         PopulateChunkObjects(chunk.transform, coordinate);
         TrySpawnEnemyBase(coordinate, chunkPosition);
 
@@ -513,17 +528,25 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
             return;
         }
 
+        WorldBiomeType biome = WorldBiome.Resolve(coordinate, objectSeed);
+        BuildBiomeObjectList(biome);
+        if (biomeObjectBuffer.Count == 0)
+        {
+            biomeObjectBuffer.AddRange(objectTemplates);
+        }
+
+        float biomeSpawnChance = Mathf.Clamp01(objectSpawnChance * WorldBiome.GetSpawnChanceMultiplier(biome));
         Transform objectsRoot = EnsureChunkObjectsRoot(chunkTransform);
         placedObjects.Clear();
 
         for (int attempt = 0; attempt < objectSpawnAttemptsPerChunk; attempt++)
         {
-            if (Sample01(coordinate, attempt, 0) > objectSpawnChance)
+            if (Sample01(coordinate, attempt, 0) > biomeSpawnChance)
             {
                 continue;
             }
 
-            GameObject template = objectTemplates[GetDeterministicIndex(coordinate, attempt, 1, objectTemplates.Count)];
+            GameObject template = biomeObjectBuffer[GetDeterministicIndex(coordinate, attempt, 1, biomeObjectBuffer.Count)];
             if (template == null)
             {
                 continue;
@@ -756,37 +779,61 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
 
     private void SpawnGuaranteedObjectives()
     {
-        if (trackedTarget == null)
-        {
-            return;
-        }
-
         ClearRuntimeObjectives();
+        WorldObjectiveRegistry.Clear();
 
-        Vector3 origin = trackedTarget.position;
-        SpawnEvacuationObjective(origin + new Vector3(chunkSize.x * 1.2f, chunkSize.y * 0.5f, 0f));
-        SpawnPortalObjective(origin + new Vector3(-chunkSize.x * 1.1f, chunkSize.y * 1.1f, 0f));
-        SpawnAltarObjective(origin + new Vector3(chunkSize.x * 0.3f, chunkSize.y * 1.35f, 0f), ElementType.Fire);
-        SpawnAltarObjective(origin + new Vector3(-chunkSize.x * 0.4f, -chunkSize.y * 1.25f, 0f), ElementType.Water);
+        Vector3 origin = playerSpawnExclusionCenter;
+        SpawnEvacuationObjective(PickRemoteObjectivePosition(0, 11), "Точка эвакуации");
+        SpawnPortalObjective(PickRemoteObjectivePosition(1, 22), "Портал возврата");
+        SpawnAltarObjective(PickRemoteObjectivePosition(2, 33), ElementType.Fire, "Алтарь: Огонь");
+        SpawnAltarObjective(PickRemoteObjectivePosition(3, 44), ElementType.Water, "Алтарь: Вода");
     }
 
-    private void SpawnEvacuationObjective(Vector3 position)
+    private Vector3 PickRemoteObjectivePosition(int slotIndex, int salt)
     {
-        GameObject root = CreateObjectiveRoot("GuaranteedEvacuation", position, new Color(0.35f, 1f, 0.45f, 1f), "Точка эвакуации");
-        EnsureObjectiveCollider(root, true, new Vector2(1.2f, 1.2f));
-        EvacuationPoint evac = root.AddComponent<EvacuationPoint>();
-        runtimeObjectives.Add(root);
+        float distance = Mathf.Lerp(
+            objectiveMinDistance,
+            objectiveMaxDistance,
+            Sample01WithSeed(Vector2Int.zero, slotIndex, salt, objectiveSeed));
+
+        float sectorWidth = Mathf.PI * 0.45f;
+        float baseAngle = slotIndex * (Mathf.PI * 2f / 4f);
+        float angleJitter = (Sample01WithSeed(Vector2Int.zero, slotIndex, salt + 1, objectiveSeed) - 0.5f) * sectorWidth;
+        float angle = baseAngle + angleJitter;
+
+        Vector3 offset = new Vector3(Mathf.Cos(angle) * distance, Mathf.Sin(angle) * distance, 0f);
+        return playerSpawnExclusionCenter + offset;
     }
 
-    private void SpawnPortalObjective(Vector3 position)
+    private void SpawnEvacuationObjective(Vector3 position, string label)
     {
-        GameObject root = CreateObjectiveRoot("GuaranteedPortal", position, new Color(0.45f, 0.75f, 1f, 1f), "Портал возврата");
-        EnsureObjectiveCollider(root, true, new Vector2(1.3f, 1.3f));
-        PortalObject portal = root.AddComponent<PortalObject>();
+        GameObject root = CreateObjectiveRoot(
+            "GuaranteedEvacuation",
+            position,
+            new Color(0.35f, 1f, 0.45f, 1f),
+            label,
+            LoadObjectiveSprite("Game/World/Objectives/evacuation_beacon"));
+        EnsureObjectiveCollider(root, true, new Vector2(1.4f, 1.6f));
+        root.AddComponent<EvacuationPoint>();
         runtimeObjectives.Add(root);
+        WorldObjectiveRegistry.Register(position, label, WorldObjectiveKind.Evacuation);
     }
 
-    private void SpawnAltarObjective(Vector3 position, ElementType element)
+    private void SpawnPortalObjective(Vector3 position, string label)
+    {
+        GameObject root = CreateObjectiveRoot(
+            "GuaranteedPortal",
+            position,
+            new Color(0.45f, 0.75f, 1f, 1f),
+            label,
+            LoadObjectiveSprite("Game/World/Objectives/portal_ring"));
+        EnsureObjectiveCollider(root, true, new Vector2(1.5f, 1.5f));
+        root.AddComponent<PortalObject>();
+        runtimeObjectives.Add(root);
+        WorldObjectiveRegistry.Register(position, label, WorldObjectiveKind.Portal);
+    }
+
+    private void SpawnAltarObjective(Vector3 position, ElementType element, string label)
     {
         Color tint = element switch
         {
@@ -797,14 +844,23 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
             _ => Color.white
         };
 
-        GameObject root = CreateObjectiveRoot($"GuaranteedAltar_{element}", position, tint, $"Алтарь: {element.ToRussianName()}");
-        EnsureObjectiveCollider(root, true, new Vector2(1.1f, 1.1f));
+        string spritePath = element switch
+        {
+            ElementType.Fire => "Game/World/Objectives/altar_fire",
+            ElementType.Water => "Game/World/Objectives/altar_water",
+            _ => null
+        };
+
+        GameObject root = CreateObjectiveRoot($"GuaranteedAltar_{element}", position, tint, label, LoadObjectiveSprite(spritePath));
+        EnsureObjectiveCollider(root, true, new Vector2(1.3f, 1.4f));
         AltarInteraction altar = root.AddComponent<AltarInteraction>();
         altar.ConfigureRuntimeElement(element);
         runtimeObjectives.Add(root);
+        WorldObjectiveKind kind = element == ElementType.Water ? WorldObjectiveKind.AltarWater : WorldObjectiveKind.AltarFire;
+        WorldObjectiveRegistry.Register(position, label, kind);
     }
 
-    private GameObject CreateObjectiveRoot(string name, Vector3 position, Color tint, string label)
+    private GameObject CreateObjectiveRoot(string name, Vector3 position, Color tint, string label, Sprite sprite)
     {
         GameObject root = new GameObject(name);
         root.transform.position = position;
@@ -812,7 +868,7 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         SpriteRenderer sr = root.AddComponent<SpriteRenderer>();
         sr.color = tint;
         sr.sortingOrder = 3;
-        sr.sprite = CreateObjectiveSprite();
+        sr.sprite = sprite != null ? sprite : CreateFallbackObjectiveSprite();
 
         GameObject labelObject = new GameObject("Label", typeof(RectTransform));
         labelObject.transform.SetParent(root.transform, false);
@@ -851,12 +907,58 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
         runtimeObjectives.Clear();
     }
 
-    private static Sprite CreateObjectiveSprite()
+    private static Sprite CreateFallbackObjectiveSprite()
     {
         Texture2D texture = new Texture2D(1, 1);
         texture.SetPixel(0, 0, Color.white);
         texture.Apply();
         return Sprite.Create(texture, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+    }
+
+    private static Sprite LoadObjectiveSprite(string resourcePath)
+    {
+        if (string.IsNullOrEmpty(resourcePath))
+        {
+            return null;
+        }
+
+        return Resources.Load<Sprite>(resourcePath);
+    }
+
+    private void BuildBiomeObjectList(WorldBiomeType biome)
+    {
+        biomeObjectBuffer.Clear();
+        for (int i = 0; i < objectTemplates.Count; i++)
+        {
+            GameObject template = objectTemplates[i];
+            if (template == null)
+            {
+                continue;
+            }
+
+            if (WorldBiome.AllowsObject(template.name, biome))
+            {
+                biomeObjectBuffer.Add(template);
+            }
+        }
+    }
+
+    private void ApplyBiomeVisuals(Transform chunkTransform, Vector2Int coordinate)
+    {
+        WorldBiomeType biome = WorldBiome.Resolve(coordinate, objectSeed);
+        Color tint = WorldBiome.GetGroundTint(biome);
+
+        SpriteRenderer[] renderers = chunkTransform.GetComponentsInChildren<SpriteRenderer>(includeInactive: true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            SpriteRenderer renderer = renderers[i];
+            if (renderer == null || renderer.sortingOrder > 0)
+            {
+                continue;
+            }
+
+            renderer.color = tint;
+        }
     }
 
     private int GetVisibleChunkCapacity()
@@ -937,8 +1039,10 @@ public sealed class InfiniteWorldStreamer : MonoBehaviour
             return;
         }
 
+        WorldBiomeType biome = WorldBiome.Resolve(coordinate, objectSeed);
+        float biomeChance = Mathf.Clamp01(baseSpawnChance * WorldBiome.GetEnemyBaseChanceMultiplier(biome));
         float roll = Sample01WithSeed(coordinate, 0, 99, baseSeed);
-        if (roll > baseSpawnChance)
+        if (roll > biomeChance)
         {
             return;
         }

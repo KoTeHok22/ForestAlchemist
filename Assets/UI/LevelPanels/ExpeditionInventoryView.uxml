@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="LevelPanelsStyles.uss" />
+    <Style src="../HomePanels/HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="backpack" class="prep-frame inv-frame">
+                <ui:VisualElement class="doska-content prep-content inv-content">
+                    <ui:Label name="title" text="Походный рюкзак" class="prep-title inv-title" />
+                    <ui:Label name="summary" text="" class="prep-summary inv-summary" />
+                    <ui:VisualElement name="empty-state" class="inv-empty-wrap">
+                        <ui:Label text="Рюкзак пуст.&#10;Собирай ресурсы и трофеи в лесу." class="inv-empty" />
+                        <ui:Label text="Нажми I, чтобы закрыть" class="inv-hint" />
+                    </ui:VisualElement>
+                    <ui:ScrollView name="items-list" class="inv-list" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+                </ui:VisualElement>
+                <ui:VisualElement name="btn-close-x" class="inv-close">
+                    <ui:Label text="✕" class="inv-close__label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>

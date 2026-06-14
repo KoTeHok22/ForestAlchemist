@@ -33,9 +33,11 @@ public sealed class GatherableResourceInteraction : MonoBehaviour
     private ResourceGatherer gatherer;
     private Camera targetCamera;
     private bool isHovered;
+    private bool isDepleted;
 
     public string ItemName => itemName;
     public float GatherTime => gatherTime;
+    public bool IsDepleted => isDepleted;
 
     public static bool TryAttachToInstance(GameObject instance)
     {
@@ -58,8 +60,13 @@ public sealed class GatherableResourceInteraction : MonoBehaviour
 
     public static int AttachToSceneObjects()
     {
+        return AttachToActiveSceneObjects();
+    }
+
+    public static int AttachToActiveSceneObjects()
+    {
         int attachedCount = 0;
-        SpriteRenderer[] renderers = Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        SpriteRenderer[] renderers = Object.FindObjectsByType<SpriteRenderer>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
         for (int i = 0; i < renderers.Length; i++)
         {
             if (renderers[i] != null && TryAttachToInstance(renderers[i].gameObject))
@@ -106,7 +113,7 @@ public sealed class GatherableResourceInteraction : MonoBehaviour
 
     public bool CanBeginGathering(bool requirePointer)
     {
-        if (string.IsNullOrEmpty(itemName) || !IsSelectableByPlayer())
+        if (isDepleted || string.IsNullOrEmpty(itemName) || !IsSelectableByPlayer())
         {
             return false;
         }
@@ -116,7 +123,7 @@ public sealed class GatherableResourceInteraction : MonoBehaviour
 
     public bool CanContinueGathering(bool useMouseInput)
     {
-        if (string.IsNullOrEmpty(itemName) || !IsSelectableByPlayer())
+        if (isDepleted || string.IsNullOrEmpty(itemName) || !IsSelectableByPlayer())
         {
             return false;
         }
@@ -126,12 +133,41 @@ public sealed class GatherableResourceInteraction : MonoBehaviour
             return Mouse.current != null && Mouse.current.leftButton.isPressed;
         }
 
-        return Keyboard.current != null && Keyboard.current.eKey.isPressed;
+        return GameControls.IsPressed(ControlBindingId.Gather);
     }
 
     public void NotifyGatherCompleted()
     {
+        ExpeditionItemTrace.Log(
+            "Gather.Resource",
+            $"depleted={gameObject.name} item={itemName} gatherer={(gatherer != null ? gatherer.GetHashCode().ToString() : "NULL")}");
+        MarkDepleted();
+    }
+
+    private void MarkDepleted()
+    {
+        if (isDepleted)
+        {
+            return;
+        }
+
+        isDepleted = true;
         RestoreDefaultColor();
+
+        RefreshDepthSorting();
+        enabled = false;
+    }
+
+    private void RefreshDepthSorting()
+    {
+        SpriteDepthSorter[] sorters = GetComponentsInChildren<SpriteDepthSorter>(includeInactive: true);
+        for (int i = 0; i < sorters.Length; i++)
+        {
+            if (sorters[i] != null)
+            {
+                sorters[i].RefreshSortingOrder();
+            }
+        }
     }
 
     private void CacheReferences()
@@ -152,7 +188,15 @@ public sealed class GatherableResourceInteraction : MonoBehaviour
 
         if (gatherer == null)
         {
-            gatherer = FindFirstObjectByType<ResourceGatherer>();
+            if (player != null)
+            {
+                gatherer = player.GetComponent<ResourceGatherer>();
+            }
+
+            if (gatherer == null)
+            {
+                gatherer = FindFirstObjectByType<ResourceGatherer>();
+            }
         }
 
         if (resourceRenderers == null || resourceRenderers.Length == 0)
@@ -205,7 +249,7 @@ public sealed class GatherableResourceInteraction : MonoBehaviour
             return;
         }
 
-        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        if (GameControls.WasPressedThisFrame(ControlBindingId.Gather))
         {
             gatherer.TryStartGathering(this, useMouseInput: false);
         }
@@ -223,7 +267,7 @@ public sealed class GatherableResourceInteraction : MonoBehaviour
 
     private bool IsSelectableByPlayer()
     {
-        if (!IsPlayerInRange())
+        if (isDepleted || !IsPlayerInRange())
         {
             return false;
         }

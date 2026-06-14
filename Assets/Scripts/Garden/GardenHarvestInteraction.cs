@@ -31,6 +31,12 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
 
     private void Update()
     {
+        if (HomeUIBlocker.IsBlocked)
+        {
+            ClearHighlight();
+            return;
+        }
+
         UpdateHoverState();
         HandleInteraction();
     }
@@ -66,6 +72,7 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
     private void Harvest()
     {
         hasHarvestedThisVisit = true;
+        AudioHooks.Sfx(AudioClipId.SfxHomeGardenHarvest);
 
         var progress = GameCore.Instance.CurrentProgress;
         if (progress == null) return;
@@ -111,6 +118,13 @@ public sealed class GardenHarvestInteraction : MonoBehaviour
         Vector2 mousePos = Mouse.current.position.ReadValue();
         Vector2 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
         return col.OverlapPoint(worldPos);
+    }
+
+    private void ClearHighlight()
+    {
+        if (!isHovered) return;
+        isHovered = false;
+        if (sr != null) sr.color = defaultColor;
     }
 
     private GardenHarvestEntry[] GetFallbackDrops(int stage)

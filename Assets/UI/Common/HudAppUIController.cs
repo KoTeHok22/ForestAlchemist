@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 /// <summary>
@@ -20,6 +21,8 @@ public sealed class HudAppUIController : MonoBehaviour
     private VisualElement shieldFill;
     private VisualElement hotbarContainer;
     private VisualElement questsContainer;
+    private VisualElement compassRoot;
+    private HudCompassView compassView;
 
     private readonly VisualElement[] slotRoots = new VisualElement[HotbarManager.SlotCount];
     private readonly VisualElement[] slotIcons = new VisualElement[HotbarManager.SlotCount];
@@ -35,6 +38,7 @@ public sealed class HudAppUIController : MonoBehaviour
 
     private bool hotbarSubscribed;
     private bool visualsInitialized;
+    private bool objectiveRegistrySubscribed;
 
     private void OnEnable()
     {
@@ -47,6 +51,7 @@ public sealed class HudAppUIController : MonoBehaviour
         UnsubscribeHotbar();
         UnsubscribeStats();
         UnsubscribeQuests();
+        UnsubscribeObjectiveRegistry();
     }
 
     private void Start()
@@ -57,6 +62,7 @@ public sealed class HudAppUIController : MonoBehaviour
         RefreshExpeditionBadge();
         SubscribeQuestManager();
         EnsureQuestService();
+        SubscribeObjectiveRegistry();
     }
 
     private void TryInitVisuals()
@@ -91,6 +97,7 @@ public sealed class HudAppUIController : MonoBehaviour
 
         if (playerController != null) SetFill(staminaFill, playerController.StaminaNormalized);
         UpdateCooldowns();
+        UpdateCompass();
     }
 
     private void CacheElements()
@@ -104,6 +111,71 @@ public sealed class HudAppUIController : MonoBehaviour
         shieldFill = root.Q<VisualElement>("bar-shield-fill");
         hotbarContainer = root.Q<VisualElement>("hud-hotbar");
         questsContainer = root.Q<VisualElement>("hud-quests");
+        compassRoot = root.Q<VisualElement>("hud-compass");
+        if (compassRoot != null)
+        {
+            compassView = new HudCompassView(compassRoot);
+        }
+    }
+
+    private void SubscribeObjectiveRegistry()
+    {
+        if (objectiveRegistrySubscribed)
+        {
+            return;
+        }
+
+        WorldObjectiveRegistry.OnChanged += HandleObjectivesChanged;
+        objectiveRegistrySubscribed = true;
+    }
+
+    private void UnsubscribeObjectiveRegistry()
+    {
+        if (!objectiveRegistrySubscribed)
+        {
+            return;
+        }
+
+        WorldObjectiveRegistry.OnChanged -= HandleObjectivesChanged;
+        objectiveRegistrySubscribed = false;
+    }
+
+    private void HandleObjectivesChanged()
+    {
+        UpdateCompass();
+    }
+
+    private void UpdateCompass()
+    {
+        if (compassView == null || compassRoot == null)
+        {
+            return;
+        }
+
+        if (SceneManager.GetActiveScene().name != "Level")
+        {
+            compassRoot.style.display = DisplayStyle.None;
+            return;
+        }
+
+        bool hasObjectives = WorldObjectiveRegistry.Entries.Count > 0;
+        compassRoot.style.display = hasObjectives ? DisplayStyle.Flex : DisplayStyle.None;
+        if (!hasObjectives)
+        {
+            return;
+        }
+
+        if (playerController == null)
+        {
+            ResolvePlayerRefs();
+        }
+
+        if (playerController == null)
+        {
+            return;
+        }
+
+        compassView.Refresh(playerController.transform.position, playerController.LookDirection);
     }
 
     // ---------- Hotbar ----------
@@ -157,7 +229,10 @@ public sealed class HudAppUIController : MonoBehaviour
         if (index < 0 || index >= HotbarManager.SlotCount) return;
         if (slotIcons[index] == null) return;
 
-        string itemId = HotbarManager.Instance.GetSlotItem(index);
+        HotbarManager hotbar = HotbarManager.Instance;
+        if (hotbar == null) return;
+
+        string itemId = hotbar.GetSlotItem(index);
         bool owned = PlayerOwnsSlotItem(itemId);
         Sprite icon = owned ? GetItemIcon(itemId) : null;
 
@@ -208,12 +283,15 @@ public sealed class HudAppUIController : MonoBehaviour
 
     private void UpdateCooldowns()
     {
+        HotbarManager hotbar = HotbarManager.Instance;
+        if (hotbar == null) return;
+
         for (int i = 0; i < HotbarManager.SlotCount; i++)
         {
             if (slotCooldowns[i] == null) continue;
-            if (HotbarManager.Instance.IsOnCooldown(i))
+            if (hotbar.IsOnCooldown(i))
             {
-                float remaining = 1f - HotbarManager.Instance.GetCooldownProgress(i);
+                float remaining = 1f - hotbar.GetCooldownProgress(i);
                 slotCooldowns[i].style.height = Length.Percent(Mathf.Clamp01(remaining) * 100f);
             }
             else
@@ -477,26 +555,8 @@ public sealed class HudAppUIController : MonoBehaviour
     private string GetQuestProgressText(QuestData quest)
     {
         int required = Mathf.Max(1, quest.requiredCount);
-        int current;
-
-        // CollectItem progress is the count carried in the expedition pack, but only
-        // while an expedition is underway. At Home (no pack yet) it reads back the
-        // tracked progress, which is 0 before the run — otherwise the home stockpile
-        // would falsely satisfy "collect X" objectives the moment the chest holds them.
-        bool inExpedition = ExpeditionManager.Instance != null && ExpeditionManager.Instance.IsInExpedition;
-        if (quest.type == QuestType.CollectItem && inExpedition)
-        {
-            PlayerInventory pack = ExpeditionManager.Instance.ExpeditionInventory;
-            string targetId = quest.GetResolvedTargetId();
-            current = pack != null && !string.IsNullOrEmpty(targetId)
-                ? pack.GetItemCount(targetId)
-                : QuestManager.Instance.GetProgress(quest.id);
-        }
-        else
-        {
-            current = QuestManager.Instance.GetProgress(quest.id);
-        }
-
+        QuestManager questManager = QuestManager.Instance;
+        int current = questManager != null ? questManager.GetProgress(quest.id) : 0;
         current = Mathf.Clamp(current, 0, required);
         return current >= required ? $"Готово ✓   {current}/{required}" : $"{current} / {required}";
     }

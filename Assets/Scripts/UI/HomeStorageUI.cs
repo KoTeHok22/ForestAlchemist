@@ -14,6 +14,8 @@ public sealed class HomeStorageUI : MonoBehaviour
 {
     private const string ViewPath = "Assets/UI/HomePanels/HomeStorageView.uxml";
     private const string SettingsPath = "Assets/UI/HomePanels/HomeStoragePanelSettings.asset";
+    private const string ViewResourcePath = "UI/HomePanels/HomeStorageView";
+    private const string SettingsResourcePath = "UI/HomePanels/HomeStoragePanelSettings";
 
     // Category grouping and display order. Items not listed fall into "Прочее".
     private static readonly (string title, string[] ids)[] Categories =
@@ -60,15 +62,24 @@ public sealed class HomeStorageUI : MonoBehaviour
 
     public void Open()
     {
-        EnsureBuilt();
-        if (root == null) return;
+        if (!EnsureBuilt())
+        {
+            Debug.LogError("[HomeStorageUI] Не удалось открыть сундук: UI не собран.");
+            return;
+        }
 
         if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
-        isOpen = true;
+        if (!isOpen)
+        {
+            HomeUIBlocker.Acquire();
+            isOpen = true;
+            AudioHooks.Sfx(AudioClipId.SfxHomeChestOpen);
+            AudioHooks.PanelOpen();
+        }
+
         SubscribeStorage();
         Refresh();
-        Time.timeScale = 0f;
     }
 
     public void Close()
@@ -76,45 +87,61 @@ public sealed class HomeStorageUI : MonoBehaviour
         if (dimBg != null) dimBg.style.display = DisplayStyle.None;
         // Otherwise the Panel keeps eating pointer events on top of the HUD.
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
-        isOpen = false;
-        Time.timeScale = 1f;
+        if (isOpen)
+        {
+            HomeUIBlocker.Release();
+            isOpen = false;
+            AudioHooks.Sfx(AudioClipId.SfxHomeChestClose);
+            AudioHooks.PanelClose();
+        }
     }
 
     private void OnDestroy()
     {
         UnsubscribeStorage();
-        if (isOpen) Time.timeScale = 1f;
+        if (isOpen)
+        {
+            HomeUIBlocker.Release();
+            isOpen = false;
+        }
     }
 
-    private void EnsureBuilt()
+    private bool EnsureBuilt()
     {
-        if (built && document != null) return;
+        if (built && panelRoot != null && dimBg != null)
+        {
+            return true;
+        }
 
         document = GetComponent<UIDocument>();
-        if (document == null) document = gameObject.AddComponent<UIDocument>();
+        if (document == null)
+        {
+            document = gameObject.AddComponent<UIDocument>();
+        }
 
-#if UNITY_EDITOR
-        if (document.visualTreeAsset == null)
-            document.visualTreeAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ViewPath);
-        if (document.panelSettings == null)
-            document.panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(SettingsPath);
-#endif
+        if (!HomePanelUiLoader.AssignAssets(document, ViewResourcePath, SettingsResourcePath, ViewPath, SettingsPath))
+        {
+            Debug.LogError("[HomeStorageUI] visualTreeAsset или panelSettings не найдены.");
+            return false;
+        }
 
-        root = document.rootVisualElement;
-        if (root == null) return;
+        if (!HomePanelUiLoader.TryResolveShell(document, out root, out panelRoot, out dimBg))
+        {
+            Debug.LogError("[HomeStorageUI] Разметка панели неполная (panel-root/dim-bg).");
+            return false;
+        }
 
-        panelRoot = root.Q<VisualElement>("panel-root");
-        dimBg = root.Q<VisualElement>("dim-bg");
         itemsList = root.Q<ScrollView>("items-list");
         summary = root.Q<Label>("summary");
 
         clickRouter = new AppUIClickRouter(root);
-        var closeX = root.Q<VisualElement>("btn-close-x");
+        VisualElement closeX = root.Q<VisualElement>("btn-close-x");
         if (closeX != null) clickRouter.Add(closeX, Close);
 
-        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
-        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        dimBg.style.display = DisplayStyle.None;
+        panelRoot.pickingMode = PickingMode.Ignore;
         built = true;
+        return true;
     }
 
     private void SubscribeStorage()

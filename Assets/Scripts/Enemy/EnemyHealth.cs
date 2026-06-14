@@ -26,6 +26,7 @@ public sealed class EnemyHealth : MonoBehaviour, IDamageable
 
         CurrentHealth = Mathf.Max(0, CurrentHealth - amount);
         OnDamaged?.Invoke(CurrentHealth);
+        AudioHooks.SfxAtPoint(AudioClipId.SfxEnemyOrcHit, transform.position);
 
         if (CurrentHealth <= 0)
         {

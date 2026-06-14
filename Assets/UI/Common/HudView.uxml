@@ -34,6 +34,17 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
+        <!-- ===== Compass (top-center) ===== -->
+        <ui:VisualElement name="hud-compass" class="hud-compass" picking-mode="Ignore">
+            <ui:VisualElement name="compass-track" class="compass-track" picking-mode="Ignore">
+                <ui:VisualElement name="compass-center" class="compass-center" picking-mode="Ignore" />
+                <ui:VisualElement name="compass-north" class="compass-north" picking-mode="Ignore">
+                    <ui:Label text="С" class="compass-north__label" picking-mode="Ignore" />
+                </ui:VisualElement>
+                <ui:VisualElement name="compass-markers" class="compass-markers" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
         <!-- ===== Quests (top-right) ===== -->
         <ui:VisualElement name="hud-quests" class="hud-quests" picking-mode="Ignore" />
 

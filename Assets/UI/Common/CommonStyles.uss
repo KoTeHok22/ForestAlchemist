@@ -4,6 +4,8 @@
    Frame visuals mirror the MainMenu modal (modal2_trim 9-slice).
    ============================================================ */
 
+@import url("project://database/Assets/UI/Common/SettingsControls.uss");
+
 /* ---------- Panel root (transparent overlay) ---------- */
 
 .panel-root {
@@ -67,6 +69,32 @@
 .wood-frame--narrow {
     width: 640px;
     height: 880px;
+}
+
+.wood-frame--settings {
+    width: 920px;
+    height: 1040px;
+    max-height: 96%;
+    padding-top: 188px;
+    padding-bottom: 72px;
+    padding-left: 88px;
+    padding-right: 88px;
+    -unity-slice-scale: 0.78px;
+}
+
+.wood-frame--settings .frame-title {
+    font-size: 44px;
+    top: 46px;
+}
+
+.wood-frame--settings .frame-subtitle {
+    font-size: 28px;
+    margin-bottom: 24px;
+}
+
+.wood-frame--settings .settings-scroll {
+    max-height: 720px;
+    flex-grow: 1;
 }
 
 .frame-title {
@@ -174,7 +202,7 @@
 .settings-scroll {
     max-height: 560px;
     margin-bottom: 10px;
-    padding-right: 6px;
+    padding-right: 10px;
 }
 
 .settings-scroll .unity-scroller--vertical {

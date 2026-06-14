@@ -5,18 +5,22 @@ using System.Collections.Generic;
 public sealed class InventoryService : MonoBehaviour
 {
     private static InventoryService instance;
-    public static InventoryService Instance
+    public static InventoryService Instance => ResolveInstance();
+
+    private static InventoryService ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("InventoryService");
-                instance = go.AddComponent<InventoryService>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<InventoryService>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("InventoryService");
+            instance = go.AddComponent<InventoryService>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     public PlayerInventory HomeStorage { get; private set; }
@@ -36,6 +40,11 @@ public sealed class InventoryService : MonoBehaviour
         InitializeHomeStorage();
     }
 
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
+    }
+
     private void InitializeHomeStorage()
     {
         var progress = GameCore.Instance.CurrentProgress;
@@ -46,9 +55,13 @@ public sealed class InventoryService : MonoBehaviour
                 HomeStorage.OnInventoryChanged -= homeStorageChangedHandler;
             }
 
-            HomeStorage = new PlayerInventory(new PlayerInventorySave { slots = progress.homeStorage.slots });
+            HomeStorage = new PlayerInventory(new PlayerInventorySave
+            {
+                slots = InventoryProgressSync.CloneSlots(progress.homeStorage?.slots)
+            });
+            HomeStorage.DebugLabel = "Home";
             homeStorageChangedHandler = () => {
-                progress.homeStorage.slots = HomeStorage.GetAllSlots();
+                InventoryProgressSync.WriteToProgress(HomeStorage, progress.homeStorage);
                 GameProgressUtility.Touch(progress);
                 GameCore.Instance.SaveProgress();
             };

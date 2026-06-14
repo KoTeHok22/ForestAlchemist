@@ -5,18 +5,22 @@ using UnityEngine.SceneManagement;
 public sealed class GameCore : MonoBehaviour
 {
     private static GameCore instance;
-    public static GameCore Instance
+    public static GameCore Instance => ResolveInstance();
+
+    private static GameCore ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("GameCore");
-                instance = go.AddComponent<GameCore>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<GameCore>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("GameCore");
+            instance = go.AddComponent<GameCore>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     private IMenuAccountService accountService;
@@ -78,13 +82,22 @@ public sealed class GameCore : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
     }
 
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
+    }
+
     private void OnApplicationQuit()
     {
+        RuntimeSingletonGuard.MarkShuttingDown();
         SaveProgress();
     }
 
     private void OnDisable()
     {
-        SaveProgress();
+        if (!RuntimeSingletonGuard.IsShuttingDown)
+        {
+            SaveProgress();
+        }
     }
 }

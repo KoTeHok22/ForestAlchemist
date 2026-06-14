@@ -33,6 +33,17 @@ public sealed class GameProgressData
     public HomeStorageData expeditionInventory = new HomeStorageData();
     public PlayerQuestSave quests = new PlayerQuestSave();
     public PlayerScoreSaveData score = new PlayerScoreSaveData();
+    public PlayerUpgradeData upgrades = new PlayerUpgradeData();
+}
+
+[Serializable]
+public sealed class PlayerUpgradeData
+{
+    public int spellPowerLevel;
+    public int meleePowerLevel;
+    public int staminaLevel;
+    public int manaLevel;
+    public int moveSpeedLevel;
 }
 
 [Serializable]
@@ -95,6 +106,14 @@ public sealed class MenuSettingsData
     public bool musicEnabled = true;
     public bool sfxEnabled = true;
     public bool windowedModeEnabled = true;
+    public List<ControlBindingEntry> controlBindings = new List<ControlBindingEntry>();
+}
+
+[Serializable]
+public sealed class ControlBindingEntry
+{
+    public string id = string.Empty;
+    public string path = string.Empty;
 }
 
 [Serializable]

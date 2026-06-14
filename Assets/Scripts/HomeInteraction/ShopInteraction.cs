@@ -37,6 +37,12 @@ public sealed class ShopInteraction : MonoBehaviour
 
     private void Update()
     {
+        if (HomeUIBlocker.IsBlocked)
+        {
+            ClearHighlight();
+            return;
+        }
+
         UpdateHoverState();
         HandleInteraction();
     }
@@ -90,5 +96,12 @@ public sealed class ShopInteraction : MonoBehaviour
         Vector2 mousePos = Mouse.current.position.ReadValue();
         Vector2 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
         return triggerCollider.OverlapPoint(worldPos);
+    }
+
+    private void ClearHighlight()
+    {
+        if (!isHovered) return;
+        isHovered = false;
+        if (spriteRenderer != null) spriteRenderer.color = defaultColor;
     }
 }

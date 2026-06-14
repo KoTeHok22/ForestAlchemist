@@ -35,7 +35,7 @@ public sealed class DeskBoardInteraction : MonoBehaviour
 
     private void Update()
     {
-        if (isOpen)
+        if (isOpen || HomeUIBlocker.IsBlocked)
         {
             RestoreDefaultColor();
             return;
@@ -48,7 +48,6 @@ public sealed class DeskBoardInteraction : MonoBehaviour
     private void OnDisable()
     {
         RestoreDefaultColor();
-        SetPlayerControlEnabled(true);
     }
 
     private void UpdateHoverState()
@@ -71,25 +70,27 @@ public sealed class DeskBoardInteraction : MonoBehaviour
         if (boardUI == null) return;
 
         boardUI.Open(OnBoardClosed);
+        if (!boardUI.IsOpen)
+        {
+            return;
+        }
+
         // Build quest cards now that the UI tree exists.
         if (boardGenerator != null) boardGenerator.GenerateBoard();
 
         isOpen = true;
         RestoreDefaultColor();
-        SetPlayerControlEnabled(false);
     }
 
     private void CloseDesk()
     {
         if (boardUI != null) boardUI.Close();
         isOpen = false;
-        SetPlayerControlEnabled(true);
     }
 
     private void OnBoardClosed()
     {
         isOpen = false;
-        SetPlayerControlEnabled(true);
     }
 
     private bool IsPointerOverBoard()
@@ -106,11 +107,6 @@ public sealed class DeskBoardInteraction : MonoBehaviour
         if (playerController == null) return false;
         float distanceToPlayer = Vector2.Distance(transform.position, playerController.transform.position);
         return distanceToPlayer <= interactionDistance;
-    }
-
-    private void SetPlayerControlEnabled(bool isEnabled)
-    {
-        if (playerController != null) playerController.enabled = isEnabled;
     }
 
     private void RestoreDefaultColor()

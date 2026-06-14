@@ -147,6 +147,97 @@
     display: none;
 }
 
+.hud-compass {
+    position: absolute;
+    top: 22px;
+    left: 0;
+    right: 0;
+    height: 58px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.hud-compass .compass-track {
+    width: 520px;
+}
+
+.compass-track {
+    height: 100%;
+    background-color: rgba(24, 18, 10, 0.78);
+    border-radius: 12px;
+    border-width: 3px;
+    border-color: rgba(58, 40, 22, 0.95);
+    overflow: hidden;
+}
+
+.compass-center {
+    position: absolute;
+    left: 50%;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    translate: -50% 0;
+    background-color: rgba(255, 240, 190, 0.55);
+}
+
+.compass-north {
+    position: absolute;
+    top: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: rgba(255, 240, 190, 0.9);
+    border-width: 2px;
+    border-color: rgba(40, 26, 14, 0.9);
+    align-items: center;
+    justify-content: center;
+}
+
+.compass-north__label {
+    color: #2f2418;
+    font-size: 13px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.compass-markers {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 0;
+    bottom: 0;
+}
+
+.compass-marker {
+    position: absolute;
+    top: 8px;
+    width: 20px;
+    height: 34px;
+    align-items: center;
+}
+
+.compass-marker__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: rgba(20, 14, 8, 0.9);
+}
+
+.compass-marker__dot--evacuation { background-color: #58e070; }
+.compass-marker__dot--portal { background-color: #5eb0ff; }
+.compass-marker__dot--altar-fire { background-color: #ff8a45; }
+.compass-marker__dot--altar-water { background-color: #58c8ff; }
+.compass-marker__dot--other { background-color: #d8c07a; }
+
+.compass-marker__distance {
+    margin-top: 2px;
+    color: #f0e8c8;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+}
+
 .hud-quests {
     position: absolute;
     top: 20px;

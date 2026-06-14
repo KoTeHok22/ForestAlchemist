@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="LevelPanelsStyles.uss" />
+    <Style src="../HomePanels/HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="doska" class="doska-frame weather-board">
+                <ui:VisualElement class="doska-content weather-board__content">
+                    <ui:Label name="weather-title" text="Погода меняется" class="doska-title weather-board__title" />
+                    <ui:Label name="weather-status" text="" class="doska-body weather-board__body" />
+                    <ui:VisualElement class="doska-actions">
+                        <ui:VisualElement name="btn-close" class="wood-btn">
+                            <ui:Label text="Понятно" class="wood-btn__label" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="btn-close-x" class="doska-close doska-close--wide" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>

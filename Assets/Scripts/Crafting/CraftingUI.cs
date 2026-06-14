@@ -13,6 +13,8 @@ public sealed class CraftingUI : MonoBehaviour
 {
     private const string ViewPath = "Assets/UI/HomePanels/CraftingView.uxml";
     private const string SettingsPath = "Assets/UI/HomePanels/CraftingPanelSettings.asset";
+    private const string ViewResourcePath = "UI/HomePanels/CraftingView";
+    private const string SettingsResourcePath = "UI/HomePanels/CraftingPanelSettings";
     private const string ChildName = "CraftingOverlay_AppUI";
 
     private UIDocument document;
@@ -32,6 +34,7 @@ public sealed class CraftingUI : MonoBehaviour
     private AppUIClickRouter clickRouter;
 
     private bool built;
+    private bool blocksWorldInput;
     private bool isSpellMode;
     private RecipeDefinition selectedRecipe;
     private SpellDefinition selectedSpell;
@@ -45,14 +48,25 @@ public sealed class CraftingUI : MonoBehaviour
             CraftingProgressionService.Instance.OnLevelChanged -= RefreshLevelDisplay;
             CraftingProgressionService.Instance.OnXpChanged -= RefreshXpDisplay;
         }
+
+        if (blocksWorldInput)
+        {
+            HomeUIBlocker.Release();
+            blocksWorldInput = false;
+        }
     }
+
+    public bool IsOpen => blocksWorldInput;
 
     public void Open() => Open(null);
 
     public void Open(System.Action onClose)
     {
-        EnsureBuilt();
-        if (root == null) return;
+        if (!EnsureBuilt())
+        {
+            Debug.LogError("[CraftingUI] Не удалось открыть крафт: UI не собран.");
+            return;
+        }
 
         onCloseRequested = onClose;
         if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
@@ -67,12 +81,27 @@ public sealed class CraftingUI : MonoBehaviour
         RefreshXpDisplay(CraftingProgressionService.Instance.GetCurrentXp(), CraftingProgressionService.Instance.GetXpForNextLevel());
 
         SetTab(false);
+
+        if (!blocksWorldInput)
+        {
+            HomeUIBlocker.Acquire();
+            blocksWorldInput = true;
+            AudioHooks.Sfx(AudioClipId.SfxHomeCraftStationOpen);
+            AudioHooks.PanelOpen();
+        }
     }
 
     public void Close()
     {
         if (dimBg != null) dimBg.style.display = DisplayStyle.None;
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+
+        if (blocksWorldInput)
+        {
+            HomeUIBlocker.Release();
+            blocksWorldInput = false;
+            AudioHooks.PanelClose();
+        }
 
         if (CraftingProgressionService.Instance != null)
         {
@@ -85,29 +114,35 @@ public sealed class CraftingUI : MonoBehaviour
         cb?.Invoke();
     }
 
-    private void EnsureBuilt()
+    private bool EnsureBuilt()
     {
-        if (built && document != null) return;
+        if (built && panelRoot != null && dimBg != null)
+        {
+            return true;
+        }
 
         Transform existing = transform.Find(ChildName);
         GameObject host = existing != null ? existing.gameObject : new GameObject(ChildName);
         if (existing == null) host.transform.SetParent(null, false);
 
         document = host.GetComponent<UIDocument>();
-        if (document == null) document = host.AddComponent<UIDocument>();
+        if (document == null)
+        {
+            document = host.AddComponent<UIDocument>();
+        }
 
-#if UNITY_EDITOR
-        if (document.visualTreeAsset == null)
-            document.visualTreeAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ViewPath);
-        if (document.panelSettings == null)
-            document.panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(SettingsPath);
-#endif
+        if (!HomePanelUiLoader.AssignAssets(document, ViewResourcePath, SettingsResourcePath, ViewPath, SettingsPath))
+        {
+            Debug.LogError("[CraftingUI] visualTreeAsset или panelSettings не найдены.");
+            return false;
+        }
 
-        root = document.rootVisualElement;
-        if (root == null) return;
+        if (!HomePanelUiLoader.TryResolveShell(document, out root, out panelRoot, out dimBg))
+        {
+            Debug.LogError("[CraftingUI] Разметка панели неполная (panel-root/dim-bg).");
+            return false;
+        }
 
-        panelRoot = root.Q<VisualElement>("panel-root");
-        dimBg = root.Q<VisualElement>("dim-bg");
         craftLevel = root.Q<Label>("craft-level");
         craftXp = root.Q<Label>("craft-xp");
         tabRecipes = root.Q<VisualElement>("tab-recipes");
@@ -120,15 +155,16 @@ public sealed class CraftingUI : MonoBehaviour
         btnCraftLabel = root.Q<Label>("btn-craft-label");
 
         clickRouter = new AppUIClickRouter(root);
-        var closeX = root.Q<VisualElement>("btn-close-x");
+        VisualElement closeX = root.Q<VisualElement>("btn-close-x");
         if (closeX != null) clickRouter.Add(closeX, Close);
         if (tabRecipes != null) clickRouter.Add(tabRecipes, () => SetTab(false));
         if (tabSpells != null) clickRouter.Add(tabSpells, () => SetTab(true));
         if (btnCraft != null) clickRouter.Add(btnCraft, OnCraftClicked);
 
-        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
-        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        dimBg.style.display = DisplayStyle.None;
+        panelRoot.pickingMode = PickingMode.Ignore;
         built = true;
+        return true;
     }
 
     private void SetTab(bool spells)
@@ -275,12 +311,20 @@ public sealed class CraftingUI : MonoBehaviour
                 PopulateSpells();
                 UpdateDetailsPanel();
             }
+            else
+            {
+                AudioHooks.Sfx(AudioClipId.SfxCraftFailResources);
+            }
         }
         else if (!isSpellMode && selectedRecipe != null)
         {
             if (CraftingManager.Instance.TryCraft(selectedRecipe))
             {
                 UpdateDetailsPanel();
+            }
+            else
+            {
+                AudioHooks.Sfx(AudioClipId.SfxCraftFailResources);
             }
         }
     }

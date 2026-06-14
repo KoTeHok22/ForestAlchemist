@@ -17,14 +17,17 @@ public sealed class PauseAppUIController : MonoBehaviour
     private VisualElement panelRoot;
     private VisualElement screenPause;
     private VisualElement screenSettings;
+    private VisualElement screenControls;
 
     private VisualElement btnResume;
     private VisualElement btnSettings;
     private VisualElement btnSave;
     private VisualElement btnSaveExit;
     private VisualElement btnSettingsClose;
+    private VisualElement btnOpenControls;
 
     private SettingsPanelController settings;
+    private ControlsSettingsPanelController controls;
     private readonly UnityMenuSettingsApplier settingsApplier = new UnityMenuSettingsApplier();
 
     private bool isPaused;
@@ -39,6 +42,8 @@ public sealed class PauseAppUIController : MonoBehaviour
         BindButtons();
 
         settings = new SettingsPanelController(root, settingsApplier, GameCore.Instance.AccountService);
+        controls = new ControlsSettingsPanelController(root, GameCore.Instance.AccountService);
+        controls.OnBackRequested = CloseControlsToSettings;
         settings.PushCurrent();
 
         CloseAllImmediate();
@@ -46,6 +51,7 @@ public sealed class PauseAppUIController : MonoBehaviour
 
     private void OnDisable()
     {
+        controls?.CancelRebind();
         CloseAllImmediate();
     }
 
@@ -54,11 +60,13 @@ public sealed class PauseAppUIController : MonoBehaviour
         panelRoot        = root.Q<VisualElement>("panel-root");
         screenPause      = root.Q<VisualElement>("screen-pause");
         screenSettings   = root.Q<VisualElement>("screen-settings");
+        screenControls   = root.Q<VisualElement>("screen-controls");
         btnResume        = root.Q<VisualElement>("btn-resume");
         btnSettings      = root.Q<VisualElement>("btn-settings");
         btnSave          = root.Q<VisualElement>("btn-save");
         btnSaveExit      = root.Q<VisualElement>("btn-save-exit");
         btnSettingsClose = root.Q<VisualElement>("btn-settings-close");
+        btnOpenControls  = root.Q<VisualElement>("btn-open-controls");
     }
 
     private AppUIClickRouter clickRouter;
@@ -71,17 +79,29 @@ public sealed class PauseAppUIController : MonoBehaviour
         clickRouter.Add(btnSave, Save);
         clickRouter.Add(btnSaveExit, SaveAndExit);
         clickRouter.Add(btnSettingsClose, CloseSettings);
+        clickRouter.Add(btnOpenControls, OpenControlsFromSettings);
     }
 
     private void Update()
     {
-        if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (Keyboard.current == null || !GameControls.WasPressedThisFrame(ControlBindingId.Pause))
+        {
+            return;
+        }
+
+        if (GameControls.IsListeningForRebind)
         {
             return;
         }
 
         if (isPaused)
         {
+            if (IsControlsOpen())
+            {
+                CloseControlsToSettings();
+                return;
+            }
+
             if (IsSettingsOpen())
             {
                 CloseSettings();
@@ -106,11 +126,14 @@ public sealed class PauseAppUIController : MonoBehaviour
 
         SetVisible(screenPause, true);
         SetVisible(screenSettings, false);
+        SetVisible(screenControls, false);
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
 
         settings.PushCurrent();
         isPaused = true;
         Time.timeScale = 0f;
+        AudioHooks.PanelOpen();
+        AudioHooks.Manager?.SetPauseMusicDucked(true);
     }
 
     public void Resume() => CloseAllImmediate();
@@ -121,13 +144,30 @@ public sealed class PauseAppUIController : MonoBehaviour
 
         SetVisible(screenPause, false);
         SetVisible(screenSettings, true);
+        SetVisible(screenControls, false);
         settings.PushCurrent();
     }
 
     public void CloseSettings()
     {
+        controls?.CancelRebind();
         SetVisible(screenSettings, false);
+        SetVisible(screenControls, false);
         SetVisible(screenPause, true);
+    }
+
+    private void OpenControlsFromSettings()
+    {
+        controls?.Refresh();
+        SetVisible(screenSettings, false);
+        SetVisible(screenControls, true);
+    }
+
+    private void CloseControlsToSettings()
+    {
+        controls?.CancelRebind();
+        SetVisible(screenControls, false);
+        SetVisible(screenSettings, true);
     }
 
     public void Save()
@@ -147,24 +187,33 @@ public sealed class PauseAppUIController : MonoBehaviour
         return screenSettings != null && screenSettings.style.display == DisplayStyle.Flex;
     }
 
+    private bool IsControlsOpen()
+    {
+        return screenControls != null && screenControls.style.display == DisplayStyle.Flex;
+    }
+
     private void CloseAllImmediate()
     {
+        controls?.CancelRebind();
         SetVisible(screenPause, false);
         SetVisible(screenSettings, false);
+        SetVisible(screenControls, false);
 
-        if (isPaused)
+        if (isPaused && !HomeUIBlocker.IsBlocked)
         {
             Time.timeScale = 1f;
         }
 
         isPaused = false;
-        // Otherwise the Panel keeps eating all pointer events on top of HUD.
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        AudioHooks.PanelClose();
+        AudioHooks.Manager?.SetPauseMusicDucked(false);
     }
 
     private static void SetVisible(VisualElement element, bool visible)
     {
         if (element == null) return;
         element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        element.EnableInClassList("hidden", !visible);
     }
 }

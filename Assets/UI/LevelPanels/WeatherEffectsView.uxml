@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="LevelPanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="weather-fx-root" theme="dark" scale="medium" picking-mode="Ignore">
+        <ui:VisualElement name="weather-tint" class="weather-tint" picking-mode="Ignore" />
+    </appui:Panel>
+</UXML>

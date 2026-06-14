@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(PlayerTopDownController))]
@@ -12,13 +13,33 @@ public sealed class PlayerSpellCaster : MonoBehaviour
     private List<SpellDefinition> unlockedSpells = new List<SpellDefinition>();
     private readonly Dictionary<string, SpellDefinition> fallbackSpells = new Dictionary<string, SpellDefinition>();
     private float currentMana;
+    private float spellDamageMultiplier = 1f;
     private PlayerTopDownController movement;
     private Camera cachedCamera;
+    private Coroutine dashRoutine;
 
     public float CurrentMana => currentMana;
     public float MaxMana => maxMana;
     public float ManaNormalized => maxMana > 0f ? currentMana / maxMana : 0f;
+    public float SpellDamageMultiplier => spellDamageMultiplier;
     public System.Action<float, float> OnManaChanged;
+
+    public void ConfigureMana(float newMaxMana)
+    {
+        maxMana = Mathf.Max(1f, newMaxMana);
+        currentMana = Mathf.Min(currentMana, maxMana);
+        OnManaChanged?.Invoke(currentMana, maxMana);
+    }
+
+    public void SetSpellDamageMultiplier(float multiplier)
+    {
+        spellDamageMultiplier = Mathf.Max(0.1f, multiplier);
+    }
+
+    public int ScaleSpellDamage(int baseDamage)
+    {
+        return Mathf.Max(1, Mathf.RoundToInt(baseDamage * spellDamageMultiplier));
+    }
 
     private void Awake()
     {
@@ -55,15 +76,41 @@ public sealed class PlayerSpellCaster : MonoBehaviour
 
     public bool TryCast(SpellDefinition spell)
     {
-        if (spell == null) return false;
-        if (!IsSpellUnlocked(spell)) return false;
-        if (IsOnCooldown(spell.spellId)) return false;
-        if (currentMana < spell.manaCost) return false;
+        if (spell == null)
+        {
+            SpellProjectileDebug.Log("TryCast FAIL spell=null");
+            return false;
+        }
+
+        if (!IsSpellUnlocked(spell))
+        {
+            SpellProjectileDebug.Log($"TryCast FAIL locked spell={spell.spellId}");
+            return false;
+        }
+
+        if (IsOnCooldown(spell.spellId))
+        {
+            SpellProjectileDebug.Log($"TryCast FAIL cooldown spell={spell.spellId}");
+            AudioHooks.Bridge?.PlaySpellFailCooldown();
+            return false;
+        }
+
+        if (currentMana < spell.manaCost)
+        {
+            SpellProjectileDebug.Log($"TryCast FAIL mana spell={spell.spellId} have={currentMana} need={spell.manaCost}");
+            AudioHooks.Bridge?.PlaySpellFailMana();
+            return false;
+        }
 
         currentMana -= spell.manaCost;
         StartCooldown(spell.spellId, spell.cooldown);
         OnManaChanged?.Invoke(currentMana, maxMana);
 
+        AudioHooks.Bridge?.PlaySpellCast(spell.spellId);
+
+        SpellProjectileDebug.Log(
+            $"TryCast OK spell={spell.spellId} type={spell.spellType} timeScale={Time.timeScale} scene={gameObject.scene.name}",
+            this);
         ExecuteSpell(spell);
         return true;
     }
@@ -141,11 +188,18 @@ public sealed class PlayerSpellCaster : MonoBehaviour
         if (amount <= 0) return;
         currentMana = Mathf.Min(maxMana, currentMana + amount);
         OnManaChanged?.Invoke(currentMana, maxMana);
+        AudioHooks.Sfx(AudioClipId.SfxPlayerManaRestore);
     }
 
     private void ExecuteSpell(SpellDefinition spell)
     {
         Vector2 direction = movement != null ? movement.LookDirection : Vector2.down;
+
+        if (spell.spellType != SpellType.Projectile)
+        {
+            Vector2 castPoint = SpellCombatFilters.ResolveProjectileSpawn(transform, direction);
+            SpellVfxLibrary.PlayCastBurst(castPoint, spell.element, spell.elementColor);
+        }
 
         switch (spell.spellType)
         {
@@ -166,44 +220,67 @@ public sealed class PlayerSpellCaster : MonoBehaviour
 
     private void SpawnProjectile(SpellDefinition spell, Vector2 direction)
     {
+        SpellProjectileDebug.Log(
+            $"SpawnProjectile spell={spell.spellId} dir={direction} casterPos={transform.position} " +
+            $"hasPrefab={(spell.projectilePrefab != null ? spell.projectilePrefab.name : "null")}",
+            this);
+
         if (spell.projectilePrefab != null)
         {
             GameObject proj = Instantiate(spell.projectilePrefab, transform.position, Quaternion.identity);
             SpellProjectile projectile = proj.GetComponent<SpellProjectile>();
             if (projectile == null) projectile = proj.AddComponent<SpellProjectile>();
 
-            projectile.Initialize(spell, direction);
+            SpellProjectileDebug.Log($"SpawnProjectile via PREFAB go={proj.name} id={proj.GetInstanceID()}", proj);
+            projectile.Initialize(spell, direction, transform);
             return;
         }
 
-        Vector2 origin = (Vector2)transform.position + direction * 0.5f;
-        RaycastHit2D[] hits = Physics2D.CircleCastAll(origin, 0.3f, direction, spell.range, LayerMask.GetMask("Enemy"));
-        for (int i = 0; i < hits.Length; i++)
-        {
-            Collider2D collider = hits[i].collider;
-            if (collider == null)
-            {
-                continue;
-            }
-
-            IDamageable damageable = collider.GetComponent<IDamageable>();
-            if (damageable == null) damageable = collider.GetComponentInParent<IDamageable>();
-            if (damageable != null)
-            {
-                int finalDamage = Mathf.RoundToInt(spell.damage * spell.element.GetMultiplierAgainst(GetTargetElement(collider.gameObject)));
-                damageable.TakeDamage(finalDamage);
-            }
-        }
+        GameObject runtimeProjectile = new GameObject($"SpellProjectile_{spell.spellId}");
+        SpellProjectile runtime = runtimeProjectile.AddComponent<SpellProjectile>();
+        SpellProjectileDebug.Log($"SpawnProjectile RUNTIME go={runtimeProjectile.name} id={runtimeProjectile.GetInstanceID()}", runtimeProjectile);
+        runtime.Initialize(spell, direction, transform);
     }
 
     private void ExecuteDash(SpellDefinition spell, Vector2 direction)
     {
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        if (rb != null)
+        if (dashRoutine != null)
         {
-            Vector2 target = rb.position + direction * spell.range;
-            rb.MovePosition(target);
+            StopCoroutine(dashRoutine);
         }
+
+        dashRoutine = StartCoroutine(DashRoutine(spell, direction));
+    }
+
+    private IEnumerator DashRoutine(SpellDefinition spell, Vector2 direction)
+    {
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+        {
+            dashRoutine = null;
+            yield break;
+        }
+
+        Vector2 normalized = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector2.down;
+        Vector2 start = rb.position;
+        Vector2 end = start + normalized * spell.range;
+        float duration = 0.14f;
+
+        SpellVfxLibrary.PlayDash(start, normalized, spell.range, duration, spell.elementColor);
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            float eased = 1f - (1f - t) * (1f - t);
+            rb.MovePosition(Vector2.Lerp(start, end, eased));
+            yield return null;
+        }
+
+        rb.MovePosition(end);
+        AudioHooks.Sfx(AudioClipId.SfxSpellAirdashLand);
+        dashRoutine = null;
     }
 
     private void ApplySelfBuff(SpellDefinition spell)
@@ -211,22 +288,27 @@ public sealed class PlayerSpellCaster : MonoBehaviour
         PlayerHealth health = GetComponent<PlayerHealth>();
         if (health != null && spell.element == ElementType.Water)
         {
-            // Water self-buff: heal
-            int healAmount = Mathf.RoundToInt(spell.damage * 0.5f);
-            // PlayerHealth doesn't have Heal, we'll add it
+            int healAmount = spell.damage > 0
+                ? ScaleSpellDamage(Mathf.RoundToInt(spell.damage * 0.5f))
+                : ScaleSpellDamage(15);
             health.Heal(healAmount);
+            float auraDuration = spell.duration > 0f ? spell.duration : 1.2f;
+            SpellVfxLibrary.PlayHealAura(transform, auraDuration, spell.elementColor);
         }
         else if (spell.element == ElementType.Earth)
         {
             PlayerBuffReceiver buffReceiver = GetComponent<PlayerBuffReceiver>();
             if (buffReceiver == null) buffReceiver = gameObject.AddComponent<PlayerBuffReceiver>();
-            buffReceiver.ApplyShield(spell.damage, spell.duration > 0 ? spell.duration : 5f);
+            float shieldDuration = spell.duration > 0 ? spell.duration : 5f;
+            buffReceiver.ApplyShield(ScaleSpellDamage(spell.damage), shieldDuration);
+            SpellVfxLibrary.PlayShieldAura(transform, shieldDuration, spell.elementColor);
         }
     }
 
     private void SpawnAoE(SpellDefinition spell)
     {
         Vector2 center = (Vector2)transform.position + (movement != null ? movement.LookDirection : Vector2.down) * 1.5f;
+        SpellVfxLibrary.PlayImpact(center, spell.element, spell.elementColor, Mathf.Max(1f, spell.radius));
         Collider2D[] hits = Physics2D.OverlapCircleAll(center, Mathf.Max(0.5f, spell.radius), LayerMask.GetMask("Enemy"));
         for (int i = 0; i < hits.Length; i++)
         {
@@ -234,7 +316,8 @@ public sealed class PlayerSpellCaster : MonoBehaviour
             if (damageable == null) damageable = hits[i].GetComponentInParent<IDamageable>();
             if (damageable != null)
             {
-                int finalDamage = Mathf.RoundToInt(spell.damage * spell.element.GetMultiplierAgainst(GetTargetElement(hits[i].gameObject)));
+                int finalDamage = ScaleSpellDamage(
+                    Mathf.RoundToInt(spell.damage * spell.element.GetMultiplierAgainst(GetTargetElement(hits[i].gameObject))));
                 damageable.TakeDamage(finalDamage);
             }
         }
@@ -419,6 +502,7 @@ public sealed class PlayerSpellCaster : MonoBehaviour
             ElementType.Air => new Color(0.85f, 0.95f, 1f),
             _ => Color.white
         };
+        spell.icon = SpellVfxLibrary.ResolveSpellIcon(spell);
         return spell;
     }
 

@@ -4,22 +4,25 @@ using System.Collections.Generic;
 public sealed class CraftingProgressionService : MonoBehaviour
 {
     private static CraftingProgressionService instance;
-    public static CraftingProgressionService Instance
+    public static CraftingProgressionService Instance => ResolveInstance();
+
+    private static CraftingProgressionService ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("CraftingProgressionService");
-                instance = go.AddComponent<CraftingProgressionService>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<CraftingProgressionService>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("CraftingProgressionService");
+            instance = go.AddComponent<CraftingProgressionService>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     [Header("Progression")]
-    [SerializeField] private int baseXpPerCraft = 10;
     // Steeper curve + higher cap so the new high-tier recipes (levels 6-8) take
     // real grinding to unlock. Each recipe grants 10 XP, each spell 25 XP.
     [SerializeField] private int[] xpThresholds = { 0, 90, 230, 430, 700, 1050, 1490, 2030, 2680, 3450, 4350, 5390, 6580, 7930 };
@@ -36,6 +39,11 @@ public sealed class CraftingProgressionService : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
     }
 
     public int GetCurrentLevel()
@@ -100,6 +108,7 @@ public sealed class CraftingProgressionService : MonoBehaviour
         {
             currentLevel++;
             progress.crafting.level = currentLevel;
+            AudioHooks.Sfx(AudioClipId.SfxCraftLevelUp);
             OnLevelChanged?.Invoke(currentLevel, progress.crafting.craftingXp);
             nextThreshold = GetThresholdForLevel(currentLevel + 1);
         }

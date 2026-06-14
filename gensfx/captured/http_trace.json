@@ -1,0 +1,11 @@
+{
+  "endpoint": "https://api.elevenlabs.io/sound-generation",
+  "proxy": "206.123.156.236:4243 (socks5)",
+  "variant_count": 4,
+  "saved_files": [
+    "H:\\Diplom\\Аделина\\ForestAlchemist\\gensfx\\output\\probe\\probe_01.opus",
+    "H:\\Diplom\\Аделина\\ForestAlchemist\\gensfx\\output\\probe\\probe_02.opus",
+    "H:\\Diplom\\Аделина\\ForestAlchemist\\gensfx\\output\\probe\\probe_03.opus",
+    "H:\\Diplom\\Аделина\\ForestAlchemist\\gensfx\\output\\probe\\probe_04.opus"
+  ]
+}

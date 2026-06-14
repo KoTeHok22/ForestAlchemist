@@ -52,6 +52,8 @@ public sealed class EvacuationPoint : MonoBehaviour
         {
             ExpeditionManager.Instance.TryUnlockReturn("evacuation_point");
             QuestManager.Instance.ReportReturnPointReached("evacuation_point");
+            AudioHooks.Bridge?.PlayEvacuation();
+            AudioHooks.Bridge?.PlayLocationReached();
             ExpeditionManager.Instance.EndExpedition(ExpeditionResult.Success);
         }
     }

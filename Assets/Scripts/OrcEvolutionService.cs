@@ -3,18 +3,22 @@ using UnityEngine;
 public sealed class OrcEvolutionService : MonoBehaviour
 {
     private static OrcEvolutionService instance;
-    public static OrcEvolutionService Instance
+    public static OrcEvolutionService Instance => ResolveInstance();
+
+    private static OrcEvolutionService ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("OrcEvolutionService");
-                instance = go.AddComponent<OrcEvolutionService>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<OrcEvolutionService>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("OrcEvolutionService");
+            instance = go.AddComponent<OrcEvolutionService>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     private void Awake()
@@ -26,6 +30,11 @@ public sealed class OrcEvolutionService : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
     }
 
     public void Evolve(bool playerDied)

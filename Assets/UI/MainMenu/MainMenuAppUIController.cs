@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using TextField = Unity.AppUI.UI.TextField;
-using Toggle = Unity.AppUI.UI.Toggle;
 
 /// <summary>
 /// App UI–based replacement for the legacy uGUI MainMenuController.
@@ -25,6 +24,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     private VisualElement screenMain;
     private VisualElement screenLogin;
     private VisualElement screenSettings;
+    private VisualElement screenControls;
     private VisualElement screenRecords;
     private VisualElement screenLoad;
     private VisualElement screenNewGame;
@@ -49,14 +49,12 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     private Label loginStatus;
 
     // Settings
-    private Dropdown settingsResolution;
-    private Dropdown settingsQuality;
-    private Toggle settingsWindowed;
-    private Toggle settingsMusicEnabled;
-    private Toggle settingsSfxEnabled;
-    private SliderFloat settingsMusicVolume;
-    private SliderFloat settingsSfxVolume;
+    private SettingsPanelController settingsPanel;
+    private ControlsSettingsPanelController controlsPanel;
+    private VisualElement btnOpenControls;
     private VisualElement btnLogout;
+    private VisualElement accountActions;
+    private Label accountSectionTitle;
     private VisualElement btnSettingsClose;
 
     // Records
@@ -76,8 +74,8 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     private IMenuRecordsService recordsService;
 
     private Coroutine loadRoutine;
-    private bool isApplyingSettings;
     private bool pendingNewGameReset;
+    private AppUIClickRouter clickRouter;
 
     private void Awake()
     {
@@ -100,12 +98,18 @@ public sealed class MainMenuAppUIController : MonoBehaviour
         }
 
         CacheElements();
-        PopulateDropdowns();
+        settingsPanel = new SettingsPanelController(root, settingsApplier, accountService);
+        controlsPanel = new ControlsSettingsPanelController(root, accountService);
+        controlsPanel.OnBackRequested = CloseControlsToSettings;
         BindButtons();
-        BindSettings();
         ShowOverlay(null);
         ApplySessionState();
         RefreshRecords();
+    }
+
+    private void OnDisable()
+    {
+        controlsPanel?.CancelRebind();
     }
 
     // =================== Wiring ===================
@@ -115,6 +119,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
         screenMain     = root.Q<VisualElement>("screen-main");
         screenLogin    = root.Q<VisualElement>("screen-login");
         screenSettings = root.Q<VisualElement>("screen-settings");
+        screenControls = root.Q<VisualElement>("screen-controls");
         screenRecords  = root.Q<VisualElement>("screen-records");
         screenLoad     = root.Q<VisualElement>("screen-load");
         screenNewGame  = root.Q<VisualElement>("screen-newgame");
@@ -135,14 +140,10 @@ public sealed class MainMenuAppUIController : MonoBehaviour
         btnLoginClose  = root.Q<VisualElement>("btn-login-close");
         loginStatus    = root.Q<Label>("login-status");
 
-        settingsResolution    = root.Q<Dropdown>("settings-resolution");
-        settingsQuality       = root.Q<Dropdown>("settings-quality");
-        settingsWindowed      = root.Q<Toggle>("settings-windowed");
-        settingsMusicEnabled  = root.Q<Toggle>("settings-music-enabled");
-        settingsSfxEnabled    = root.Q<Toggle>("settings-sfx-enabled");
-        settingsMusicVolume   = root.Q<SliderFloat>("settings-music-volume");
-        settingsSfxVolume     = root.Q<SliderFloat>("settings-sfx-volume");
         btnLogout             = root.Q<VisualElement>("btn-logout");
+        accountActions        = root.Q<VisualElement>("account-actions");
+        accountSectionTitle   = root.Q<Label>("account-section-title");
+        btnOpenControls       = root.Q<VisualElement>("btn-open-controls");
         btnSettingsClose      = root.Q<VisualElement>("btn-settings-close");
 
         recordsList     = root.Q<ScrollView>("records-list");
@@ -154,84 +155,28 @@ public sealed class MainMenuAppUIController : MonoBehaviour
         btnNewGameNo  = root.Q<VisualElement>("btn-newgame-no");
     }
 
-    private void PopulateDropdowns()
-    {
-        if (settingsResolution != null)
-        {
-            settingsResolution.sourceItems = new List<string>
-            {
-                "1280x720",
-                "1600x900",
-                "1920x1080",
-                "2560x1440",
-                "3840x2160"
-            };
-            settingsResolution.bindItem = (item, i) => item.label = (string)settingsResolution.sourceItems[i];
-        }
-
-        if (settingsQuality != null)
-        {
-            settingsQuality.sourceItems = new List<string> { "Низкое", "Среднее", "Высокое", "Очень высокое" };
-            settingsQuality.bindItem = (item, i) => item.label = (string)settingsQuality.sourceItems[i];
-        }
-    }
-
     private void BindButtons()
     {
-        BindClick(btnNewGame,      OpenNewGame);
-        BindClick(btnContinue,     ContinueGame);
-        BindClick(btnRecords,      OpenRecords);
-        BindClick(btnExit,         ExitGame);
-        BindClick(btnSettingsGear, OpenSettings);
-        BindClick(btnAccountHit,   OpenLogin);
+        VisualElement clickRoot = root.Q<VisualElement>("root-panel") ?? root;
+        clickRouter = new AppUIClickRouter(clickRoot);
 
-        BindClick(btnDoLogin,    TryLogin);
-        BindClick(btnDoRegister, TryRegister);
-        BindClick(btnLoginClose, CloseOverlay);
-        BindClick(btnSettingsClose, CloseOverlay);
-        BindClick(btnRecordsClose,  CloseOverlay);
-        BindClick(btnLogout, Logout);
+        clickRouter.Add(btnNewGame, OpenNewGame);
+        clickRouter.Add(btnContinue, ContinueGame);
+        clickRouter.Add(btnRecords, OpenRecords);
+        clickRouter.Add(btnExit, ExitGame);
+        clickRouter.Add(btnSettingsGear, OpenSettings);
+        clickRouter.Add(btnAccountHit, OpenLogin);
 
-        BindClick(btnNewGameYes, ConfirmNewGame);
-        BindClick(btnNewGameNo,  CancelNewGame);
-    }
+        clickRouter.Add(btnDoLogin, TryLogin);
+        clickRouter.Add(btnDoRegister, TryRegister);
+        clickRouter.Add(btnLoginClose, CloseOverlay);
+        clickRouter.Add(btnSettingsClose, CloseOverlay);
+        clickRouter.Add(btnOpenControls, OpenControlsFromSettings);
+        clickRouter.Add(btnRecordsClose, CloseOverlay);
+        clickRouter.Add(btnLogout, Logout);
 
-    private static void BindClick(VisualElement element, System.Action callback)
-    {
-        if (element == null || callback == null) return;
-        element.RegisterCallback<ClickEvent>(_ =>
-        {
-            if (element.enabledSelf)
-            {
-                callback();
-            }
-        });
-        // Hand cursor for clarity
-        element.pickingMode = PickingMode.Position;
-    }
-
-    private void BindSettings()
-    {
-        if (settingsResolution != null)
-            settingsResolution.RegisterValueChangedCallback(_ => OnSettingsChanged());
-
-        if (settingsQuality != null)
-            settingsQuality.RegisterValueChangedCallback(_ => OnSettingsChanged());
-
-        if (settingsWindowed != null)
-            settingsWindowed.RegisterValueChangedCallback(_ => OnSettingsChanged());
-
-        if (settingsMusicEnabled != null)
-            settingsMusicEnabled.RegisterValueChangedCallback(_ => OnSettingsChanged());
-
-        if (settingsSfxEnabled != null)
-            settingsSfxEnabled.RegisterValueChangedCallback(_ => OnSettingsChanged());
-
-        if (settingsMusicVolume != null)
-            settingsMusicVolume.RegisterValueChangedCallback(_ => OnSettingsChanged());
-
-        if (settingsSfxVolume != null)
-            settingsSfxVolume.RegisterValueChangedCallback(_ => OnSettingsChanged());
+        clickRouter.Add(btnNewGameYes, ConfirmNewGame);
+        clickRouter.Add(btnNewGameNo, CancelNewGame);
     }
 
     // =================== Screen switching ===================
@@ -240,6 +185,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     {
         SetScreenVisible(screenLogin,    screen == screenLogin);
         SetScreenVisible(screenSettings, screen == screenSettings);
+        SetScreenVisible(screenControls, screen == screenControls);
         SetScreenVisible(screenRecords,  screen == screenRecords);
         SetScreenVisible(screenLoad,     screen == screenLoad);
         SetScreenVisible(screenNewGame,  screen == screenNewGame);
@@ -252,7 +198,29 @@ public sealed class MainMenuAppUIController : MonoBehaviour
         screen.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
-    private void CloseOverlay() => ShowOverlay(null);
+    private void CloseOverlay()
+    {
+        controlsPanel?.CancelRebind();
+        ShowOverlay(null);
+    }
+
+    private void OpenControlsFromSettings()
+    {
+        if (!accountService.IsAuthenticated)
+        {
+            return;
+        }
+
+        controlsPanel?.Refresh();
+        SetScreenVisible(screenSettings, false);
+        SetScreenVisible(screenControls, true);
+    }
+
+    private void CloseControlsToSettings()
+    {
+        SetScreenVisible(screenControls, false);
+        SetScreenVisible(screenSettings, true);
+    }
 
     // =================== Account / new game / continue ===================
 
@@ -272,6 +240,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     public void ConfirmNewGame()
     {
         if (!accountService.IsAuthenticated || loadRoutine != null) return;
+        AudioHooks.SfxUnscaled(AudioClipId.SfxMenuNewGameConfirm);
         StartNewGame();
     }
 
@@ -298,8 +267,8 @@ public sealed class MainMenuAppUIController : MonoBehaviour
 
     public void OpenSettings()
     {
-        if (!accountService.IsAuthenticated) return;
-        PushSettingsToControls(accountService.CurrentAccount.settings);
+        // Settings (graphics + sound) are machine-wide and do not require a login.
+        PushSettingsToControls(GlobalSettingsStore.Current);
         ShowOverlay(screenSettings);
     }
 
@@ -319,6 +288,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
 
     public void ExitGame()
     {
+        AudioHooks.SfxUnscaled(AudioClipId.SfxMenuExitGame);
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -330,6 +300,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     {
         AuthOperationResult result = accountService.TryLogin(GetUsername(), GetPassword());
         SetLoginStatus(result.Message);
+        AudioHooks.SfxUnscaled(result.IsSuccess ? AudioClipId.SfxMenuLoginSuccess : AudioClipId.SfxMenuLoginFail);
 
         if (!result.IsSuccess) return;
 
@@ -344,8 +315,13 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     {
         AuthOperationResult result = accountService.TryRegister(GetUsername(), GetPassword());
         SetLoginStatus(result.Message);
+        if (!result.IsSuccess)
+        {
+            AudioHooks.SfxUnscaled(AudioClipId.SfxMenuLoginFail);
+            return;
+        }
 
-        if (!result.IsSuccess) return;
+        AudioHooks.SfxUnscaled(AudioClipId.SfxMenuRegisterSuccess);
 
         ClearLoginInputs();
         GameCore.Instance.ReloadRuntimeProgress();
@@ -358,7 +334,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     {
         accountService.Logout();
         GameCore.Instance.ReloadRuntimeProgress();
-        PushSettingsToControls(MenuSettingsFactory.CreateDefault());
+        // Settings are machine-wide — logging out must NOT reset them.
         ShowOverlay(null);
         ApplySessionState();
         RefreshRecords();
@@ -377,14 +353,15 @@ public sealed class MainMenuAppUIController : MonoBehaviour
         SetElementEnabled(btnContinue, authed && accountService.HasSavedGame);
         SetElementEnabled(btnRecords,  authed);
 
-        if (authed)
-        {
-            PushSettingsToControls(accountService.CurrentAccount.settings);
-        }
-        else
+        // Logout (and its "Account" heading) only make sense when signed in.
+        SetScreenVisible(accountSectionTitle, authed);
+        SetScreenVisible(accountActions, authed);
+
+        // Settings are machine-wide, independent of which account (if any) is active.
+        PushSettingsToControls(GlobalSettingsStore.Current);
+        if (!authed)
         {
             SetLoadProgress(0f);
-            PushSettingsToControls(MenuSettingsFactory.CreateDefault());
         }
     }
 
@@ -396,49 +373,9 @@ public sealed class MainMenuAppUIController : MonoBehaviour
 
     // =================== Settings ===================
 
-    private void OnSettingsChanged()
-    {
-        if (isApplyingSettings) return;
-
-        MenuSettingsData settings = CaptureSettingsFromUi();
-        settingsApplier.Apply(settings);
-
-        if (!accountService.IsAuthenticated) return;
-
-        accountService.CurrentAccount.settings = settings;
-        accountService.Save();
-    }
-
-    private MenuSettingsData CaptureSettingsFromUi()
-    {
-        MenuSettingsData defaults = MenuSettingsFactory.CreateDefault();
-        return new MenuSettingsData
-        {
-            musicVolume             = settingsMusicVolume != null ? settingsMusicVolume.value : defaults.musicVolume,
-            sfxVolume               = settingsSfxVolume   != null ? settingsSfxVolume.value   : defaults.sfxVolume,
-            resolutionDropdownIndex = settingsResolution  != null ? settingsResolution.selectedIndex : defaults.resolutionDropdownIndex,
-            qualityDropdownIndex    = settingsQuality     != null ? settingsQuality.selectedIndex    : defaults.qualityDropdownIndex,
-            musicEnabled            = settingsMusicEnabled != null ? settingsMusicEnabled.value : defaults.musicEnabled,
-            sfxEnabled              = settingsSfxEnabled   != null ? settingsSfxEnabled.value   : defaults.sfxEnabled,
-            windowedModeEnabled     = settingsWindowed     != null ? settingsWindowed.value     : defaults.windowedModeEnabled
-        };
-    }
-
     private void PushSettingsToControls(MenuSettingsData settings)
     {
-        MenuSettingsData src = settings ?? MenuSettingsFactory.CreateDefault();
-        isApplyingSettings = true;
-
-        if (settingsMusicVolume != null)   settingsMusicVolume.SetValueWithoutNotify(src.musicVolume);
-        if (settingsSfxVolume != null)     settingsSfxVolume.SetValueWithoutNotify(src.sfxVolume);
-        if (settingsResolution != null)    settingsResolution.SetValueWithoutNotify(new[] { src.resolutionDropdownIndex });
-        if (settingsQuality != null)       settingsQuality.SetValueWithoutNotify(new[] { src.qualityDropdownIndex });
-        if (settingsMusicEnabled != null)  settingsMusicEnabled.SetValueWithoutNotify(src.musicEnabled);
-        if (settingsSfxEnabled != null)    settingsSfxEnabled.SetValueWithoutNotify(src.sfxEnabled);
-        if (settingsWindowed != null)      settingsWindowed.SetValueWithoutNotify(src.windowedModeEnabled);
-
-        isApplyingSettings = false;
-        settingsApplier.Apply(src);
+        settingsPanel?.PushToControls(settings);
     }
 
     // =================== Records ===================
@@ -495,6 +432,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
     private IEnumerator LoadHomeAsync()
     {
         SetLoadProgress(0f);
+        AudioHooks.Manager?.NotifyLoadingStarted();
 
         if (pendingNewGameReset)
         {
@@ -508,6 +446,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
         if (op == null)
         {
             loadRoutine = null;
+            AudioHooks.Manager?.NotifyLoadingFinished();
             yield break;
         }
 
@@ -520,6 +459,7 @@ public sealed class MainMenuAppUIController : MonoBehaviour
 
         SetLoadProgress(1f);
         loadRoutine = null;
+        AudioHooks.Manager?.NotifyLoadingFinished();
     }
 
     private void StartNewGame()

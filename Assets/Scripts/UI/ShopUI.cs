@@ -12,6 +12,8 @@ public sealed class ShopUI : MonoBehaviour
 {
     private const string ViewPath = "Assets/UI/HomePanels/ShopView.uxml";
     private const string SettingsPath = "Assets/UI/HomePanels/ShopPanelSettings.asset";
+    private const string ViewResourcePath = "UI/HomePanels/ShopView";
+    private const string SettingsResourcePath = "UI/HomePanels/ShopPanelSettings";
 
     private enum Tab { Buy, Sell }
 
@@ -39,6 +41,7 @@ public sealed class ShopUI : MonoBehaviour
 
     private Tab activeTab = Tab.Buy;
     private bool built;
+    private bool isOpen;
 
     private void Awake()
     {
@@ -49,15 +52,32 @@ public sealed class ShopUI : MonoBehaviour
     {
         if (ShopService.Instance != null)
             ShopService.Instance.OnShopChanged -= OnShopChanged;
+
+        if (isOpen)
+        {
+            HomeUIBlocker.Release();
+            isOpen = false;
+        }
     }
 
     public void Open()
     {
-        EnsureBuilt();
-        if (root == null) return;
+        if (!EnsureBuilt())
+        {
+            Debug.LogError("[ShopUI] Не удалось открыть лавку: UI не собран.");
+            return;
+        }
+
         if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
         Refresh();
+        if (!isOpen)
+        {
+            HomeUIBlocker.Acquire();
+            isOpen = true;
+            AudioHooks.Sfx(AudioClipId.SfxHomeShopBell);
+            AudioHooks.PanelOpen();
+        }
     }
 
     public void Close()
@@ -65,29 +85,41 @@ public sealed class ShopUI : MonoBehaviour
         if (dimBg != null) dimBg.style.display = DisplayStyle.None;
         // Otherwise the Panel keeps eating all pointer events on top of Pause/HUD.
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        if (isOpen)
+        {
+            HomeUIBlocker.Release();
+            isOpen = false;
+            AudioHooks.PanelClose();
+        }
     }
 
     private void OnShopChanged(string _) => Refresh();
 
-    private void EnsureBuilt()
+    private bool EnsureBuilt()
     {
-        if (built && document != null) return;
+        if (built && panelRoot != null && dimBg != null)
+        {
+            return true;
+        }
 
         document = GetComponent<UIDocument>();
-        if (document == null) document = gameObject.AddComponent<UIDocument>();
+        if (document == null)
+        {
+            document = gameObject.AddComponent<UIDocument>();
+        }
 
-#if UNITY_EDITOR
-        if (document.visualTreeAsset == null)
-            document.visualTreeAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ViewPath);
-        if (document.panelSettings == null)
-            document.panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(SettingsPath);
-#endif
+        if (!HomePanelUiLoader.AssignAssets(document, ViewResourcePath, SettingsResourcePath, ViewPath, SettingsPath))
+        {
+            Debug.LogError("[ShopUI] visualTreeAsset или panelSettings не найдены.");
+            return false;
+        }
 
-        root = document.rootVisualElement;
-        if (root == null) return;
+        if (!HomePanelUiLoader.TryResolveShell(document, out root, out panelRoot, out dimBg))
+        {
+            Debug.LogError("[ShopUI] Разметка панели неполная (panel-root/dim-bg).");
+            return false;
+        }
 
-        panelRoot = root.Q<VisualElement>("panel-root");
-        dimBg = root.Q<VisualElement>("dim-bg");
         bloodIcon = root.Q<VisualElement>("blood-icon");
         bloodCount = root.Q<Label>("blood-count");
         tabBuy = root.Q<VisualElement>("tab-buy");
@@ -96,18 +128,21 @@ public sealed class ShopUI : MonoBehaviour
 
         clickRouter = new AppUIClickRouter(root);
 
-        var closeX = root.Q<VisualElement>("btn-close-x");
+        VisualElement closeX = root.Q<VisualElement>("btn-close-x");
         if (closeX != null) clickRouter.Add(closeX, Close);
         if (tabBuy != null) clickRouter.Add(tabBuy, () => SwitchTab(Tab.Buy));
         if (tabSell != null) clickRouter.Add(tabSell, () => SwitchTab(Tab.Sell));
 
         Sprite bloodSprite = ResolveIcon(ItemCatalog.OrcBlood);
         if (bloodIcon != null && bloodSprite != null)
+        {
             bloodIcon.style.backgroundImage = new StyleBackground(bloodSprite);
+        }
 
-        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
-        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        dimBg.style.display = DisplayStyle.None;
+        panelRoot.pickingMode = PickingMode.Ignore;
         built = true;
+        return true;
     }
 
     private void SwitchTab(Tab tab)

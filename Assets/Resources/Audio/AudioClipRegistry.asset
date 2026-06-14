@@ -1,0 +1,327 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06d5120d8b462424abd3521d78de9037, type: 3}
+  m_Name: AudioClipRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::AudioClipRegistry
+  entries:
+  - id: music_boss_warchief
+    clip: {fileID: 8300000, guid: 31124a3eb33f90e48b78150639e7ad4a, type: 3}
+    volumeGain: 1
+  - id: music_expedition_combat_layer
+    clip: {fileID: 8300000, guid: 26ed669e3a2dbc44fa1e612893efcd75, type: 3}
+    volumeGain: 1
+  - id: music_expedition_death
+    clip: {fileID: 8300000, guid: 472488be34ca1ee47af5635541016cd2, type: 3}
+    volumeGain: 1
+  - id: music_expedition_explore
+    clip: {fileID: 8300000, guid: 75112a0210adbe444a4714d8c2d5a015, type: 3}
+    volumeGain: 1
+  - id: music_expedition_success_stinger
+    clip: {fileID: 8300000, guid: 2882f4300fe0e614fbdb906b66b92f87, type: 3}
+    volumeGain: 1
+  - id: music_home_base
+    clip: {fileID: 8300000, guid: cc745f39fbd8c934b80b258b6c06021b, type: 3}
+    volumeGain: 1
+  - id: music_loading_underscore
+    clip: {fileID: 8300000, guid: 9fd4805f36c166943a181e27e88293e6, type: 3}
+    volumeGain: 1
+  - id: music_low_health_stinger
+    clip: {fileID: 8300000, guid: 3b4c6f9fc45ae314cbda460a3388ff31, type: 3}
+    volumeGain: 1
+  - id: music_main_menu
+    clip: {fileID: 8300000, guid: 03a727b38f25a624ea175d4f0dccc6e0, type: 3}
+    volumeGain: 1
+  - id: music_pause_dim
+    clip: {fileID: 8300000, guid: 73fa4a280c574054384582249a7b23ae, type: 3}
+    volumeGain: 1
+  - id: music_threat_level_up
+    clip: {fileID: 8300000, guid: e9d693bc8bc68654c886195521f9afe0, type: 3}
+    volumeGain: 1
+  - id: music_weather_fog_layer
+    clip: {fileID: 8300000, guid: 8af61f6f671c37a45b6f0adfca914ad8, type: 3}
+    volumeGain: 1
+  - id: music_weather_heatwave_layer
+    clip: {fileID: 8300000, guid: 9e4740d47be79e447a0000169e4acb91, type: 3}
+    volumeGain: 1
+  - id: music_weather_rain_layer
+    clip: {fileID: 8300000, guid: 41d9cff75c22d33429d2e345e1cf24eb, type: 3}
+    volumeGain: 1
+  - id: music_weather_storm_layer
+    clip: {fileID: 8300000, guid: d52724899de0b4f47976a4d1dcb903b6, type: 3}
+    volumeGain: 1
+  - id: sfx_altar_fire_activate
+    clip: {fileID: 8300000, guid: 8a3a387f5c68f4b458ff5725984e6cce, type: 3}
+    volumeGain: 1
+  - id: sfx_altar_water_activate
+    clip: {fileID: 8300000, guid: 123ea7581f9cf5f41bea29de9993c446, type: 3}
+    volumeGain: 1
+  - id: sfx_buff_consumable_drink
+    clip: {fileID: 8300000, guid: 9eaa674d4b2fc2d458ba9e79b12d8e73, type: 3}
+    volumeGain: 1
+  - id: sfx_buff_scroll_unfurl
+    clip: {fileID: 8300000, guid: 1fe174b4c8c257846b4ac0b7b88070a3, type: 3}
+    volumeGain: 1
+  - id: sfx_craft_fail_resources
+    clip: {fileID: 8300000, guid: a45032543e951ec40898af21b88ac365, type: 3}
+    volumeGain: 1
+  - id: sfx_craft_level_up
+    clip: {fileID: 8300000, guid: 82cc3776fb4965c418e11672559d756e, type: 3}
+    volumeGain: 1
+  - id: sfx_craft_success_potion
+    clip: {fileID: 8300000, guid: 13feca6139e5ff040baf37493aebed14, type: 3}
+    volumeGain: 1
+  - id: sfx_craft_success_spell
+    clip: {fileID: 8300000, guid: 68249dc86dcdd1647b81beb6c13e869a, type: 3}
+    volumeGain: 1
+  - id: sfx_currency_blood_gain
+    clip: {fileID: 8300000, guid: d45825f95b0a9a448aebcbb634458da2, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_base_defeated
+    clip: {fileID: 8300000, guid: f3115be70961cbd42aa0e612155ab38f, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_base_wave_spawn
+    clip: {fileID: 8300000, guid: e3b198b251908e443b8971cba0639c18, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_boss_death
+    clip: {fileID: 8300000, guid: ef6465ab0c56378489c1c23617347dff, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_boss_roar
+    clip: {fileID: 8300000, guid: a90b400a2649d984f8b3ac36524d2008, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_boss_stomp
+    clip: {fileID: 8300000, guid: 94b3ce3a406962244ab2a4511a371310, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_orc_aggro
+    clip: {fileID: 8300000, guid: 3da7a6e8cdb735040803bd5353c2f5ab, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_orc_attack_melee
+    clip: {fileID: 8300000, guid: ed5bb4138f7c2e04389c80cce717d5fd, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_orc_death
+    clip: {fileID: 8300000, guid: 8494d0ee22df7114c8ef12649e4c846c, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_orc_hit
+    clip: {fileID: 8300000, guid: abde2277b7a56f042ae47f72c8381135, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_shaman_cast
+    clip: {fileID: 8300000, guid: 7ca3fd6ca7afe09439e48d2a383d3b48, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_shaman_projectile
+    clip: {fileID: 8300000, guid: 94bea00f07111e146999370c635271a8, type: 3}
+    volumeGain: 1
+  - id: sfx_enemy_shaman_projectile_hit
+    clip: {fileID: 8300000, guid: 3f55432d8d057784b8bfcad498e0a95a, type: 3}
+    volumeGain: 1
+  - id: sfx_evacuation_point_activate
+    clip: {fileID: 8300000, guid: 32f3b4732ed7f7d4cbd755ca1021f34b, type: 3}
+    volumeGain: 1
+  - id: sfx_expedition_inventory_lost
+    clip: {fileID: 8300000, guid: 6bee02211234ef64dace3431d00802c1, type: 3}
+    volumeGain: 1
+  - id: sfx_gather_cancel
+    clip: {fileID: 8300000, guid: 4586b93040e1d244ca0d7cd972d0a0b5, type: 3}
+    volumeGain: 1
+  - id: sfx_gather_complete
+    clip: {fileID: 8300000, guid: 10a5992b12213ea4a8af4d8050b5d507, type: 3}
+    volumeGain: 1
+  - id: sfx_gather_flower_complete
+    clip: {fileID: 8300000, guid: 5a7be5af399968d44ba60aff7613cd2a, type: 3}
+    volumeGain: 1
+  - id: sfx_gather_loop
+    clip: {fileID: 8300000, guid: e631561c1be227748b3110a3d02b9ea8, type: 3}
+    volumeGain: 1
+  - id: sfx_gather_start
+    clip: {fileID: 8300000, guid: dd4ac852f9e8d44458066bdb50260112, type: 3}
+    volumeGain: 1
+  - id: sfx_home_chest_close
+    clip: {fileID: 8300000, guid: 03953aa37f781ed4b867e2f88941b868, type: 3}
+    volumeGain: 1
+  - id: sfx_home_chest_open
+    clip: {fileID: 8300000, guid: 19cd6f39e9e18f84d8f386f097cc1a1d, type: 3}
+    volumeGain: 1
+  - id: sfx_home_craft_station_open
+    clip: {fileID: 8300000, guid: e5bf59d9cea6bd14db75eeed635afe34, type: 3}
+    volumeGain: 1
+  - id: sfx_home_expedition_start
+    clip: {fileID: 8300000, guid: 4fab6e54c23aec244af703f700ed42c2, type: 3}
+    volumeGain: 1
+  - id: sfx_home_garden_harvest
+    clip: {fileID: 8300000, guid: adcecd3b93738c442a18eaa044ff0950, type: 3}
+    volumeGain: 1
+  - id: sfx_home_quest_accept
+    clip: {fileID: 8300000, guid: e1b31667b3e23494fb279aec12e005d3, type: 3}
+    volumeGain: 1
+  - id: sfx_home_quest_board_rustle
+    clip: {fileID: 8300000, guid: 8b057e2a0a5623644a63d646385c31b4, type: 3}
+    volumeGain: 1
+  - id: sfx_home_shop_bell
+    clip: {fileID: 8300000, guid: 36a8e72816d63af46b41c2e5cb78840c, type: 3}
+    volumeGain: 1
+  - id: sfx_home_stat_upgrade_purchase
+    clip: {fileID: 8300000, guid: b8036b9efd46922418b26527f17daf21, type: 3}
+    volumeGain: 1
+  - id: sfx_item_pickup_generic
+    clip: {fileID: 8300000, guid: 3b9a7014fedbcc94fa74bead4ab5649c, type: 3}
+    volumeGain: 1
+  - id: sfx_item_pickup_rare
+    clip: {fileID: 8300000, guid: e4e957404e4db7e449b071cb845cdce3, type: 3}
+    volumeGain: 1
+  - id: sfx_menu_exit_game
+    clip: {fileID: 8300000, guid: fb56f4931cb02fa43b806094d73f5e51, type: 3}
+    volumeGain: 1
+  - id: sfx_menu_login_fail
+    clip: {fileID: 8300000, guid: a0e8fba250a650849b750c45c2289321, type: 3}
+    volumeGain: 1
+  - id: sfx_menu_login_success
+    clip: {fileID: 8300000, guid: a7f076b821dd6fe449aa8079d4fa680d, type: 3}
+    volumeGain: 1
+  - id: sfx_menu_new_game_confirm
+    clip: {fileID: 8300000, guid: 437b167b9f0b5484e81f998c68544b95, type: 3}
+    volumeGain: 1
+  - id: sfx_menu_register_success
+    clip: {fileID: 8300000, guid: 2fb7977be47d68945a560018fb2871ca, type: 3}
+    volumeGain: 1
+  - id: sfx_player_attack_hit_flesh
+    clip: {fileID: 8300000, guid: 48f416c755cd4784bb58a74c6a1c92ba, type: 3}
+    volumeGain: 1
+  - id: sfx_player_attack_swing
+    clip: {fileID: 8300000, guid: 88f8235382c4cd445aa92682b7e526fb, type: 3}
+    volumeGain: 1
+  - id: sfx_player_death
+    clip: {fileID: 8300000, guid: ab92b829a1ef6e0458760b518bfe6e17, type: 3}
+    volumeGain: 1
+  - id: sfx_player_footstep_grass_01
+    clip: {fileID: 8300000, guid: 8cbf08cde3b2d4946a59eda06023bdea, type: 3}
+    volumeGain: 1
+  - id: sfx_player_footstep_grass_02
+    clip: {fileID: 8300000, guid: 74c22b785618e5d45b398093ce30897b, type: 3}
+    volumeGain: 1
+  - id: sfx_player_footstep_run_01
+    clip: {fileID: 8300000, guid: f3d63c004463c6b41849a796a7db70a7, type: 3}
+    volumeGain: 1
+  - id: sfx_player_heal
+    clip: {fileID: 8300000, guid: d5f418ee5b3cac74899f631c797df23a, type: 3}
+    volumeGain: 1
+  - id: sfx_player_mana_restore
+    clip: {fileID: 8300000, guid: 5c7a005819005d24d9fb3da20bc44f93, type: 3}
+    volumeGain: 1
+  - id: sfx_player_take_damage
+    clip: {fileID: 8300000, guid: 8ab6b183aec250d4da9d77b0892cf458, type: 3}
+    volumeGain: 1
+  - id: sfx_portal_enter
+    clip: {fileID: 8300000, guid: 3ddaf4be2a0f1444fb94bdb2405c2a91, type: 3}
+    volumeGain: 1
+  - id: sfx_quest_boss_complete
+    clip: {fileID: 8300000, guid: c554ed1b0d4fcca46b373268d1fe86f5, type: 3}
+    volumeGain: 1
+  - id: sfx_quest_location_reached
+    clip: {fileID: 8300000, guid: 54f02c718e0df8a47aea3c4b0c09a52e, type: 3}
+    volumeGain: 1
+  - id: sfx_return_scroll_teleport
+    clip: {fileID: 8300000, guid: f51b1240b53785c4c85dd650df9dc401, type: 3}
+    volumeGain: 1
+  - id: sfx_return_unlocked
+    clip: {fileID: 8300000, guid: aa16c6782b6b6c649b41ed9b421c90cb, type: 3}
+    volumeGain: 1
+  - id: sfx_shield_apply
+    clip: {fileID: 8300000, guid: 70b60eb5a8919d14cb03335d50749572, type: 3}
+    volumeGain: 1
+  - id: sfx_shield_break
+    clip: {fileID: 8300000, guid: 9085d0737163daf49997c1d175f34c66, type: 3}
+    volumeGain: 1
+  - id: sfx_shield_hit_absorb
+    clip: {fileID: 8300000, guid: 026c5bcab677f024aaef949163dee8f8, type: 3}
+    volumeGain: 1
+  - id: sfx_shop_buy_fail
+    clip: {fileID: 8300000, guid: eb1c56d9b916ff340b2af497ce76dac6, type: 3}
+    volumeGain: 1
+  - id: sfx_shop_buy_success
+    clip: {fileID: 8300000, guid: 3effd4fab57b595419cc8ece34a56959, type: 3}
+    volumeGain: 1
+  - id: sfx_shop_sell_success
+    clip: {fileID: 8300000, guid: bf9f9c160a69f1647b1479b21670c682, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_airdash_cast
+    clip: {fileID: 8300000, guid: 246fbb0d74b9555429019e89a4c658d4, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_airdash_land
+    clip: {fileID: 8300000, guid: 407aabb68c08c8e4fabcb15b96549484, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_cast_fail_cooldown
+    clip: {fileID: 8300000, guid: 02271022566d0ab4aa6eaef9e8390456, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_cast_fail_mana
+    clip: {fileID: 8300000, guid: 1e01b7de6bf89b347b2a3d26edc571ff, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_firebolt_cast
+    clip: {fileID: 8300000, guid: 1c0c5db495088f2479718a4a5992d348, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_firebolt_impact
+    clip: {fileID: 8300000, guid: b73090d22652d3c4e89b0e64d9465dd4, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_infernobolt_cast
+    clip: {fileID: 8300000, guid: 0c6f6c4b2983b974ca60fa76a3fc1edf, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_infernobolt_impact
+    clip: {fileID: 8300000, guid: 4f8236299259ef940a6ba29e5ad3f174, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_infernobolt_travel_loop
+    clip: {fileID: 8300000, guid: 8bd00b707e917f444b05cb8ee96613c7, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_stoneskin_cast
+    clip: {fileID: 8300000, guid: 057a4e2be8404f04f88e054725ca6069, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_unlocked
+    clip: {fileID: 8300000, guid: 03414e1c91974854ca35f53d1c4baea7, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_warchief_wrath_cast
+    clip: {fileID: 8300000, guid: d54c7ef483d634045ae9266b11fdc54a, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_warchief_wrath_impact
+    clip: {fileID: 8300000, guid: a356b3e74a402494f9d5d338e5afcd48, type: 3}
+    volumeGain: 1
+  - id: sfx_spell_waterspring_cast
+    clip: {fileID: 8300000, guid: e2326edd669ca984cb8127c1b014e34e, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_button_click
+    clip: {fileID: 8300000, guid: a041b3b1f6b4e9549ac8bd832d62ce79, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_error_deny
+    clip: {fileID: 8300000, guid: 03c120fcdecbbad41bfab2d9eeea1e75, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_notification_quest
+    clip: {fileID: 8300000, guid: be4a8690679c7164b9d49a562dfcfbf7, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_notification_quest_complete
+    clip: {fileID: 8300000, guid: 3d83113a86513d240b3887270469f179, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_panel_close
+    clip: {fileID: 8300000, guid: 67bff57f438bb6144b885c97645b5f5f, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_panel_open
+    clip: {fileID: 8300000, guid: 3f6b7b3329b13384c9b0019e0c0166db, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_success_confirm
+    clip: {fileID: 8300000, guid: 265ef2fca28a192479a14cea2a10c8ff, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_toggle_off
+    clip: {fileID: 8300000, guid: 408ff93844d3eab46be326220868b173, type: 3}
+    volumeGain: 1
+  - id: sfx_ui_toggle_on
+    clip: {fileID: 8300000, guid: 0fd15147646764e488103a7133d414fa, type: 3}
+    volumeGain: 1
+  - id: sfx_weather_change_whoosh
+    clip: {fileID: 8300000, guid: f8561b4d853d60849ab9a73fd9b05389, type: 3}
+    volumeGain: 1
+  - id: sfx_weather_storm_thunder
+    clip: {fileID: 8300000, guid: 8f8481752d060d14a969bcbffa571e87, type: 3}
+    volumeGain: 1

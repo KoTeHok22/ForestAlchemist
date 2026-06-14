@@ -62,6 +62,7 @@ public sealed class LoadingOverlayController : MonoBehaviour
     public void LoadScene(string sceneName)
     {
         ShowVisual();
+        AudioHooks.Manager?.NotifyLoadingStarted();
         StartCoroutine(LoadRoutine(sceneName));
     }
 
@@ -72,6 +73,7 @@ public sealed class LoadingOverlayController : MonoBehaviour
         if (op == null)
         {
             Hide();
+            AudioHooks.Manager?.NotifyLoadingFinished();
             yield break;
         }
 
@@ -83,5 +85,6 @@ public sealed class LoadingOverlayController : MonoBehaviour
 
         SetProgress(1f);
         Hide();
+        AudioHooks.Manager?.NotifyLoadingFinished();
     }
 }

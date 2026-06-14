@@ -16,6 +16,7 @@ public sealed class EnemyStateMachine : MonoBehaviour
     public EnemyHealth Health { get; private set; }
 
     private IEnemyState currentState;
+    private System.Type previousStateType;
     private Vector2 currentVelocity;
     private LayerMask obstacleMask;
     private int enemyLayer;
@@ -52,10 +53,13 @@ public sealed class EnemyStateMachine : MonoBehaviour
 
     public void ChangeState(IEnemyState newState)
     {
+        previousStateType = currentState?.GetType();
         currentState?.Exit();
         currentState = newState;
         currentState?.Enter();
     }
+
+    public bool EnteredFromPatrol => previousStateType == typeof(EnemyPatrolState);
 
     private void Update()
     {
@@ -87,6 +91,8 @@ public sealed class EnemyStateMachine : MonoBehaviour
 
         return Vector2.Distance(transform.position, PlayerTarget.position);
     }
+
+    public bool IsAggressive => currentState is EnemyChaseState || currentState is EnemyAttackState;
 
     public Vector2 DirectionToPlayer()
     {

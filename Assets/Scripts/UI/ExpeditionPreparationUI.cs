@@ -13,6 +13,8 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
 {
     private const string ViewPath = "Assets/UI/HomePanels/ExpeditionPrepView.uxml";
     private const string SettingsPath = "Assets/UI/HomePanels/ExpeditionPrepPanelSettings.asset";
+    private const string ViewResourcePath = "UI/HomePanels/ExpeditionPrepView";
+    private const string SettingsResourcePath = "UI/HomePanels/ExpeditionPrepPanelSettings";
 
     private static readonly string[] SupportedItems =
     {
@@ -45,15 +47,27 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
     private readonly Dictionary<string, VisualElement> plusButtons = new Dictionary<string, VisualElement>();
 
     private bool built;
+    private bool isOpen;
+
+    public bool IsOpen => isOpen;
 
     public void Open()
     {
-        EnsureBuilt();
-        if (root == null) return;
+        if (!EnsureBuilt())
+        {
+            Debug.LogError("[ExpeditionPreparationUI] Не удалось загрузить UI сборов (проверь Resources/UI/HomePanels/).");
+            return;
+        }
+
         if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
         Refresh();
-        Time.timeScale = 0f;
+        if (!isOpen)
+        {
+            HomeUIBlocker.Acquire();
+            isOpen = true;
+            AudioHooks.PanelOpen();
+        }
     }
 
     public void Close()
@@ -61,7 +75,12 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         if (dimBg != null) dimBg.style.display = DisplayStyle.None;
         // Otherwise the Panel keeps eating all pointer events on top of HUD.
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
-        Time.timeScale = 1f;
+        if (isOpen)
+        {
+            HomeUIBlocker.Release();
+            isOpen = false;
+            AudioHooks.PanelClose();
+        }
     }
 
     public void StartPreparedExpedition()
@@ -72,56 +91,85 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        Time.timeScale = 1f;
+        if (isOpen)
+        {
+            HomeUIBlocker.Release();
+            isOpen = false;
+        }
     }
 
-    private void EnsureBuilt()
+    private bool EnsureBuilt()
     {
-        if (built && document != null) return;
+        if (built && panelRoot != null && dimBg != null && rowsContainer != null)
+        {
+            return true;
+        }
 
         document = GetComponent<UIDocument>();
-        if (document == null) document = gameObject.AddComponent<UIDocument>();
+        if (document == null)
+        {
+            document = gameObject.AddComponent<UIDocument>();
+        }
 
-#if UNITY_EDITOR
-        if (document.visualTreeAsset == null)
-            document.visualTreeAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ViewPath);
-        if (document.panelSettings == null)
-            document.panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(SettingsPath);
-#endif
+        if (!HomePanelUiLoader.AssignAssets(document, ViewResourcePath, SettingsResourcePath, ViewPath, SettingsPath))
+        {
+            Debug.LogError("[ExpeditionPreparationUI] visualTreeAsset или panelSettings не найдены.");
+            return false;
+        }
 
         root = document.rootVisualElement;
-        if (root == null) return;
+        if (root == null)
+        {
+            Debug.LogError("[ExpeditionPreparationUI] rootVisualElement пуст.");
+            return false;
+        }
 
         panelRoot = root.Q<VisualElement>("panel-root");
         dimBg = root.Q<VisualElement>("dim-bg");
         summary = root.Q<Label>("summary");
-        rowsContainer = root.Q<VisualElement>("rows");
+        rowsContainer = root.Q<ScrollView>("rows");
+        if (rowsContainer == null)
+        {
+            rowsContainer = root.Q<VisualElement>("rows");
+        }
+
+        if (panelRoot == null || dimBg == null || rowsContainer == null)
+        {
+            Debug.LogError("[ExpeditionPreparationUI] Разметка панели неполная (panel-root/dim-bg/rows).");
+            return false;
+        }
 
         clickRouter = new AppUIClickRouter(root);
 
-        var closeX = root.Q<VisualElement>("btn-close-x");
+        VisualElement closeX = root.Q<VisualElement>("btn-close-x");
         if (closeX != null) clickRouter.Add(closeX, Close);
 
-        var btnAuto = root.Q<VisualElement>("btn-auto");
+        VisualElement btnAuto = root.Q<VisualElement>("btn-auto");
         if (btnAuto != null) clickRouter.Add(btnAuto, ApplyRecommendedLoadout);
 
-        var btnClear = root.Q<VisualElement>("btn-clear");
+        VisualElement btnClear = root.Q<VisualElement>("btn-clear");
         if (btnClear != null) clickRouter.Add(btnClear, ClearLoadout);
 
-        var btnStart = root.Q<VisualElement>("btn-start");
+        VisualElement btnStart = root.Q<VisualElement>("btn-start");
         if (btnStart != null) clickRouter.Add(btnStart, StartPreparedExpedition);
 
         BuildRows();
 
-        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
-        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        dimBg.style.display = DisplayStyle.None;
+        panelRoot.pickingMode = PickingMode.Ignore;
         built = true;
+        return true;
     }
 
     private void BuildRows()
     {
         if (rowsContainer == null) return;
-        rowsContainer.Clear();
+
+        VisualElement rowsHost = rowsContainer is ScrollView scrollView
+            ? scrollView.contentContainer
+            : rowsContainer;
+
+        rowsHost.Clear();
         clickRouter?.RemoveDead();
         countLabels.Clear();
         stockLabels.Clear();
@@ -174,7 +222,7 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
             stepper.Add(plus);
 
             row.Add(stepper);
-            rowsContainer.Add(row);
+            rowsHost.Add(row);
         }
     }
 
@@ -293,8 +341,8 @@ public sealed class ExpeditionPreparationUI : MonoBehaviour
         if (summary != null)
         {
             summary.text = selectedItems > 0
-                ? $"Выбрано предметов: {selectedItems}. Всё выбранное исчезнет при смерти в походе."
-                : "Возьми расходники из домашнего хранилища. Всё выбранное исчезнет при смерти в походе.";
+                ? $"Выбрано предметов: {selectedItems}.\nВсё выбранное исчезнет при смерти в походе."
+                : "Возьми расходники из домашнего хранилища.\nВсё выбранное исчезнет при смерти в походе.";
         }
     }
 

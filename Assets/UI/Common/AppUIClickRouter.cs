@@ -65,6 +65,7 @@ public sealed class AppUIClickRouter
             if (!hit) continue;
 
             cb();
+            AudioManager.Instance?.PlayUiClick();
             evt.StopPropagation();
             return;
         }

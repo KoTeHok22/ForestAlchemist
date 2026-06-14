@@ -1,22 +1,25 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
 public sealed class HotbarManager : MonoBehaviour
 {
     private static HotbarManager instance;
-    public static HotbarManager Instance
+    public static HotbarManager Instance => ResolveInstance();
+
+    private static HotbarManager ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("HotbarManager");
-                instance = go.AddComponent<HotbarManager>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<HotbarManager>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("HotbarManager");
+            instance = go.AddComponent<HotbarManager>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     public const int SlotCount = 10;
@@ -40,24 +43,21 @@ public sealed class HotbarManager : MonoBehaviour
         EnsureDefaultHotbar();
     }
 
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
+    }
+
     private void Update()
     {
-        if (Keyboard.current == null) return;
-
-        // Skip hotkey activation while game is paused (Pause/Settings overlay).
         if (Time.timeScale > 0f)
         {
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < 10; i++)
             {
-                if (Keyboard.current[GetDigitKey(i)].wasPressedThisFrame)
+                if (GameControls.WasHotbarSlotPressed(i))
                 {
                     UseSlot(i);
                 }
-            }
-
-            if (Keyboard.current[Key.Digit0].wasPressedThisFrame)
-            {
-                UseSlot(9);
             }
         }
 
@@ -81,13 +81,24 @@ public sealed class HotbarManager : MonoBehaviour
             SpellDefinition spell = spellCaster.ResolveSpell(itemId);
             if (spell != null)
             {
+                SpellProjectileDebug.Log($"Hotbar slot={index} item={itemId} resolved spell={spell.spellId} timeScale={Time.timeScale}");
                 if (spellCaster.TryCast(spell))
                 {
                     StartCooldown(index, spell.cooldown);
                     OnSlotUsed?.Invoke(index);
                     return;
                 }
+
+                SpellProjectileDebug.Log($"Hotbar TryCast returned false for {spell.spellId}");
             }
+            else
+            {
+                SpellProjectileDebug.Log($"Hotbar slot={index} item={itemId} ResolveSpell=null");
+            }
+        }
+        else
+        {
+            SpellProjectileDebug.Log("Hotbar no PlayerSpellCaster in scene");
         }
 
         IItemAction action = ItemActionRegistry.GetAction(itemId);
@@ -208,11 +219,6 @@ public sealed class HotbarManager : MonoBehaviour
                 slotCooldowns[keys[i]] = remaining;
             }
         }
-    }
-
-    private Key GetDigitKey(int index)
-    {
-        return (Key)((int)Key.Digit1 + index);
     }
 
     private void EnsureDefaultHotbar()

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements"
+      xmlns:appui="Unity.AppUI.UI"
+      xmlns:ui="UnityEngine.UIElements">
+
+    <Style src="MinimapStyles.uss" />
+
+    <appui:Panel name="panel-root" class="minimap-root" theme="dark" scale="medium" picking-mode="Ignore">
+
+        <ui:VisualElement name="minimap-overlay" class="minimap-overlay hidden" picking-mode="Position">
+            <ui:VisualElement name="minimap-frame" class="minimap-frame" picking-mode="Ignore">
+                <ui:Label text="Карта леса" class="minimap-title" picking-mode="Ignore" />
+                <ui:Label text="M — закрыть" class="minimap-hint" picking-mode="Ignore" />
+
+                <ui:VisualElement name="minimap-map-wrap" class="minimap-map-wrap" picking-mode="Ignore">
+                    <ui:VisualElement name="minimap-north" class="minimap-north" picking-mode="Ignore">
+                        <ui:Label text="С" class="minimap-north__label" picking-mode="Ignore" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="minimap-markers" class="minimap-markers" picking-mode="Ignore" />
+                    <ui:VisualElement name="minimap-player" class="minimap-player" picking-mode="Ignore" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="minimap-legend" class="minimap-legend" picking-mode="Ignore" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+    </appui:Panel>
+</UXML>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="stall" class="shop-frame">
+                <ui:Label name="title" text="Лавка торговца" class="shop-title" />
+                <ui:VisualElement class="shop-content">
+                    <ui:VisualElement name="blood-bar" class="shop-bloodbar">
+                        <ui:VisualElement name="blood-icon" class="shop-bloodbar__icon" />
+                        <ui:Label name="blood-count" text="" class="shop-bloodbar__count" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="tabs" class="shop-tabs">
+                        <ui:VisualElement name="tab-buy" class="shop-tab shop-tab--active">
+                            <ui:Label text="Купить" class="shop-tab__label" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="tab-sell" class="shop-tab">
+                            <ui:Label text="Продать" class="shop-tab__label" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:ScrollView name="items-list" class="shop-list" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+                </ui:VisualElement>
+                <ui:VisualElement name="btn-close-x" class="shop-close">
+                    <ui:Label text="✕" class="shop-close__label" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>

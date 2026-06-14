@@ -11,7 +11,6 @@ using UnityEngine.InputSystem;
 public sealed class CraftingStationInteraction : MonoBehaviour
 {
     [SerializeField] private CraftingUI craftingUI;
-    [SerializeField] private Behaviour playerController;
     [SerializeField] private Camera targetCamera;
     [SerializeField] private float interactionDistance = 2f;
     [SerializeField] private Color highlightColor = new Color(0.45f, 1f, 0.85f, 1f);
@@ -30,7 +29,6 @@ public sealed class CraftingStationInteraction : MonoBehaviour
         if (spriteRenderer != null) defaultColor = spriteRenderer.color;
 
         if (targetCamera == null) targetCamera = Camera.main;
-        if (playerController == null) playerController = FindFirstObjectByType<PlayerTopDownController>();
 
         if (craftingUI == null) craftingUI = GetComponent<CraftingUI>();
         if (craftingUI == null) craftingUI = FindFirstObjectByType<CraftingUI>();
@@ -42,7 +40,7 @@ public sealed class CraftingStationInteraction : MonoBehaviour
 
     private void Update()
     {
-        if (isOpen)
+        if (isOpen || HomeUIBlocker.IsBlocked)
         {
             RestoreDefaultColor();
             return;
@@ -55,7 +53,6 @@ public sealed class CraftingStationInteraction : MonoBehaviour
     private void OnDisable()
     {
         RestoreDefaultColor();
-        SetPlayerControlEnabled(true);
     }
 
     private void UpdateHoverState()
@@ -78,15 +75,13 @@ public sealed class CraftingStationInteraction : MonoBehaviour
     {
         if (craftingUI == null) return;
         craftingUI.Open(OnPanelClosed);
-        isOpen = true;
+        isOpen = craftingUI.IsOpen;
         RestoreDefaultColor();
-        SetPlayerControlEnabled(false);
     }
 
     private void OnPanelClosed()
     {
         isOpen = false;
-        SetPlayerControlEnabled(true);
     }
 
     private bool IsPlayerInRange()
@@ -105,11 +100,6 @@ public sealed class CraftingStationInteraction : MonoBehaviour
         Vector2 mousePos = Mouse.current.position.ReadValue();
         Vector2 worldPos = targetCamera.ScreenToWorldPoint(mousePos);
         return triggerCollider.OverlapPoint(worldPos);
-    }
-
-    private void SetPlayerControlEnabled(bool enabledState)
-    {
-        if (playerController != null) playerController.enabled = enabledState;
     }
 
     private void RestoreDefaultColor()

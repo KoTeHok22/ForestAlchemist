@@ -17,18 +17,22 @@ using System.Collections.Generic;
 public sealed class ShopService : MonoBehaviour
 {
     private static ShopService instance;
-    public static ShopService Instance
+    public static ShopService Instance => ResolveInstance();
+
+    private static ShopService ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("ShopService");
-                instance = go.AddComponent<ShopService>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<ShopService>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("ShopService");
+            instance = go.AddComponent<ShopService>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     [System.Serializable]
@@ -80,6 +84,11 @@ public sealed class ShopService : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
+    }
+
     public List<ShopItem> GetBuyItems() => new List<ShopItem>(buyItems);
     public List<ShopItem> GetSellItems() => new List<ShopItem>(sellItems);
 
@@ -97,7 +106,11 @@ public sealed class ShopService : MonoBehaviour
 
     public bool TryBuy(string itemId)
     {
-        if (!CanBuy(itemId)) return false;
+        if (!CanBuy(itemId))
+        {
+            AudioHooks.Bridge?.PlayShopBuy(false);
+            return false;
+        }
 
         ShopItem item = Find(buyItems, itemId);
         var storage = InventoryService.Instance.HomeStorage;
@@ -106,6 +119,7 @@ public sealed class ShopService : MonoBehaviour
 
         OnShopChanged?.Invoke(itemId);
         GameCore.Instance.SaveProgress();
+        AudioHooks.Bridge?.PlayShopBuy(true);
         return true;
     }
 
@@ -134,6 +148,7 @@ public sealed class ShopService : MonoBehaviour
 
         OnShopChanged?.Invoke(itemId);
         GameCore.Instance.SaveProgress();
+        AudioHooks.Bridge?.PlayShopSell();
         return true;
     }
 

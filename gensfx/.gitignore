@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+output/
+*.opus
+captured/*.network-request
+captured/*.network-response
+proxy6.local.json
+.proxy_state.json

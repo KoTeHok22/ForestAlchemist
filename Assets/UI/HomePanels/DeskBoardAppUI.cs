@@ -10,6 +10,8 @@ public sealed class DeskBoardAppUI : MonoBehaviour
 {
     private const string ViewPath = "Assets/UI/HomePanels/DeskView.uxml";
     private const string SettingsPath = "Assets/UI/HomePanels/DeskPanelSettings.asset";
+    private const string ViewResourcePath = "UI/HomePanels/DeskView";
+    private const string SettingsResourcePath = "UI/HomePanels/DeskPanelSettings";
     private const string ChildName = "DeskOverlay_AppUI";
 
     private UIDocument document;
@@ -20,36 +22,66 @@ public sealed class DeskBoardAppUI : MonoBehaviour
     private AppUIClickRouter clickRouter;
 
     private bool built;
+    private bool isOpen;
     private System.Action onCloseRequested;
 
     public VisualElement TasksGrid => tasksGrid;
     public AppUIClickRouter ClickRouter => clickRouter;
 
+    private void OnDestroy()
+    {
+        if (isOpen)
+        {
+            HomeUIBlocker.Release();
+            isOpen = false;
+        }
+    }
+
+    public bool IsOpen => isOpen;
+
     public void Open(System.Action onClose)
     {
-        EnsureBuilt();
-        if (root == null) return;
+        if (!EnsureBuilt())
+        {
+            Debug.LogError("[DeskBoardAppUI] Не удалось открыть доску квестов: UI не собран.");
+            return;
+        }
+
         onCloseRequested = onClose;
         if (dimBg != null) dimBg.style.display = DisplayStyle.Flex;
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Position;
+        if (!isOpen)
+        {
+            HomeUIBlocker.Acquire();
+            isOpen = true;
+            AudioHooks.Sfx(AudioClipId.SfxHomeQuestBoardRustle);
+            AudioHooks.PanelOpen();
+        }
     }
 
     public void Close()
     {
         if (dimBg != null) dimBg.style.display = DisplayStyle.None;
         if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        if (isOpen)
+        {
+            HomeUIBlocker.Release();
+            isOpen = false;
+            AudioHooks.PanelClose();
+        }
+
         var cb = onCloseRequested;
         onCloseRequested = null;
         cb?.Invoke();
     }
 
-    private void EnsureBuilt()
+    private bool EnsureBuilt()
     {
-        if (built && document != null) return;
+        if (built && panelRoot != null && dimBg != null)
+        {
+            return true;
+        }
 
-        // Host the UIDocument on a dedicated child GO so it does not share
-        // a Transform with the board's SpriteRenderer/Collider2D (those caused
-        // pointer events to get eaten by the world-space hit-test).
         Transform existing = transform.Find(ChildName);
         GameObject host;
         if (existing != null)
@@ -59,32 +91,36 @@ public sealed class DeskBoardAppUI : MonoBehaviour
         else
         {
             host = new GameObject(ChildName);
-            host.transform.SetParent(null, false); // detach from board sprite scaling
+            host.transform.SetParent(null, false);
         }
 
         document = host.GetComponent<UIDocument>();
-        if (document == null) document = host.AddComponent<UIDocument>();
+        if (document == null)
+        {
+            document = host.AddComponent<UIDocument>();
+        }
 
-#if UNITY_EDITOR
-        if (document.visualTreeAsset == null)
-            document.visualTreeAsset = UnityEditor.AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(ViewPath);
-        if (document.panelSettings == null)
-            document.panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(SettingsPath);
-#endif
+        if (!HomePanelUiLoader.AssignAssets(document, ViewResourcePath, SettingsResourcePath, ViewPath, SettingsPath))
+        {
+            Debug.LogError("[DeskBoardAppUI] visualTreeAsset или panelSettings не найдены.");
+            return false;
+        }
 
-        root = document.rootVisualElement;
-        if (root == null) return;
+        if (!HomePanelUiLoader.TryResolveShell(document, out root, out panelRoot, out dimBg))
+        {
+            Debug.LogError("[DeskBoardAppUI] Разметка панели неполная (panel-root/dim-bg).");
+            return false;
+        }
 
-        panelRoot = root.Q<VisualElement>("panel-root");
-        dimBg = root.Q<VisualElement>("dim-bg");
         tasksGrid = root.Q<VisualElement>("tasks-grid");
 
         clickRouter = new AppUIClickRouter(root);
-        var closeX = root.Q<VisualElement>("btn-close-x");
+        VisualElement closeX = root.Q<VisualElement>("btn-close-x");
         if (closeX != null) clickRouter.Add(closeX, Close);
 
-        if (dimBg != null) dimBg.style.display = DisplayStyle.None;
-        if (panelRoot != null) panelRoot.pickingMode = PickingMode.Ignore;
+        dimBg.style.display = DisplayStyle.None;
+        panelRoot.pickingMode = PickingMode.Ignore;
         built = true;
+        return true;
     }
 }

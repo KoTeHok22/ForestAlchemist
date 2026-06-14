@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="doska" class="doska-frame doska-frame--wide">
+                <ui:VisualElement class="doska-content doska-content--wide">
+                    <ui:VisualElement name="tasks-grid" class="quests-grid" />
+                </ui:VisualElement>
+                <ui:Label name="title" text="Доска объявлений" class="doska-title doska-title--top" />
+                <ui:VisualElement name="btn-close-x" class="doska-close doska-close--wide" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>

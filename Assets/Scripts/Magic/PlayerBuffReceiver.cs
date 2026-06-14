@@ -22,6 +22,7 @@ public sealed class PlayerBuffReceiver : MonoBehaviour
         {
             shieldActive = false;
             shieldAmount = 0f;
+            AudioHooks.Sfx(AudioClipId.SfxShieldBreak);
             OnShieldBroken?.Invoke();
             OnShieldChanged?.Invoke(0f);
         }
@@ -33,6 +34,7 @@ public sealed class PlayerBuffReceiver : MonoBehaviour
         shieldDuration = duration;
         shieldTimer = duration;
         shieldActive = true;
+        AudioHooks.Sfx(AudioClipId.SfxShieldApply);
         OnShieldChanged?.Invoke(1f);
     }
 
@@ -43,11 +45,17 @@ public sealed class PlayerBuffReceiver : MonoBehaviour
         float absorbed = Mathf.Min(shieldAmount, incomingDamage);
         shieldAmount -= absorbed;
         int remaining = Mathf.RoundToInt(incomingDamage - absorbed);
+        if (absorbed > 0f)
+        {
+            AudioHooks.Sfx(AudioClipId.SfxShieldHitAbsorb);
+        }
+
         OnShieldChanged?.Invoke(shieldDuration > 0f ? shieldTimer / shieldDuration : 0f);
 
         if (shieldAmount <= 0)
         {
             shieldActive = false;
+            AudioHooks.Sfx(AudioClipId.SfxShieldBreak);
             OnShieldBroken?.Invoke();
         }
 

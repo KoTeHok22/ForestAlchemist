@@ -99,6 +99,7 @@ public sealed class JsonMenuAccountRepository : IMenuAccountRepository
             account.gameProgress.quests.boardQuestIds ??= new System.Collections.Generic.List<string>();
             account.gameProgress.quests.activeQuestIds ??= new System.Collections.Generic.List<string>();
             account.gameProgress.score ??= new PlayerScoreSaveData();
+            account.gameProgress.upgrades ??= new PlayerUpgradeData();
         }
     }
 

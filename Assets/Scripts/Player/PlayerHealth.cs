@@ -75,5 +75,6 @@ public sealed class PlayerHealth : MonoBehaviour, IDamageable
         if (!IsAlive || amount <= 0) return;
         CurrentHealth = Mathf.Min(maxHealth, CurrentHealth + amount);
         OnHealthChanged?.Invoke(CurrentHealth, maxHealth);
+        AudioHooks.Sfx(AudioClipId.SfxPlayerHeal);
     }
 }

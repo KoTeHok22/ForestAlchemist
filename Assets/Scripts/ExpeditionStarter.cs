@@ -38,6 +38,11 @@ public sealed class ExpeditionStarter : MonoBehaviour
 
     private void Update()
     {
+        if (HomeUIBlocker.IsBlocked)
+        {
+            return;
+        }
+
         if (player == null)
         {
             var playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -79,6 +84,10 @@ public sealed class ExpeditionStarter : MonoBehaviour
         if (preparationUI != null)
         {
             preparationUI.Open();
+            if (!preparationUI.IsOpen)
+            {
+                openedThisVisit = false;
+            }
         }
     }
 }

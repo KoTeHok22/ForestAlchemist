@@ -4,7 +4,6 @@ using UnityEngine;
 public sealed class VisibilitySystem : MonoBehaviour
 {
     [Header("Speed Penalty")]
-    [SerializeField] private float baseMoveSpeed = 2.5f;
     [SerializeField] private float minSpeedMultiplier = 0.4f;
     [SerializeField] private float visibilityPerItem = 0.08f;
     [SerializeField] private float speedPenaltyPerVisibility = 0.06f;

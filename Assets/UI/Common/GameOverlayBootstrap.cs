@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 /// <summary>
 /// Instantiates the shared App UI game overlay (Pause + Load [+ HUD]) on scene
@@ -74,6 +75,53 @@ public sealed class GameOverlayBootstrap : MonoBehaviour
         DisableComponent<ActiveQuestHudDisplay>();
         DisableComponent<LevelQuestHudDisplay>();
         DisableByPath("RuntimeQuestPanel");
+
+        // Legacy expedition inventory (replaced by App UI ExpeditionInventoryUI).
+        DisableLegacyExpeditionInventory();
+
+        DisableLegacyWeatherDisplay();
+    }
+
+    private static void DisableLegacyWeatherDisplay()
+    {
+        DisableByPath("Canvas/Weather");
+
+        WeatherDisplay[] displays = Object.FindObjectsByType<WeatherDisplay>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < displays.Length; i++)
+        {
+            WeatherDisplay display = displays[i];
+            if (display == null || display.GetComponent<UIDocument>() != null)
+            {
+                continue;
+            }
+
+            if (display.GetComponentInParent<Canvas>() == null)
+            {
+                continue;
+            }
+
+            display.enabled = false;
+            display.gameObject.SetActive(false);
+        }
+    }
+
+    private static void DisableLegacyExpeditionInventory()
+    {
+        DisableByPath("Canvas/Main/InventoryDisplay");
+        DisableByPath("Canvas/InventoryDisplay");
+
+        InventoryDisplay[] legacyDisplays = Object.FindObjectsByType<InventoryDisplay>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < legacyDisplays.Length; i++)
+        {
+            InventoryDisplay display = legacyDisplays[i];
+            if (display == null) continue;
+            if (display.GetComponentInParent<Canvas>() == null) continue;
+
+            display.enabled = false;
+            display.gameObject.SetActive(false);
+        }
     }
 
     private static void DisableComponent<T>() where T : Behaviour

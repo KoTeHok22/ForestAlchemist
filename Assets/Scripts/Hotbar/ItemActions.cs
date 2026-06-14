@@ -10,6 +10,7 @@ public sealed class ReturnScrollAction : IItemAction
     public void Execute()
     {
         ExpeditionManager.Instance.TryUnlockReturn(ItemCatalog.ReturnScroll);
+        AudioHooks.Bridge?.PlayReturnScroll();
         ExpeditionManager.Instance.EndExpedition(ExpeditionResult.Success);
     }
 }
@@ -36,6 +37,16 @@ public sealed class BuffConsumableAction : IItemAction
 
     public void Execute()
     {
+        bool usedScroll = shield > 0 && heal <= 0 && mana <= 0;
+        if (usedScroll)
+        {
+            AudioHooks.Sfx(AudioClipId.SfxBuffScrollUnfurl);
+        }
+        else
+        {
+            AudioHooks.Sfx(AudioClipId.SfxBuffConsumableDrink);
+        }
+
         if (heal > 0)
         {
             PlayerHealth health = Object.FindFirstObjectByType<PlayerHealth>();

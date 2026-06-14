@@ -1,26 +1,41 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public sealed class InventoryToggleInput : MonoBehaviour
 {
-    [SerializeField] private InventoryDisplay inventoryDisplay;
+    [SerializeField] private ExpeditionInventoryUI expeditionInventoryUI;
 
     private void Awake()
     {
-        if (inventoryDisplay == null)
+        if (expeditionInventoryUI == null)
         {
-            InventoryDisplay[] displays = Object.FindObjectsByType<InventoryDisplay>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            inventoryDisplay = displays.Length > 0 ? displays[0] : null;
+            expeditionInventoryUI = GetComponent<ExpeditionInventoryUI>();
+        }
+
+        if (expeditionInventoryUI == null)
+        {
+            expeditionInventoryUI = FindFirstObjectByType<ExpeditionInventoryUI>();
         }
     }
 
     private void Update()
     {
-        if (inventoryDisplay == null || Keyboard.current == null || !Keyboard.current.iKey.wasPressedThisFrame)
+        if (expeditionInventoryUI == null || !GameControls.WasPressedThisFrame(ControlBindingId.Inventory))
         {
             return;
         }
 
-        inventoryDisplay.Toggle();
+        if (SceneManager.GetActiveScene().name != "Level")
+        {
+            return;
+        }
+
+        if (Time.timeScale <= 0f && !expeditionInventoryUI.IsOpen)
+        {
+            return;
+        }
+
+        expeditionInventoryUI.Toggle();
     }
 }

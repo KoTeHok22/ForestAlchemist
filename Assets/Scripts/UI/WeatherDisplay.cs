@@ -1,44 +1,38 @@
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
 
+/// <summary>
+/// App UI weather-change popup on Level. Replaces the legacy Canvas Weather panel.
+/// Pauses gameplay briefly when the weather shifts.
+/// </summary>
 public sealed class WeatherDisplay : MonoBehaviour
 {
-    [SerializeField] private GameObject panelRoot;
-    [SerializeField] private WeatherSystem weatherSystem;
-    [SerializeField] private TMP_Text weatherTitle;
-    [SerializeField] private TMP_Text weatherStatus;
-    [SerializeField] private Button closeButton;
+    private const string ViewPath = "Assets/UI/LevelPanels/WeatherChangeView.uxml";
+    private const string SettingsPath = "Assets/UI/LevelPanels/WeatherChangePanelSettings.asset";
+    private const string ViewResourcePath = "UI/LevelPanels/WeatherChangeView";
+    private const string SettingsResourcePath = "UI/LevelPanels/WeatherChangePanelSettings";
 
+    private UIDocument document;
+    private VisualElement root;
+    private VisualElement panelRoot;
+    private VisualElement dimBg;
+    private Label weatherTitle;
+    private Label weatherStatus;
+    private AppUIClickRouter clickRouter;
+
+    private WeatherSystem weatherSystem;
+    private bool built;
     private bool isOpen;
     private bool pausedByPopup;
 
     private void Awake()
     {
-        if (panelRoot == null)
-        {
-            panelRoot = gameObject;
-        }
-
-        if (weatherSystem == null)
-        {
-            weatherSystem = FindFirstObjectByType<WeatherSystem>();
-        }
-
-        if (closeButton != null)
-        {
-            closeButton.onClick.RemoveListener(Close);
-            closeButton.onClick.AddListener(Close);
-        }
-
-        if (panelRoot != null)
-        {
-            panelRoot.SetActive(false);
-        }
+        weatherSystem = FindFirstObjectByType<WeatherSystem>();
     }
 
     private void OnEnable()
     {
+        EnsureBuilt();
         if (weatherSystem == null)
         {
             weatherSystem = FindFirstObjectByType<WeatherSystem>();
@@ -63,16 +57,86 @@ public sealed class WeatherDisplay : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (closeButton != null)
+        ReleasePause();
+    }
+
+    public void Close()
+    {
+        if (!isOpen)
         {
-            closeButton.onClick.RemoveListener(Close);
+            return;
+        }
+
+        isOpen = false;
+        if (dimBg != null)
+        {
+            dimBg.style.display = DisplayStyle.None;
+        }
+
+        if (panelRoot != null)
+        {
+            panelRoot.pickingMode = PickingMode.Ignore;
         }
 
         ReleasePause();
+        AudioHooks.PanelClose();
+    }
+
+    private bool EnsureBuilt()
+    {
+        if (built && panelRoot != null && dimBg != null)
+        {
+            return true;
+        }
+
+        document = GetComponent<UIDocument>();
+        if (document == null)
+        {
+            document = gameObject.AddComponent<UIDocument>();
+        }
+
+        if (!HomePanelUiLoader.AssignAssets(document, ViewResourcePath, SettingsResourcePath, ViewPath, SettingsPath))
+        {
+            Debug.LogError("[WeatherDisplay] visualTreeAsset или panelSettings не найдены.");
+            return false;
+        }
+
+        if (!HomePanelUiLoader.TryResolveShell(document, out root, out panelRoot, out dimBg))
+        {
+            Debug.LogError("[WeatherDisplay] Разметка панели неполная (panel-root/dim-bg).");
+            return false;
+        }
+
+        weatherTitle = root.Q<Label>("weather-title");
+        weatherStatus = root.Q<Label>("weather-status");
+
+        clickRouter = new AppUIClickRouter(root);
+        VisualElement closeBtn = root.Q<VisualElement>("btn-close");
+        if (closeBtn != null)
+        {
+            clickRouter.Add(closeBtn, Close);
+        }
+
+        VisualElement closeX = root.Q<VisualElement>("btn-close-x");
+        if (closeX != null)
+        {
+            clickRouter.Add(closeX, Close);
+        }
+
+        dimBg.style.display = DisplayStyle.None;
+        panelRoot.pickingMode = PickingMode.Ignore;
+        built = true;
+        return true;
     }
 
     private void OpenForWeather(WeatherSystem.WeatherType weather)
     {
+        if (!EnsureBuilt())
+        {
+            Debug.LogError("[WeatherDisplay] Не удалось показать смену погоды: UI не собран.");
+            return;
+        }
+
         if (weatherTitle != null)
         {
             weatherTitle.text = "Погода меняется";
@@ -83,9 +147,14 @@ public sealed class WeatherDisplay : MonoBehaviour
             weatherStatus.text = GetWeatherStatus(weather);
         }
 
+        if (dimBg != null)
+        {
+            dimBg.style.display = DisplayStyle.Flex;
+        }
+
         if (panelRoot != null)
         {
-            panelRoot.SetActive(true);
+            panelRoot.pickingMode = PickingMode.Position;
         }
 
         if (!Mathf.Approximately(Time.timeScale, 0f))
@@ -99,23 +168,7 @@ public sealed class WeatherDisplay : MonoBehaviour
         }
 
         isOpen = true;
-    }
-
-    public void Close()
-    {
-        if (!isOpen)
-        {
-            return;
-        }
-
-        isOpen = false;
-
-        if (panelRoot != null)
-        {
-            panelRoot.SetActive(false);
-        }
-
-        ReleasePause();
+        AudioHooks.PanelOpen();
     }
 
     private void ReleasePause()
@@ -138,9 +191,9 @@ public sealed class WeatherDisplay : MonoBehaviour
             case WeatherSystem.WeatherType.Clear:
                 return $"Теперь: {weatherName}. Погода прояснилась, особые погодные ограничения сняты.";
             case WeatherSystem.WeatherType.Rain:
-                return $"Теперь: {weatherName}. Дальность обзора снижена.";
+                return $"Теперь: {weatherName}. Дальность обзора снижена, небо затянуло осадками.";
             case WeatherSystem.WeatherType.Storm:
-                return $"Теперь: {weatherName}. Враги становятся агрессивнее.";
+                return $"Теперь: {weatherName}. Ливень усилился, враги становятся агрессивнее.";
             case WeatherSystem.WeatherType.Fog:
                 return $"Теперь: {weatherName}. Скорость снижена, а врагов труднее заметить.";
             case WeatherSystem.WeatherType.Heatwave:

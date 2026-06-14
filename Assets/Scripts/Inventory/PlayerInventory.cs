@@ -23,6 +23,7 @@ public sealed class PlayerInventory
     private PlayerInventorySave saveData;
 
     public event Action OnInventoryChanged;
+    public string DebugLabel { get; set; }
 
     public PlayerInventory(string fileName = "player_inventory.json")
     {
@@ -35,11 +36,10 @@ public sealed class PlayerInventory
     public PlayerInventory(PlayerInventorySave existingData)
     {
         filePath = string.Empty;
-        saveData = existingData ?? new PlayerInventorySave();
-        if (saveData.slots == null)
+        saveData = new PlayerInventorySave
         {
-            saveData.slots = new List<InventorySlot>();
-        }
+            slots = InventoryProgressSync.CloneSlots(existingData?.slots)
+        };
     }
 
     public void Clear()
@@ -64,6 +64,7 @@ public sealed class PlayerInventory
         }
 
         itemName = ItemCatalog.Normalize(itemName);
+        int before = GetItemCount(itemName);
         InventorySlot slot = FindSlot(itemName);
         if (slot == null)
         {
@@ -73,6 +74,9 @@ public sealed class PlayerInventory
 
         slot.count += amount;
         Save();
+        ExpeditionItemTrace.Log(
+            "Inventory.Add",
+            $"label={DebugLabel ?? "anonymous"} hash={GetHashCode()} item={itemName} +{amount} ({before}->{slot.count}) all=[{ExpeditionItemTrace.DescribeSlots(this)}]");
         OnInventoryChanged?.Invoke();
     }
 

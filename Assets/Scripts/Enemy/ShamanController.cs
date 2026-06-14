@@ -32,6 +32,7 @@ public sealed class ShamanController : MonoBehaviour
         if (distance > attackRange) return;
 
         cooldownTimer = attackCooldown;
+        AudioHooks.SfxAtPoint(AudioClipId.SfxEnemyShamanCast, transform.position);
         FireProjectile();
     }
 
@@ -40,6 +41,7 @@ public sealed class ShamanController : MonoBehaviour
         if (playerTarget == null) return;
 
         Vector2 direction = ((Vector2)playerTarget.position - (Vector2)transform.position).normalized;
+        AudioHooks.SfxAtPoint(AudioClipId.SfxEnemyShamanProjectile, transform.position);
 
         if (projectilePrefab != null)
         {
@@ -97,6 +99,7 @@ public sealed class EnemyProjectile : MonoBehaviour
 
         if (playerHealth != null)
         {
+            AudioHooks.Sfx(AudioClipId.SfxEnemyShamanProjectileHit);
             playerHealth.TakeDamage(damage);
             Destroy(gameObject);
             return;

@@ -14,6 +14,14 @@ public sealed class EnemyChaseState : IEnemyState
     {
         context.Animation.SetState(EnemyAnimState.Run);
         surroundAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+
+        if (context.EnteredFromPatrol)
+        {
+            string clip = context.Config != null && context.Config.isBoss
+                ? AudioClipId.SfxEnemyBossRoar
+                : AudioClipId.SfxEnemyOrcAggro;
+            AudioHooks.SfxAtPoint(clip, context.transform.position);
+        }
     }
 
     public void Execute()

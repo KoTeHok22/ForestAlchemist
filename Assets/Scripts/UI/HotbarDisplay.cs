@@ -9,6 +9,8 @@ public sealed class HotbarDisplay : MonoBehaviour
     [SerializeField] private TMP_Text[] slotLabels;
     [SerializeField] private Sprite emptySlotSprite;
 
+    private HotbarManager hotbarManager;
+
     private void Start()
     {
         RefreshAll();
@@ -21,19 +23,21 @@ public sealed class HotbarDisplay : MonoBehaviour
 
     private void OnEnable()
     {
-        HotbarManager.Instance.OnSlotUsed += OnSlotUsed;
-        HotbarManager.Instance.OnSlotCooldownStarted += OnCooldownStarted;
-        HotbarManager.Instance.OnSlotCooldownFinished += OnCooldownFinished;
+        hotbarManager = HotbarManager.Instance;
+        if (hotbarManager == null) return;
+
+        hotbarManager.OnSlotUsed += OnSlotUsed;
+        hotbarManager.OnSlotCooldownStarted += OnCooldownStarted;
+        hotbarManager.OnSlotCooldownFinished += OnCooldownFinished;
     }
 
     private void OnDisable()
     {
-        if (HotbarManager.Instance != null)
-        {
-            HotbarManager.Instance.OnSlotUsed -= OnSlotUsed;
-            HotbarManager.Instance.OnSlotCooldownStarted -= OnCooldownStarted;
-            HotbarManager.Instance.OnSlotCooldownFinished -= OnCooldownFinished;
-        }
+        if (hotbarManager == null) return;
+
+        hotbarManager.OnSlotUsed -= OnSlotUsed;
+        hotbarManager.OnSlotCooldownStarted -= OnCooldownStarted;
+        hotbarManager.OnSlotCooldownFinished -= OnCooldownFinished;
     }
 
     private void RefreshAll()

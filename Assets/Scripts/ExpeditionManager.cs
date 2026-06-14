@@ -14,18 +14,22 @@ public enum ExpeditionResult
 public sealed class ExpeditionManager : MonoBehaviour
 {
     private static ExpeditionManager instance;
-    public static ExpeditionManager Instance
+    public static ExpeditionManager Instance => ResolveInstance();
+
+    private static ExpeditionManager ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("ExpeditionManager");
-                instance = go.AddComponent<ExpeditionManager>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<ExpeditionManager>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("ExpeditionManager");
+            instance = go.AddComponent<ExpeditionManager>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     public event Action<ExpeditionResult> OnExpeditionEnded;
@@ -55,6 +59,11 @@ public sealed class ExpeditionManager : MonoBehaviour
         ReloadFromCurrentAccount();
     }
 
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
+    }
+
     public void ReloadFromCurrentAccount()
     {
         if (ExpeditionInventory != null)
@@ -69,10 +78,12 @@ public sealed class ExpeditionManager : MonoBehaviour
         GameProgressData progress = GameCore.Instance.CurrentProgress;
         PlayerInventorySave save = new PlayerInventorySave
         {
-            slots = progress?.expeditionInventory?.slots ?? new List<InventorySlot>()
+            slots = InventoryProgressSync.CloneSlots(progress?.expeditionInventory?.slots)
         };
 
         ExpeditionInventory = new PlayerInventory(save);
+        ExpeditionInventory.DebugLabel = "Expedition";
+        ExpeditionItemTrace.LogInventory("ExpeditionManager.Reload", ExpeditionInventory, "rebuilt from progress");
         ExpeditionInventory.OnInventoryChanged += UpdateVisibility;
         expeditionInventoryChangedHandler = () =>
         {
@@ -82,7 +93,7 @@ public sealed class ExpeditionManager : MonoBehaviour
                 return;
             }
 
-            currentProgress.expeditionInventory.slots = ExpeditionInventory.GetAllSlots();
+            InventoryProgressSync.WriteToProgress(ExpeditionInventory, currentProgress.expeditionInventory);
             GameProgressUtility.Touch(currentProgress);
             GameCore.Instance.SaveProgress();
         };
@@ -143,10 +154,14 @@ public sealed class ExpeditionManager : MonoBehaviour
             return;
         }
 
-        IsInExpedition = false;
-
         if (result == ExpeditionResult.Success)
         {
+            QuestManager questManager = QuestManager.Instance;
+            if (questManager != null)
+            {
+                questManager.FinalizeExpeditionCollectQuests(ExpeditionInventory);
+            }
+
             TransferLootToHome();
             if (progress != null)
             {
@@ -170,11 +185,15 @@ public sealed class ExpeditionManager : MonoBehaviour
             OrcEvolutionService.Instance.Evolve(true);
         }
 
+        IsInExpedition = false;
+
         lastResultStats = CreateStatsSnapshot(progress);
 
         ReturnUnlocked = false;
         ActiveReturnMethod = string.Empty;
         PendingResult = result;
+
+        WorldObjectiveRegistry.Clear();
 
         GameCore.Instance.SaveProgress();
         OnExpeditionEnded?.Invoke(result);
@@ -200,8 +219,14 @@ public sealed class ExpeditionManager : MonoBehaviour
             return false;
         }
 
+        bool wasUnlocked = ReturnUnlocked;
         ReturnUnlocked = true;
         ActiveReturnMethod = methodId ?? string.Empty;
+        if (!wasUnlocked)
+        {
+            AudioHooks.Bridge?.PlayReturnUnlocked();
+        }
+
         return true;
     }
 
@@ -219,18 +244,46 @@ public sealed class ExpeditionManager : MonoBehaviour
 
     private void TransferLootToHome()
     {
-        var homeStorage = InventoryService.Instance.HomeStorage;
-        if (homeStorage == null) return;
-
-        foreach (var expeditionSlot in ExpeditionInventory.GetAllSlots())
+        InventoryService inventoryService = InventoryService.Instance;
+        if (inventoryService == null)
         {
+            Debug.LogWarning("[Expedition] InventoryService missing; loot was not transferred.");
+            return;
+        }
+
+        PlayerInventory homeStorage = inventoryService.HomeStorage;
+        GameProgressData progress = GameCore.Instance?.CurrentProgress;
+        if (homeStorage == null && progress != null)
+        {
+            inventoryService.ReloadFromCurrentAccount();
+            homeStorage = inventoryService.HomeStorage;
+        }
+
+        if (homeStorage == null)
+        {
+            Debug.LogWarning("[Expedition] Home storage unavailable; loot was not transferred.");
+            return;
+        }
+
+        foreach (InventorySlot expeditionSlot in ExpeditionInventory.GetAllSlots())
+        {
+            if (expeditionSlot == null || string.IsNullOrEmpty(expeditionSlot.itemName) || expeditionSlot.count <= 0)
+            {
+                continue;
+            }
+
             homeStorage.AddItem(expeditionSlot.itemName, expeditionSlot.count);
         }
+
+        InventoryProgressSync.WriteToProgress(homeStorage, progress?.homeStorage);
         ExpeditionInventory.Clear();
+        InventoryProgressSync.WriteToProgress(ExpeditionInventory, progress?.expeditionInventory);
+        GameCore.Instance?.SaveProgress();
     }
 
     private void PrepareForExpedition()
     {
+        ExpeditionItemTrace.LogInventory("Expedition.Prepare.BeforeClear", ExpeditionInventory);
         ExpeditionInventory.Clear();
 
         var progress = GameCore.Instance.CurrentProgress;
@@ -258,6 +311,8 @@ public sealed class ExpeditionManager : MonoBehaviour
             homeStorage.RemoveItem(slot.itemName, amountToTake);
             ExpeditionInventory.AddItem(slot.itemName, amountToTake);
         }
+
+        ExpeditionItemTrace.LogInventory("Expedition.Prepare.AfterLoadout", ExpeditionInventory);
     }
 
     private System.Collections.IEnumerator LoadHomeSceneNextFrame()

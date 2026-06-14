@@ -1,0 +1,30 @@
+{
+  "elevenlabs": {
+    "page": "https://elevenlabs.io/sound-effects",
+    "method": "POST",
+    "url": "https://api.elevenlabs.io/sound-generation",
+    "headers": {
+      "origin": "https://elevenlabs.io",
+      "referer": "rotated per request",
+      "user-agent": "rotated Chrome/Edge/Firefox per request"
+    },
+    "body": {
+      "text": "string",
+      "loop": false,
+      "output_format": "opus_48000_128"
+    },
+    "response": "JSON sound_generations_with_waveforms[4] with waveform_base_64 (Ogg Opus)",
+    "quota_error": {
+      "status": 401,
+      "code": "quota_exceeded",
+      "action": "rotate Proxy6 proxy and retry"
+    }
+  },
+  "proxy6": {
+    "docs": "https://proxy6.net/ru/developers",
+    "base": "https://px6.link/api/{api_key}/{method}/",
+    "buy": "GET buy?count=1&period=7&country=us&version=3&descr=gensfx",
+    "version_note": "3=IPv4 Shared, 4=IPv4 dedicated",
+    "proxy_format": "http://user:pass@host:port"
+  }
+}

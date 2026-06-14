@@ -130,6 +130,7 @@ public sealed class QuestBoardGenerator : MonoBehaviour
     {
         if (questService.TryAcceptQuest(questId))
         {
+            AudioHooks.Sfx(AudioClipId.SfxHomeQuestAccept);
             // Re-render only — the accepted quest stays on the board greyed-out.
             // The board pool refreshes later, when returning home (see Start).
             GenerateBoard();

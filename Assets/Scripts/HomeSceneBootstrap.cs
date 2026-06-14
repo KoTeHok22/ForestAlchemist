@@ -8,11 +8,15 @@ public sealed class HomeSceneBootstrap : MonoBehaviour
     [SerializeField] private GardenHarvestInteraction gardenHarvest;
     [SerializeField] private ExpeditionPreparationUI expeditionPreparationUI;
     [SerializeField] private HomeStorageUI homeStorageUI;
+    [SerializeField] private StatUpgradeUI statUpgradeUI;
 
     private void Awake()
     {
+        HomeUIBlocker.ForceReset();
         EnsureHomeManager();
         EnsureServices();
+        EnsureStatUpgrade();
+        EnsurePlayerStats();
     }
 
     private void EnsureHomeManager()
@@ -60,8 +64,40 @@ public sealed class HomeSceneBootstrap : MonoBehaviour
         GardenService.Instance.GetHashCode();
         OrcEvolutionService.Instance.GetHashCode();
         GameCore.Instance.GetHashCode();
+        PlayerUpgradeService.Instance.GetHashCode();
+    }
+
+    private void EnsureStatUpgrade()
+    {
+        if (statUpgradeUI == null)
+        {
+            statUpgradeUI = FindFirstObjectByType<StatUpgradeUI>();
+        }
+
+        if (statUpgradeUI == null)
+        {
+            GameObject uiHost = new GameObject("StatUpgradeUI");
+            statUpgradeUI = uiHost.AddComponent<StatUpgradeUI>();
+            uiHost.AddComponent<StatUpgradeToggleInput>();
+        }
+        else if (statUpgradeUI.GetComponent<StatUpgradeToggleInput>() == null)
+        {
+            statUpgradeUI.gameObject.AddComponent<StatUpgradeToggleInput>();
+        }
+    }
+
+    private static void EnsurePlayerStats()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
+
+        if (player.GetComponent<PlayerStatApplicator>() == null)
+        {
+            player.AddComponent<PlayerStatApplicator>();
+        }
     }
 
     public void OpenCrafting() => craftingUI?.Open();
     public void OpenShop() => shopUI?.Open();
+    public void OpenStatUpgrade() => statUpgradeUI?.Open();
 }

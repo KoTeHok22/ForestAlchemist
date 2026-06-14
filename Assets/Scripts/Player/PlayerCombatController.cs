@@ -15,6 +15,13 @@ public sealed class PlayerCombatController : MonoBehaviour
     private Camera cachedCamera;
     private PlayerTopDownController movementController;
 
+    public int AttackDamage => attackDamage;
+
+    public void SetAttackDamage(int damage)
+    {
+        attackDamage = Mathf.Max(1, damage);
+    }
+
     private void Awake()
     {
         movementController = GetComponent<PlayerTopDownController>();
@@ -37,7 +44,7 @@ public sealed class PlayerCombatController : MonoBehaviour
             attackCooldownTimer -= Time.deltaTime;
         }
 
-        if (Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame)
+        if (!GameControls.WasPressedThisFrame(ControlBindingId.Attack))
         {
             return;
         }
@@ -67,6 +74,7 @@ public sealed class PlayerCombatController : MonoBehaviour
         }
 
         attackCooldownTimer = Mathf.Max(0.05f, attackCooldown);
+        AudioHooks.Bridge?.PlayMeleeSwing();
         ProcessAttackHit(attackDirection);
     }
 
@@ -132,6 +140,7 @@ Debug.Log($"[PlayerCombat] hitsFound={hits.Length}", this);
             if (damageable != null)
             {
                 damageable.TakeDamage(attackDamage);
+                AudioHooks.Bridge?.PlayMeleeHit();
             }
         }
     }

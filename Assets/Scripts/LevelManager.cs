@@ -1,5 +1,4 @@
 using UnityEngine;
-using TMPro;
 using UnityEngine.UI;
 
 public sealed class LevelManager : MonoBehaviour
@@ -9,7 +8,7 @@ public sealed class LevelManager : MonoBehaviour
     [SerializeField] private LevelQuestIconProvider iconProvider;
 
     [Header("Inventory")]
-    [SerializeField] private InventoryDisplay inventoryDisplay;
+    [SerializeField] private ExpeditionInventoryUI expeditionInventoryUI;
     [SerializeField] private ResourceGatherer resourceGatherer;
     [SerializeField] private OrcBloodDropHandler bloodDropHandler;
     [SerializeField] private GameObject gatherPanel;
@@ -20,10 +19,6 @@ public sealed class LevelManager : MonoBehaviour
 
     [Header("Weather")]
     [SerializeField] private WeatherSystem weatherSystem;
-
-    private TMP_Text expeditionHintText;
-    private TMP_Text combatFeedText;
-    private float combatFeedTimer;
 
     private PlayerInventory inventory;
     private PlayerQuestService questService;
@@ -41,14 +36,7 @@ public sealed class LevelManager : MonoBehaviour
             new JsonQuestRepository()
         );
 
-        if (resourceGatherer != null)
-            resourceGatherer.Initialize(inventory);
-
-        if (bloodDropHandler != null)
-            bloodDropHandler.Initialize(inventory);
-
-        if (inventoryDisplay != null)
-            inventoryDisplay.Initialize(inventory, iconProvider);
+        WireInventorySystems();
 
         if (questHud != null)
             questHud.Initialize(questService, iconProvider, inventory);
@@ -114,7 +102,7 @@ public sealed class LevelManager : MonoBehaviour
             resourceGatherer.ConfigureProgressDisplay(gatherDisplay);
         }
 
-        GatherableResourceInteraction.AttachToSceneObjects();
+        GatherableResourceInteraction.AttachToActiveSceneObjects();
 
         if (bloodDropHandler == null)
         {
@@ -131,10 +119,9 @@ public sealed class LevelManager : MonoBehaviour
             }
         }
 
-        if (inventoryDisplay == null)
+        if (expeditionInventoryUI == null)
         {
-            InventoryDisplay[] displays = Object.FindObjectsByType<InventoryDisplay>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            inventoryDisplay = displays.Length > 0 ? displays[0] : null;
+            expeditionInventoryUI = FindFirstObjectByType<ExpeditionInventoryUI>();
         }
 
         if (iconProvider == null)
@@ -161,7 +148,13 @@ public sealed class LevelManager : MonoBehaviour
     {
         EnemyController.OnAnyEnemyDied += HandleEnemyDied;
         SubscribeToPlayerDeath();
-        EnsureExpeditionHint();
+        WireInventorySystems();
+
+        ExpeditionManager expedition = ExpeditionManager.Instance;
+        if (expedition != null)
+        {
+            expedition.OnExpeditionStarted += WireInventorySystems;
+        }
 
         if (weatherSystem != null)
         {
@@ -169,9 +162,58 @@ public sealed class LevelManager : MonoBehaviour
         }
     }
 
+    private void WireInventorySystems()
+    {
+        inventory = ExpeditionManager.Instance?.ExpeditionInventory;
+        if (inventory == null)
+        {
+            ExpeditionItemTrace.Log("LevelManager.Wire", "ExpeditionInventory=NULL");
+            return;
+        }
+
+        ExpeditionItemTrace.LogInventory(
+            "LevelManager.Wire",
+            inventory,
+            $"gatherer={(resourceGatherer != null ? resourceGatherer.GetHashCode().ToString() : "NULL")} ui={(expeditionInventoryUI != null ? expeditionInventoryUI.GetHashCode().ToString() : "NULL")}");
+
+        if (resourceGatherer != null)
+        {
+            resourceGatherer.Initialize(inventory);
+        }
+
+        if (bloodDropHandler != null)
+        {
+            bloodDropHandler.Initialize(inventory);
+        }
+
+        if (expeditionInventoryUI != null)
+        {
+            expeditionInventoryUI.Initialize(inventory, iconProvider);
+        }
+        else
+        {
+            ExpeditionInventoryUI runtimeUi = FindFirstObjectByType<ExpeditionInventoryUI>();
+            if (runtimeUi != null)
+            {
+                runtimeUi.Initialize(inventory, iconProvider);
+            }
+        }
+
+        if (questHud != null)
+        {
+            questHud.Initialize(questService, iconProvider, inventory);
+        }
+    }
+
     private void OnDestroy()
     {
         EnemyController.OnAnyEnemyDied -= HandleEnemyDied;
+
+        ExpeditionManager expedition = ExpeditionManager.Instance;
+        if (expedition != null)
+        {
+            expedition.OnExpeditionStarted -= WireInventorySystems;
+        }
 
         if (weatherSystem != null)
         {
@@ -201,8 +243,15 @@ public sealed class LevelManager : MonoBehaviour
         trackedEnemies.Remove(enemy.GetInstanceID());
         enemy.OnEnemyDied -= HandleEnemyDied;
 
-        if (enemy.Config != null && inventory != null)
+        if (enemy.Config != null)
         {
+            PlayerInventory pack = inventory ?? ExpeditionManager.Instance?.ExpeditionInventory;
+            if (pack == null)
+            {
+                return;
+            }
+
+            inventory = pack;
             Debug.Log($"[LevelManager] Dropping loot for {enemy.Config.enemyName}. Loot table count: {enemy.Config.lootTable.Count}");
 
             if (enemy.Config.lootTable.Count == 0)
@@ -234,15 +283,6 @@ public sealed class LevelManager : MonoBehaviour
                 QuestManager.Instance.ReportItemCollected(enemy.Config.bossTrophyItemId, 1);
                 Debug.Log($"[LevelManager] Boss trophy dropped: {enemy.Config.bossTrophyItemId}");
                 QuestManager.Instance.ReportBossDefeated(enemy.Config.enemyName);
-                ShowCombatFeed($"Босс повержен. Получен трофей: {enemy.Config.bossTrophyItemId}");
-            }
-            else if (enemy.Config.isShaman)
-            {
-                ShowCombatFeed("Шаман орков повержен. Его талисман может выпасть в добычу.");
-            }
-            else
-            {
-                ShowCombatFeed($"Побеждён враг: {enemy.Config.enemyName}");
             }
 
             QuestManager.Instance.ReportEnemyKilled(enemy.Config.enemyName);
@@ -254,77 +294,7 @@ public sealed class LevelManager : MonoBehaviour
 
     private void HandleWeatherChanged(WeatherSystem.WeatherType weather)
     {
+        if (QuestManager.Instance == null) return;
         QuestManager.Instance.ReportWeatherChanged(weather);
-    }
-
-    private void Update()
-    {
-        if (expeditionHintText == null)
-        {
-            return;
-        }
-
-        expeditionHintText.text = ExpeditionManager.Instance.CanReturn()
-            ? $"Выход доступен: {ExpeditionManager.Instance.ActiveReturnMethod}. Можно возвращаться с добычей."
-            : "Выход закрыт. Ищи портал, свиток возврата или точку эвакуации.";
-
-        if (combatFeedText != null && combatFeedTimer > 0f)
-        {
-            combatFeedTimer -= Time.deltaTime;
-            if (combatFeedTimer <= 0f)
-            {
-                combatFeedText.text = string.Empty;
-            }
-        }
-    }
-
-    private void EnsureExpeditionHint()
-    {
-        Canvas canvas = Object.FindFirstObjectByType<Canvas>();
-        if (canvas == null)
-        {
-            return;
-        }
-
-        GameObject hintObject = new GameObject("ExpeditionHint", typeof(RectTransform));
-        hintObject.transform.SetParent(canvas.transform, false);
-        RectTransform rect = hintObject.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0.5f, 0f);
-        rect.anchorMax = new Vector2(0.5f, 0f);
-        rect.pivot = new Vector2(0.5f, 0f);
-        rect.anchoredPosition = new Vector2(0f, 18f);
-        rect.sizeDelta = new Vector2(780f, 44f);
-
-        expeditionHintText = hintObject.AddComponent<TextMeshProUGUI>();
-        expeditionHintText.fontSize = 20f;
-        expeditionHintText.alignment = TextAlignmentOptions.Center;
-        expeditionHintText.color = new Color(1f, 0.96f, 0.82f, 1f);
-        expeditionHintText.enableWordWrapping = true;
-
-        GameObject feedObject = new GameObject("CombatFeed", typeof(RectTransform));
-        feedObject.transform.SetParent(canvas.transform, false);
-        RectTransform feedRect = feedObject.GetComponent<RectTransform>();
-        feedRect.anchorMin = new Vector2(0.5f, 0f);
-        feedRect.anchorMax = new Vector2(0.5f, 0f);
-        feedRect.pivot = new Vector2(0.5f, 0f);
-        feedRect.anchoredPosition = new Vector2(0f, 70f);
-        feedRect.sizeDelta = new Vector2(760f, 40f);
-
-        combatFeedText = feedObject.AddComponent<TextMeshProUGUI>();
-        combatFeedText.fontSize = 18f;
-        combatFeedText.alignment = TextAlignmentOptions.Center;
-        combatFeedText.color = new Color(0.95f, 0.8f, 0.35f, 1f);
-        combatFeedText.enableWordWrapping = true;
-    }
-
-    private void ShowCombatFeed(string message)
-    {
-        if (combatFeedText == null || string.IsNullOrEmpty(message))
-        {
-            return;
-        }
-
-        combatFeedText.text = message;
-        combatFeedTimer = 4f;
     }
 }

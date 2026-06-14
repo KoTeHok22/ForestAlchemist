@@ -5,18 +5,22 @@ using System.Linq;
 public sealed class CraftingManager : MonoBehaviour
 {
     private static CraftingManager instance;
-    public static CraftingManager Instance
+    public static CraftingManager Instance => ResolveInstance();
+
+    private static CraftingManager ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("CraftingManager");
-                instance = go.AddComponent<CraftingManager>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<CraftingManager>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("CraftingManager");
+            instance = go.AddComponent<CraftingManager>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     [SerializeField] private List<RecipeDefinition> allRecipes = new List<RecipeDefinition>();
@@ -36,6 +40,11 @@ public sealed class CraftingManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         EnsureFallbackContent();
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
     }
 
     public bool CanCraft(RecipeDefinition recipe)
@@ -333,6 +342,7 @@ public sealed class CraftingManager : MonoBehaviour
             ElementType.Air => new Color(0.85f, 0.95f, 1f),
             _ => Color.white
         };
+        spell.icon = Resources.Load<Sprite>($"Game/Icons/{spellId}");
         return spell;
     }
 }

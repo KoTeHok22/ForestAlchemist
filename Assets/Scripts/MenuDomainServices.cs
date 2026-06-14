@@ -101,7 +101,7 @@ public static class MenuSettingsFactory
 {
     public static MenuSettingsData CreateDefault()
     {
-        return new MenuSettingsData
+        MenuSettingsData settings = new MenuSettingsData
         {
             musicVolume = 1f,
             sfxVolume = 1f,
@@ -111,6 +111,9 @@ public static class MenuSettingsFactory
             sfxEnabled = true,
             windowedModeEnabled = true
         };
+        GameControls.ResetToDefaults();
+        GameControls.WriteTo(settings);
+        return settings;
     }
 }
 
@@ -235,7 +238,12 @@ public sealed class UnityMenuSettingsApplier : IMenuSettingsApplier
         float musicVolume = source.musicEnabled ? Mathf.Clamp01(source.musicVolume) : 0f;
         float sfxVolume = source.sfxEnabled ? Mathf.Clamp01(source.sfxVolume) : 0f;
 
-        AudioListener.volume = Mathf.Max(musicVolume, sfxVolume);
+        AudioListener.volume = 1f;
+        AudioManager audio = AudioManager.Instance;
+        if (audio != null)
+        {
+            audio.ApplySettings(source);
+        }
 
         int qualityIndex = Mathf.Clamp(source.qualityDropdownIndex, 0, QualityLevels.Length - 1);
         QualitySettings.SetQualityLevel(QualityLevels[qualityIndex], true);
@@ -244,6 +252,8 @@ public sealed class UnityMenuSettingsApplier : IMenuSettingsApplier
         Vector2Int resolution = ResolutionOptions[resolutionIndex];
         FullScreenMode fullScreenMode = source.windowedModeEnabled ? FullScreenMode.Windowed : FullScreenMode.FullScreenWindow;
         Screen.SetResolution(resolution.x, resolution.y, fullScreenMode);
+
+        GameControls.LoadFrom(source);
     }
 }
 

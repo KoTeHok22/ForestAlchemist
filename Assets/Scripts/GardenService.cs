@@ -3,18 +3,22 @@ using UnityEngine;
 public sealed class GardenService : MonoBehaviour
 {
     private static GardenService instance;
-    public static GardenService Instance
+    public static GardenService Instance => ResolveInstance();
+
+    private static GardenService ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("GardenService");
-                instance = go.AddComponent<GardenService>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<GardenService>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("GardenService");
+            instance = go.AddComponent<GardenService>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     private void Awake()
@@ -26,6 +30,11 @@ public sealed class GardenService : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
     }
 
     public void AdvanceGrowth()

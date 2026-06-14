@@ -75,16 +75,7 @@ public sealed class LevelQuestHudDisplay : MonoBehaviour
         {
             if (countTexts.TryGetValue(quest.id, out TextMeshProUGUI text))
             {
-                if (quest.type == QuestType.CollectItem)
-                {
-                    string targetId = quest.GetResolvedTargetId();
-                    int collected = !string.IsNullOrEmpty(targetId) ? inventory.GetItemCount(targetId) : 0;
-                    text.text = $"{collected}/{quest.requiredCount}";
-                }
-                else
-                {
-                    text.text = $"{QuestManager.Instance.GetProgress(quest.id)}/{quest.requiredCount}";
-                }
+                text.text = $"{QuestManager.Instance.GetProgress(quest.id)}/{quest.requiredCount}";
             }
         }
     }
@@ -118,11 +109,7 @@ public sealed class LevelQuestHudDisplay : MonoBehaviour
             TextMeshProUGUI countText = itemCount.GetComponent<TextMeshProUGUI>();
             if (countText != null)
             {
-                string targetId = quest.GetResolvedTargetId();
-                int collected = quest.type == QuestType.CollectItem && inventory != null && !string.IsNullOrEmpty(targetId)
-                    ? inventory.GetItemCount(targetId)
-                    : QuestManager.Instance.GetProgress(quest.id);
-                countText.text = $"{collected}/{quest.requiredCount}";
+                countText.text = $"{QuestManager.Instance.GetProgress(quest.id)}/{quest.requiredCount}";
                 countTexts[quest.id] = countText;
             }
         }
@@ -241,7 +228,7 @@ public sealed class LevelQuestHudDisplay : MonoBehaviour
         TextMeshProUGUI descText = desc.GetComponent<TextMeshProUGUI>();
         descText.fontSize = 16;
         descText.color = Color.white;
-        descText.enableWordWrapping = true;
+        descText.textWrappingMode = TextWrappingModes.Normal;
 
         GameObject count = new GameObject("ItemCount", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
         count.transform.SetParent(root.transform, false);

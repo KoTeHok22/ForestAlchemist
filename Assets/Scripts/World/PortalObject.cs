@@ -59,6 +59,7 @@ public sealed class PortalObject : MonoBehaviour
         if (isHovered && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             ExpeditionManager.Instance.TryUnlockReturn("portal");
+            AudioHooks.Bridge?.PlayPortalEnter();
             ExpeditionManager.Instance.EndExpedition(ExpeditionResult.Success);
         }
     }

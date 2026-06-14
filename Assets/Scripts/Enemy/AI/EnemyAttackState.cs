@@ -66,6 +66,11 @@ public sealed class EnemyAttackState : IEnemyState
         float distanceToPlayer = context.DistanceToPlayer();
         if (distanceToPlayer <= context.Config.attackRange * 1.2f && context.PlayerTarget != null)
         {
+            string attackClip = context.Config != null && context.Config.isBoss
+                ? AudioClipId.SfxEnemyBossStomp
+                : AudioClipId.SfxEnemyOrcAttackMelee;
+            AudioHooks.SfxAtPoint(attackClip, context.transform.position);
+
             IDamageable playerDamageable = context.PlayerTarget.GetComponent<IDamageable>();
             if (playerDamageable != null)
             {
@@ -84,6 +89,7 @@ public sealed class EnemyAttackState : IEnemyState
 
                     float elementalMult = 1f;
                     if (counterElement == ElementType.Fire && attackElement == ElementType.Water) elementalMult = 1.5f;
+                    finalDamage = Mathf.RoundToInt(finalDamage * elementalMult);
                 }
 
                 playerDamageable.TakeDamage(finalDamage);

@@ -5,18 +5,22 @@ using System.Collections.Generic;
 public sealed class QuestManager : MonoBehaviour
 {
     private static QuestManager instance;
-    public static QuestManager Instance
+    public static QuestManager Instance => ResolveInstance();
+
+    private static QuestManager ResolveInstance()
     {
-        get
+        if (RuntimeSingletonGuard.IsShuttingDown) return null;
+        if (instance == null)
         {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("QuestManager");
-                instance = go.AddComponent<QuestManager>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
+            instance = FindAnyObjectByType<QuestManager>(FindObjectsInactive.Include);
         }
+        if (instance == null)
+        {
+            GameObject go = new GameObject("QuestManager");
+            instance = go.AddComponent<QuestManager>();
+            DontDestroyOnLoad(go);
+        }
+        return instance;
     }
 
     public event Action<string, int> OnQuestProgressUpdated;
@@ -38,6 +42,11 @@ public sealed class QuestManager : MonoBehaviour
         }
         instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        if (instance == this) instance = null;
     }
 
     public void ReportEnemyKilled(string enemyType)
@@ -115,6 +124,40 @@ public sealed class QuestManager : MonoBehaviour
         questProgress.Clear();
         activatedAltars.Clear();
         completedQuests.Clear();
+    }
+
+    /// <summary>
+    /// Before loot is transferred home, sync collect-quest counters with the
+    /// expedition pack so objectives completed in the field are saved.
+    /// </summary>
+    public void FinalizeExpeditionCollectQuests(PlayerInventory pack)
+    {
+        if (pack == null) return;
+
+        PlayerQuestService service = UnityEngine.Object.FindAnyObjectByType<LevelManager>()?.GetQuestService();
+        List<QuestData> activeQuests = service?.GetActiveQuests();
+        if (activeQuests == null) return;
+
+        foreach (QuestData quest in activeQuests)
+        {
+            if (quest == null || quest.type != QuestType.CollectItem) continue;
+
+            string targetId = quest.GetResolvedTargetId();
+            if (string.IsNullOrEmpty(targetId)) continue;
+
+            int inPack = pack.GetItemCount(targetId);
+            int current = GetProgress(quest.id);
+            int synced = Mathf.Min(quest.requiredCount, Mathf.Max(current, inPack));
+            if (synced <= current) continue;
+
+            questProgress[quest.id] = synced;
+            OnQuestProgressUpdated?.Invoke(quest.id, synced);
+
+            if (synced >= quest.requiredCount)
+            {
+                CompleteQuest(quest.id);
+            }
+        }
     }
 
     private bool IsMatchingTarget(QuestData quest, string targetId)

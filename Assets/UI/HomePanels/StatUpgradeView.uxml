@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UXML xmlns="UnityEngine.UIElements" xmlns:appui="Unity.AppUI.UI" xmlns:ui="UnityEngine.UIElements">
+    <Style src="HomePanelsStyles.uss" />
+    <appui:Panel name="panel-root" class="panel-root" theme="dark" scale="medium">
+        <ui:VisualElement name="dim-bg" class="dim-bg">
+            <ui:VisualElement name="doska" class="doska-frame doska-frame--wide">
+                <ui:Label name="title" text="Прокачка алхимика" class="doska-title doska-title--top" />
+                <ui:VisualElement class="doska-content doska-content--wide upgrade-content">
+                    <ui:VisualElement name="blood-bar" class="upgrade-bloodbar">
+                        <ui:VisualElement name="blood-icon" class="upgrade-bloodbar__icon" />
+                        <ui:Label name="blood-count" text="0" class="upgrade-bloodbar__count" />
+                        <ui:Label name="blood-hint" text="Кровь орка — валюта улучшений" class="upgrade-bloodbar__hint" />
+                    </ui:VisualElement>
+                    <ui:Label name="summary" text="" class="upgrade-summary" />
+                    <ui:ScrollView name="stats-list" class="upgrade-list" mode="Vertical" horizontal-scroller-visibility="Hidden" />
+                </ui:VisualElement>
+                <ui:VisualElement name="btn-close-x" class="doska-close doska-close--wide" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </appui:Panel>
+</UXML>

@@ -73,6 +73,7 @@ public sealed class AltarInteraction : MonoBehaviour
         isActivated = true;
         if (sr != null) sr.color = Color.white;
 
+        AudioHooks.Bridge?.PlayAltar(altarElement);
         OnAltarActivated?.Invoke(this);
         QuestManager.Instance.ReportAltarActivated(AltarId, altarElement);
     }

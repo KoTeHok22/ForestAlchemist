@@ -12,7 +12,6 @@ using Toggle = Unity.AppUI.UI.Toggle;
 public sealed class SettingsPanelController
 {
     private readonly IMenuSettingsApplier settingsApplier;
-    private readonly IMenuAccountService accountService;
 
     private Dropdown resolution;
     private Dropdown quality;
@@ -24,10 +23,13 @@ public sealed class SettingsPanelController
 
     private bool isApplyingSettings;
 
+    /// <param name="accountService">
+    /// Unused — settings are now machine-wide (see <see cref="GlobalSettingsStore"/>).
+    /// Kept in the signature so existing call sites need not change.
+    /// </param>
     public SettingsPanelController(VisualElement root, IMenuSettingsApplier applier, IMenuAccountService accountService)
     {
         this.settingsApplier = applier;
-        this.accountService = accountService;
 
         CacheElements(root);
         PopulateDropdowns();
@@ -51,16 +53,18 @@ public sealed class SettingsPanelController
         {
             resolution.sourceItems = new List<string>
             {
-                "1920x1080",
+                "1280x720",
                 "1600x900",
-                "1280x720"
+                "1920x1080",
+                "2560x1440",
+                "3840x2160"
             };
             resolution.bindItem = (item, i) => item.label = (string)resolution.sourceItems[i];
         }
 
         if (quality != null)
         {
-            quality.sourceItems = new List<string> { "Низкое", "Среднее", "Высокое" };
+            quality.sourceItems = new List<string> { "Низкое", "Среднее", "Высокое", "Очень высокое" };
             quality.bindItem = (item, i) => item.label = (string)quality.sourceItems[i];
         }
     }
@@ -72,17 +76,31 @@ public sealed class SettingsPanelController
         windowed?.RegisterValueChangedCallback(_ => OnChanged());
         musicEnabled?.RegisterValueChangedCallback(_ => OnChanged());
         sfxEnabled?.RegisterValueChangedCallback(_ => OnChanged());
-        musicVolume?.RegisterValueChangedCallback(_ => OnChanged());
-        sfxVolume?.RegisterValueChangedCallback(_ => OnChanged());
+        BindLiveVolumeSlider(musicVolume);
+        BindLiveVolumeSlider(sfxVolume);
     }
 
-    /// <summary>Push the currently saved settings into the controls (no callbacks).</summary>
+    private void BindLiveVolumeSlider(SliderFloat slider)
+    {
+        if (slider == null)
+        {
+            return;
+        }
+
+        slider.RegisterCallback<ChangingEvent<float>>(_ => ApplyLivePreview());
+        slider.RegisterValueChangedCallback(_ => OnChanged());
+
+        VisualElement innerSlider = slider.Q(className: "unity-base-slider");
+        if (innerSlider != null)
+        {
+            innerSlider.RegisterCallback<ChangeEvent<float>>(_ => ApplyLivePreview());
+        }
+    }
+
+    /// <summary>Push the currently saved (machine-wide) settings into the controls (no callbacks).</summary>
     public void PushCurrent()
     {
-        MenuSettingsData src = accountService != null && accountService.IsAuthenticated
-            ? accountService.CurrentAccount.settings
-            : MenuSettingsFactory.CreateDefault();
-        PushToControls(src);
+        PushToControls(GlobalSettingsStore.Current);
     }
 
     public void PushToControls(MenuSettingsData settings)
@@ -102,6 +120,16 @@ public sealed class SettingsPanelController
         settingsApplier?.Apply(src);
     }
 
+    private void ApplyLivePreview()
+    {
+        if (isApplyingSettings)
+        {
+            return;
+        }
+
+        settingsApplier?.Apply(CaptureFromUi());
+    }
+
     private void OnChanged()
     {
         if (isApplyingSettings) return;
@@ -109,24 +137,28 @@ public sealed class SettingsPanelController
         MenuSettingsData settings = CaptureFromUi();
         settingsApplier?.Apply(settings);
 
-        if (accountService == null || !accountService.IsAuthenticated) return;
-
-        accountService.CurrentAccount.settings = settings;
-        accountService.Save();
+        // Machine-wide: saved once for every account/player on this PC.
+        GlobalSettingsStore.Save(settings);
     }
 
     private MenuSettingsData CaptureFromUi()
     {
-        MenuSettingsData defaults = MenuSettingsFactory.CreateDefault();
-        return new MenuSettingsData
+        // Base on the stored settings (never CreateDefault here — it resets live
+        // control bindings as a side effect). Override only what this panel edits.
+        MenuSettingsData baseline = GlobalSettingsStore.Current;
+        MenuSettingsData captured = new MenuSettingsData
         {
-            musicVolume             = musicVolume  != null ? musicVolume.value : defaults.musicVolume,
-            sfxVolume               = sfxVolume    != null ? sfxVolume.value   : defaults.sfxVolume,
-            resolutionDropdownIndex = resolution   != null ? resolution.selectedIndex : defaults.resolutionDropdownIndex,
-            qualityDropdownIndex    = quality      != null ? quality.selectedIndex    : defaults.qualityDropdownIndex,
-            musicEnabled            = musicEnabled != null ? musicEnabled.value : defaults.musicEnabled,
-            sfxEnabled              = sfxEnabled   != null ? sfxEnabled.value   : defaults.sfxEnabled,
-            windowedModeEnabled     = windowed     != null ? windowed.value     : defaults.windowedModeEnabled
+            musicVolume             = musicVolume  != null ? musicVolume.value : baseline.musicVolume,
+            sfxVolume               = sfxVolume    != null ? sfxVolume.value   : baseline.sfxVolume,
+            resolutionDropdownIndex = resolution   != null ? resolution.selectedIndex : baseline.resolutionDropdownIndex,
+            qualityDropdownIndex    = quality      != null ? quality.selectedIndex    : baseline.qualityDropdownIndex,
+            musicEnabled            = musicEnabled != null ? musicEnabled.value : baseline.musicEnabled,
+            sfxEnabled              = sfxEnabled   != null ? sfxEnabled.value   : baseline.sfxEnabled,
+            windowedModeEnabled     = windowed     != null ? windowed.value     : baseline.windowedModeEnabled
         };
+
+        // This panel has no rebind UI, so preserve the current control bindings.
+        GameControls.WriteTo(captured);
+        return captured;
     }
 }

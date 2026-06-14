@@ -361,6 +361,13 @@ public class PlayerTopDownController : MonoBehaviour
         speedMultiplier = Mathf.Max(0.2f, multiplier);
     }
 
+    public void ConfigureStamina(float newMaxStamina)
+    {
+        maxStamina = Mathf.Max(1f, newMaxStamina);
+        currentStamina = Mathf.Min(currentStamina, maxStamina);
+        UpdateStaminaBar();
+    }
+
     private bool CanAttack()
     {
         return currentStamina >= attackStaminaCost;
@@ -443,27 +450,17 @@ public class PlayerTopDownController : MonoBehaviour
     {
         Vector2 input = Vector2.zero;
 
+        if (GameControls.IsPressed(ControlBindingId.MoveLeft)) input.x -= 1f;
+        if (GameControls.IsPressed(ControlBindingId.MoveRight)) input.x += 1f;
+        if (GameControls.IsPressed(ControlBindingId.MoveDown)) input.y -= 1f;
+        if (GameControls.IsPressed(ControlBindingId.MoveUp)) input.y += 1f;
+
         if (Keyboard.current != null)
         {
-            if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
-            {
-                input.x -= 1f;
-            }
-
-            if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
-            {
-                input.x += 1f;
-            }
-
-            if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)
-            {
-                input.y -= 1f;
-            }
-
-            if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed)
-            {
-                input.y += 1f;
-            }
+            if (Keyboard.current.leftArrowKey.isPressed) input.x -= 1f;
+            if (Keyboard.current.rightArrowKey.isPressed) input.x += 1f;
+            if (Keyboard.current.downArrowKey.isPressed) input.y -= 1f;
+            if (Keyboard.current.upArrowKey.isPressed) input.y += 1f;
         }
 
         return input;
@@ -471,7 +468,7 @@ public class PlayerTopDownController : MonoBehaviour
 
     private bool IsRunPressed()
     {
-        return Keyboard.current != null && (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
+        return GameControls.IsPressed(ControlBindingId.Run);
     }
 
     private Vector3 ReadMouseScreenPosition()

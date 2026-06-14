@@ -28,7 +28,22 @@ public sealed class ResourceGatherer : MonoBehaviour
 
     public void Initialize(PlayerInventory inventory)
     {
-        this.inventory = inventory;
+        this.inventory = inventory ?? ExpeditionManager.Instance?.ExpeditionInventory;
+        ExpeditionItemTrace.LogInventory(
+            "ResourceGatherer.Initialize",
+            this.inventory,
+            $"gatherer={GetHashCode()} on={gameObject.name}");
+    }
+
+    private PlayerInventory ResolveInventory()
+    {
+        PlayerInventory current = ExpeditionManager.Instance?.ExpeditionInventory;
+        if (current != null)
+        {
+            inventory = current;
+        }
+
+        return inventory;
     }
 
     public void ConfigureProgressDisplay(GatherProgressDisplay display)
@@ -60,6 +75,8 @@ public sealed class ResourceGatherer : MonoBehaviour
         gatherTimer = 0f;
         isGathering = true;
 
+        AudioHooks.Bridge?.PlayGatherStart();
+
         if (progressDisplay != null)
         {
             progressDisplay.Show();
@@ -87,6 +104,8 @@ public sealed class ResourceGatherer : MonoBehaviour
         gatherTimer = 0f;
         currentInputMode = GatherInputMode.None;
         currentResource = null;
+
+        AudioHooks.Bridge?.PlayGatherCancel();
 
         if (progressDisplay != null)
         {
@@ -148,13 +167,35 @@ public sealed class ResourceGatherer : MonoBehaviour
         }
 
         string gatheredItem = currentResource.ItemName;
+        string resourceName = currentResource.gameObject.name;
+        ExpeditionItemTrace.Log(
+            "Gather.Complete",
+            $"resource={resourceName} item={gatheredItem} gatherer={GetHashCode()} on={gameObject.name}");
+
         currentResource.NotifyGatherCompleted();
         CancelGathering();
 
-        if (inventory != null && !string.IsNullOrEmpty(gatheredItem))
+        if (!string.IsNullOrEmpty(gatheredItem))
         {
-            inventory.AddItem(gatheredItem);
-            QuestManager.Instance.ReportItemCollected(gatheredItem, 1);
+            PlayerInventory pack = ResolveInventory();
+            if (pack == null)
+            {
+                ExpeditionItemTrace.Log(
+                    "Gather.AddItem",
+                    $"FAILED item={gatheredItem}: ExpeditionInventory is NULL (gatherer={GetHashCode()})");
+            }
+            else
+            {
+                ExpeditionItemTrace.LogInventory("Gather.AddItem.Before", pack, $"item={gatheredItem}");
+                pack.AddItem(gatheredItem);
+                ExpeditionItemTrace.LogInventory("Gather.AddItem.After", pack, $"item={gatheredItem}");
+                QuestManager.Instance.ReportItemCollected(gatheredItem, 1);
+                AudioHooks.Bridge?.PlayGatherComplete(gatheredItem);
+            }
+        }
+        else
+        {
+            ExpeditionItemTrace.Log("Gather.Complete", $"resource={resourceName} has empty item id");
         }
     }
 
